@@ -1,6 +1,8 @@
+"use client";
+
 export default function LoginPage() {
   return (
-    <div>
+    <div className="bg-beige border min-h-screen">
       <h1>Login</h1>
       <form>
         <div>

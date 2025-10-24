@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import Navbar from "./components/navbar";
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -67,8 +68,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${ibmPlexMono.className} ${ibmPlexMono.variable} flex`}>
-        {children}
+      <body className={`${ibmPlexMono.className} ${ibmPlexMono.variable}`}>
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
+          <main className="flex-1">{children}</main>
+        </div>
       </body>
     </html>
   );
