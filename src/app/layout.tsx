@@ -67,9 +67,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${ibmPlexMono.className} ${ibmPlexMono.variable} antialiased`}
-      >
+      <body className={`${ibmPlexMono.className} ${ibmPlexMono.variable} flex`}>
         {children}
       </body>
     </html>
