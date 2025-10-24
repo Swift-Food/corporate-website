@@ -239,21 +239,39 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div>
-                <label
-                  htmlFor="signup-name"
-                  className="block text-sm font-medium text-neutral mb-2"
-                >
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  id="signup-name"
-                  name="name"
-                  className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
-                  placeholder="John Doe"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="signup-first-name"
+                    className="block text-sm font-medium text-neutral mb-2"
+                  >
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    id="signup-first-name"
+                    name="first-name"
+                    className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
+                    placeholder="John"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="signup-last-name"
+                    className="block text-sm font-medium text-neutral mb-2"
+                  >
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    id="signup-last-name"
+                    name="last-name"
+                    className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
+                    placeholder="Doe"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
