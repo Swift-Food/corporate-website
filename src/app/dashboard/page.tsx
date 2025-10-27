@@ -5,6 +5,9 @@ import { ProtectedRoute } from '../../../interceptors/auth/protectedRoute';
 import { useAuth } from '../../../interceptors/auth/authContext';
 import { employeesApi } from '@/api/employees';
 import { CorporateUser } from '@/types/user';
+import { jobTitlesApi } from '@/api/jobTitle';
+import { JobTitleModal } from '@/modals/jobTitleModal';
+import { AssignJobTitleModal } from '@/modals/assignJobTitleModal';
 
 export default function DashboardPage() {
   return (
@@ -16,14 +19,25 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const { corporateUser, user, logout, organizationId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'employees'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles'>('overview');
   const [employees, setEmployees] = useState<CorporateUser[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState<CorporateUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [jobTitles, setJobTitles] = useState<any[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedJobTitleForAssign, setSelectedJobTitleForAssign] = useState<any>(null);
+  const [selectedJobTitle, setSelectedJobTitle] = useState<any>(null);
+  const [employeesByJobTitle, setEmployeesByJobTitle] = useState<Record<string, CorporateUser[]>>({});
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (activeTab === 'employees' && organizationId && corporateUser?.id) {
       loadEmployees();
+    } else if (activeTab === 'approvals' && organizationId) {
+      loadPendingApprovals();
+    } else if (activeTab === 'job-titles' && organizationId) {
+      loadJobTitles();
     }
   }, [activeTab, organizationId, corporateUser?.id]);
 
@@ -35,10 +49,87 @@ function DashboardContent() {
     try {
       const data = await employeesApi.getAllEmployees(organizationId, corporateUser.id);
       setEmployees(data);
+      
+      // Group by job title
+      const grouped = data.reduce((acc, emp) => {
+        const titleId = emp.jobTitleName || 'unassigned';
+        if (!acc[titleId]) {
+          acc[titleId] = [];
+        }
+        acc[titleId].push(emp);
+        return acc;
+      }, {} as Record<string, CorporateUser[]>);
+      
+      setEmployeesByJobTitle(grouped);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load employees');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadPendingApprovals = async () => {
+    if (!organizationId) return;
+    
+    setIsLoading(true);
+    setError('');
+    try {
+      const data = await employeesApi.getPendingApprovals(organizationId);
+      setPendingApprovals(data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load pending approvals');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const loadJobTitles = async () => {
+    if (!organizationId) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      const data = await jobTitlesApi.getAll(organizationId);
+      setJobTitles(data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load job titles');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleDeleteJobTitle = async (id: string) => {
+    if (!organizationId) return;
+    if (!confirm('Delete this job title?')) return;
+    try {
+      await jobTitlesApi.delete(organizationId, id);
+      loadJobTitles();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to delete');
+    }
+  };
+
+  const handleApprove = async (employeeId: string) => {
+    if (!corporateUser?.id) return;
+    
+    try {
+      await employeesApi.approveEmployee(employeeId, corporateUser.id);
+      // Reload pending approvals
+      loadPendingApprovals();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to approve employee');
+    }
+  };
+
+  const handleReject = async (employeeId: string) => {
+    if (!corporateUser?.id) return;
+    
+    if (!confirm('Are you sure you want to reject this employee?')) return;
+    
+    try {
+      await employeesApi.rejectEmployee(employeeId, corporateUser.id);
+      // Reload pending approvals
+      loadPendingApprovals();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to reject employee');
     }
   };
 
@@ -114,6 +205,36 @@ function DashboardContent() {
                 {employees.length > 0 && (
                   <span className="ml-2 px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
                     {employees.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('approvals')}
+                className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
+                  activeTab === 'approvals'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                }`}
+              >
+                Pending Approvals
+                {pendingApprovals.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs">
+                    {pendingApprovals.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('job-titles')}
+                className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
+                  activeTab === 'job-titles'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                }`}
+              >
+                Job Titles
+                {jobTitles.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
+                    {jobTitles.length}
                   </span>
                 )}
               </button>
@@ -236,17 +357,161 @@ function DashboardContent() {
           </div>
         )}
 
+
         {/* Employees Tab */}
         {activeTab === 'employees' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+              <div className="p-6 border-b border-slate-200">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-semibold text-slate-900">Team Members</h2>
+                    <p className="text-sm text-slate-500 mt-1">
+                      {employees.length} total employees
+                    </p>
+                  </div>
+                  <button 
+                    onClick={loadEmployees}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div className="m-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-start space-x-3">
+                  <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
+                  <p className="text-slate-500 mt-4">Loading employees...</p>
+                </div>
+              ) : employees.length === 0 ? (
+                <div className="text-center py-16">
+                  <svg className="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <p className="text-slate-600 font-medium">No employees found</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-200">
+                  {Object.entries(employeesByJobTitle).map(([titleId, emps]) => {
+                    const jobTitle = titleId === 'unassigned' 
+                      ? null 
+                      : jobTitles.find(t => t.id === titleId);
+                    
+                    return (
+                      <div key={titleId} className="p-6">
+                        {/* Job Title Header */}
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                              titleId === 'unassigned' 
+                                ? 'bg-slate-100' 
+                                : 'bg-blue-100'
+                            }`}>
+                              <svg className={`w-5 h-5 ${
+                                titleId === 'unassigned' 
+                                  ? 'text-slate-600' 
+                                  : 'text-blue-600'
+                              }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-semibold text-slate-900">
+                                {titleId === 'unassigned' ? 'Unassigned' : titleId || 'Unknown Title'}
+                              </h3>
+                              <p className="text-sm text-slate-500">
+                                {emps.length} {emps.length === 1 ? 'employee' : 'employees'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {jobTitle && (
+                            <div className="flex flex-wrap gap-2 text-xs">
+                              {jobTitle.dailyBudgetLimit && (
+                                <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded">
+                                  Daily: ${jobTitle.dailyBudgetLimit}
+                                </span>
+                              )}
+                              {jobTitle.monthlyBudgetLimit && (
+                                <span className="px-2 py-1 bg-green-50 text-green-700 rounded">
+                                  Monthly: ${jobTitle.monthlyBudgetLimit}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Employees Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {emps.map((emp) => (
+                            <div key={emp.id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                              <div className="flex items-start space-x-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                                  {emp.firstName?.[0]}{emp.lastName?.[0]}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-slate-900 truncate">
+                                    {emp.firstName} {emp.lastName}
+                                  </div>
+                                  <div className="text-xs text-slate-500 truncate">{emp.email}</div>
+                                  {emp.department && (
+                                    <div className="text-xs text-slate-500 mt-1">
+                                      {emp.department}
+                                    </div>
+                                  )}
+                                  <div className="flex items-center space-x-2 mt-2">
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRoleColor(emp.corporateRole)}`}>
+                                      {emp.corporateRole}
+                                    </span>
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(emp.status)}`}>
+                                      {emp.status}
+                                    </span>
+                                  </div>
+                                  <div className="mt-2 pt-2 border-t border-slate-100 text-xs space-y-1">
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-500">Daily:</span>
+                                      <span className="font-medium text-slate-900">${emp.dailyBudgetRemaining?.toFixed(2) || '0.00'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-500">Monthly:</span>
+                                      <span className="font-medium text-slate-900">${emp.monthlyBudgetRemaining?.toFixed(2) || '0.00'}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Approvals Tab */}
+        {activeTab === 'approvals' && (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-200">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-900">Team Members</h2>
-                  <p className="text-sm text-slate-500 mt-1">Manage your organization's employees</p>
+                  <h2 className="text-xl font-semibold text-slate-900">Pending Approvals</h2>
+                  <p className="text-sm text-slate-500 mt-1">Review and approve new employee registrations</p>
                 </div>
                 <button 
-                  onClick={loadEmployees}
+                  onClick={loadPendingApprovals}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                 >
                   Refresh
@@ -266,83 +531,246 @@ function DashboardContent() {
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-16">
                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
-                <p className="text-slate-500 mt-4">Loading employees...</p>
+                <p className="text-slate-500 mt-4">Loading pending approvals...</p>
               </div>
-            ) : employees.length === 0 ? (
+            ) : pendingApprovals.length === 0 ? (
               <div className="text-center py-16">
                 <svg className="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-slate-600 font-medium">No employees found</p>
-                <p className="text-slate-500 text-sm mt-1">Start by adding team members</p>
+                <p className="text-slate-600 font-medium">All caught up!</p>
+                <p className="text-slate-500 text-sm mt-1">No pending approvals at the moment</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Employee</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contact</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Department</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Role</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Budget</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {employees.map((emp) => (
-                      <tr key={emp.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold">
-                              {emp.firstName?.[0]}{emp.lastName?.[0]}
+              <div className="divide-y divide-slate-200">
+                {pendingApprovals.map((emp) => (
+                  <div key={emp.id} className="p-6 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-4 flex-1">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold">
+                          {emp.firstName?.[0]}{emp.lastName?.[0]}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <h3 className="text-lg font-semibold text-slate-900">
+                              {emp.firstName} {emp.lastName}
+                            </h3>
+                            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                              PENDING
+                            </span>
+                          </div>
+                          <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                            <div className="flex items-center space-x-2 text-slate-600">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                              <span>{emp.email}</span>
                             </div>
-                            <div className="ml-4">
-                              <div className="font-medium text-slate-900">
-                                {emp.firstName} {emp.lastName}
+                            {emp.phoneNumber && (
+                              <div className="flex items-center space-x-2 text-slate-600">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                <span>{emp.phoneNumber}</span>
                               </div>
-                              <div className="text-xs text-slate-500">{emp.employeeCode}</div>
-                            </div>
+                            )}
+                            {emp.department && (
+                              <div className="flex items-center space-x-2 text-slate-600">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                <span>{emp.department}</span>
+                              </div>
+                            )}
+                            {emp.employeeCode && (
+                              <div className="flex items-center space-x-2 text-slate-600">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                                <span>{emp.employeeCode}</span>
+                              </div>
+                            )}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">{emp.email}</div>
-                          {emp.phoneNumber && (
-                            <div className="text-xs text-slate-500">{emp.phoneNumber}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                          {emp.department || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getRoleColor(emp.corporateRole)}`}>
-                            {emp.corporateRole}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(emp.status)}`}>
-                            {emp.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <div className="text-xs space-y-1">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-slate-500 w-16">Daily:</span>
-                              <span className="font-medium text-slate-900">${emp.dailyBudgetRemaining?.toFixed(2) || '0.00'}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-slate-500 w-16">Monthly:</span>
-                              <span className="font-medium text-slate-900">${emp.monthlyBudgetRemaining?.toFixed(2) || '0.00'}</span>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </div>
+                      <div className="flex space-x-3 ml-4">
+                        <button
+                          onClick={() => handleApprove(emp.id)}
+                          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center space-x-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Approve</span>
+                        </button>
+                        <button
+                          onClick={() => handleReject(emp.id)}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm flex items-center space-x-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          <span>Reject</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
+        )}
+
+        {/* Job Titles Tab */}
+        {activeTab === 'job-titles' && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div className="p-6 border-b border-slate-200">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Job Titles</h2>
+                  <p className="text-sm text-slate-500 mt-1">Create and manage job titles with budget rules</p>
+                </div>
+                <div className="flex space-x-3">
+                  <button 
+                    onClick={loadJobTitles}
+                    className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm"
+                  >
+                    Refresh
+                  </button>
+                  <button 
+                    onClick={() => { setSelectedJobTitle(null); setShowCreateModal(true); }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                  >
+                    + Create Job Title
+                  </button>
+                  
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <div className="m-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
+                <p className="text-slate-500 mt-4">Loading job titles...</p>
+              </div>
+            ) : jobTitles.length === 0 ? (
+              <div className="text-center py-16">
+                <svg className="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <p className="text-slate-600 font-medium">No job titles yet</p>
+                <p className="text-slate-500 text-sm mt-1">Create your first job title to get started</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                {jobTitles.map((title) => (
+                  <div key={title.id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-semibold text-slate-900">{title.name}</h3>
+                        {title.employeeCount !== undefined && (
+                          <p className="text-xs text-slate-500 mt-1">
+                            {title.employeeCount} {title.employeeCount === 1 ? 'employee' : 'employees'}
+                          </p>
+                        )}
+                      </div>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        title.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {title.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    
+
+                    {title.description && (
+                      <p className="text-sm text-slate-600 mb-3">{title.description}</p>
+                    )}
+
+                    <div className="space-y-2 text-xs text-slate-600 mb-4">
+                      {title.dailyBudgetLimit && (
+                        <div className="flex justify-between">
+                          <span>Daily Limit:</span>
+                          <span className="font-medium">${title.dailyBudgetLimit}</span>
+                        </div>
+                      )}
+                      {title.monthlyBudgetLimit && (
+                        <div className="flex justify-between">
+                          <span>Monthly Limit:</span>
+                          <span className="font-medium">${title.monthlyBudgetLimit}</span>
+                        </div>
+                      )}
+                      {title.maxOrderValue && (
+                        <div className="flex justify-between">
+                          <span>Max Order:</span>
+                          <span className="font-medium">${title.maxOrderValue}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span>Can Order:</span>
+                        <span className="font-medium">{title.canOrder ? 'Yes' : 'No'}</span>
+                      </div>
+                      {title.requiresApproval && title.approvalThreshold && (
+                        <div className="flex justify-between">
+                          <span>Approval Threshold:</span>
+                          <span className="font-medium">${title.approvalThreshold}</span>
+                        </div>
+                      )}
+                      
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => { setSelectedJobTitle(title); setShowCreateModal(true); }}
+                        className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => { setSelectedJobTitleForAssign(title); setShowAssignModal(true); }}
+                        className="flex-1 px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
+                      >
+                        Assign
+                      </button>
+                      <button
+                        onClick={() => handleDeleteJobTitle(title.id)}
+                        className="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Modal */}
+        {showCreateModal && (
+          <JobTitleModal
+            isOpen={showCreateModal}
+            onClose={() => { setShowCreateModal(false); setSelectedJobTitle(null); }}
+            onSuccess={loadJobTitles}
+            organizationId={organizationId || ''}
+            jobTitle={selectedJobTitle}
+          />
+        )}
+        {/* Assignment Modal */}
+        {showAssignModal && selectedJobTitleForAssign && (
+          <AssignJobTitleModal
+            isOpen={showAssignModal}
+            onClose={() => { setShowAssignModal(false); setSelectedJobTitleForAssign(null); }}
+            onSuccess={() => { loadJobTitles(); loadEmployees(); }}
+            organizationId={organizationId || ''}
+            managerId={corporateUser?.id || ''}
+            jobTitle={selectedJobTitleForAssign}
+          />
         )}
       </main>
     </div>

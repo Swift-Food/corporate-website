@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '../../../interceptors/auth/authContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { authApi } from '../../../interceptors/auth';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -12,6 +13,8 @@ export default function LoginPage() {
     email: '',
     password: '',
   });
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -19,25 +22,39 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
+  
     try {
       await login(formData.email, formData.password);
-      // Router push is handled in auth context
     } catch (err: any) {
       console.error('Login error:', err);
       
-      // Handle different error types
-      if (err.response?.status === 401) {
+      if (err.response?.data?.needsVerification) {
+        setNeedsVerification(true);
+        setError('Please verify your email. A verification code has been sent.');
+      } else if (err.response?.status === 401) {
         setError('Invalid email or password');
-      } else if (err.response?.status === 404) {
-        setError('No account found with this email');
-      } else if (err.message === 'You do not have manager access') {
-        setError('You do not have permission to access the manager dashboard');
-      } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
+      } else if (err.response?.status === 403) {
+        setError(err.response?.data?.message || 'Your account is not active');
       } else {
-        setError('Login failed. Please try again.');
+        setError(err.response?.data?.message || 'Login failed');
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+  
+    try {
+      await authApi.verifyCorporateEmail(formData.email, verificationCode);
+      alert('Email verified! Please login again.');
+      setNeedsVerification(false);
+      setVerificationCode('');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Verification failed');
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +71,44 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+      {needsVerification && (
+        <form className="mt-8 space-y-6" onSubmit={handleVerify}>
+          <div>
+            <p className="text-sm text-gray-600 mb-4">
+              We sent a 6-digit code to {formData.email}
+            </p>
+            <label htmlFor="code" className="sr-only">Verification Code</label>
+            <input
+              id="code"
+              name="code"
+              type="text"
+              maxLength={6}
+              required
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-center text-2xl tracking-widest"
+              placeholder="000000"
+              disabled={isLoading}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          >
+            {isLoading ? 'Verifying...' : 'Verify Email'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setNeedsVerification(false)}
+            className="w-full text-sm text-gray-600 hover:text-gray-900"
+          >
+            Back to login
+          </button>
+        </form>
+      )}
+      {!needsVerification && (
+        <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Manager Dashboard
@@ -172,6 +226,8 @@ export default function LoginPage() {
           </div>
         </form>
       </div>
+      )}
+      
     </div>
   );
 }

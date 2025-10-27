@@ -58,7 +58,8 @@ export interface CorporateUser {
   approvedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
-  
+  jobTitleId: string;
+  jobTitleName?: string;
   // Relations
   user?: User;
   email?: string;
@@ -74,6 +75,12 @@ export interface LoginDto {
 
 export interface LoginResponse {
   access_token: string;
+}
+
+export interface LoginErrorResponse {
+  needsVerification?: boolean;
+  message: string;
+  email?: string;
 }
 
 export interface RegisterCorporateUserDto {
