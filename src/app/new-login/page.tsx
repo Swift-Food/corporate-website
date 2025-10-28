@@ -25,7 +25,7 @@ export default function LoginPage() {
 
       {/* Right side - Forms Container */}
       <div className="w-full lg:w-1/2 bg-base-100 relative overflow-hidden">
-        <div className="h-full overflow-y-auto overflow-x-hidden px-8 py-12">
+        <div className="h-full overflow-y-auto overflow-x-hidden px-8 py-8">
           <div className="w-full max-w-md mx-auto relative min-h-full flex items-center">
             {/* Login Form */}
             <div
@@ -36,24 +36,58 @@ export default function LoginPage() {
               }`}
             >
               {/* Logo/Brand */}
-              <div className="text-center mb-8">
+              <div className="text-center mb-6">
                 <Image
                   src="/favicon.png"
                   alt="Swift Food Logo"
-                  width={80}
-                  height={80}
-                  className="mx-auto mb-4"
+                  width={60}
+                  height={60}
+                  className="mx-auto mb-3"
                 />
-                <h1 className="text-3xl font-bold text-neutral mb-2">
+                <h1 className="text-2xl font-bold text-neutral mb-1">
                   Welcome Back
                 </h1>
-                <p className="text-base-content/70">
+                <p className="text-sm text-base-content/70">
                   Sign in to your Swift Food account
                 </p>
               </div>
 
               {/* Login Form */}
-              <form className="space-y-6">
+              <form className="space-y-4">
+                {/* Account Type Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-neutral mb-2">
+                    Account Type
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setAccountType("manager")}
+                      className={`px-4 py-2.5 rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
+                        accountType === "manager"
+                          ? "border-primary bg-primary/10"
+                          : "border-base-300 hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="text-lg">👔</span>
+                      <span className="font-medium text-sm">Manager</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setAccountType("employee")}
+                      className={`px-4 py-2.5 rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
+                        accountType === "employee"
+                          ? "border-primary bg-primary/10"
+                          : "border-base-300 hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="text-lg">👤</span>
+                      <span className="font-medium text-sm">Employee</span>
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <label
                     htmlFor="email"
@@ -65,7 +99,7 @@ export default function LoginPage() {
                     type="email"
                     id="email"
                     name="email"
-                    className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
+                    className="w-full px-4 py-2.5 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
                     placeholder="you@example.com"
                     required
                   />
@@ -83,7 +117,7 @@ export default function LoginPage() {
                       type={showPassword ? "text" : "password"}
                       id="password"
                       name="password"
-                      className="w-full px-4 py-3 pr-12 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
+                      className="w-full px-4 py-2.5 pr-12 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
                       placeholder="••••••••"
                       required
                     />
@@ -152,17 +186,20 @@ export default function LoginPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-content font-semibold py-3 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-content font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
                 >
                   Sign In
                 </button>
               </form>
 
               {/* Sign up link */}
-              <p className="text-center mt-6 text-sm text-base-content/70">
+              <p className="text-center mt-4 text-sm text-base-content/70">
                 Don&apos;t have an account?{" "}
                 <button
-                  onClick={() => setIsSignUp(true)}
+                  onClick={() => {
+                    setIsSignUp(true);
+                    setAccountType(null);
+                  }}
                   className="text-primary hover:text-primary/80 font-medium"
                 >
                   Sign up
