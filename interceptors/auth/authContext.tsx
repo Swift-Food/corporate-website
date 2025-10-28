@@ -1,8 +1,14 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { authApi } from '../auth';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import { useRouter } from "next/navigation";
+import { authApi } from "../auth";
 import {
   User,
   CorporateUser,
@@ -10,7 +16,7 @@ import {
   JWTPayload,
   CorporateUserRole,
   UserRole,
-} from '../../src/types/user'
+} from "../../src/types/user";
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -36,8 +42,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
-        
+        const token = localStorage.getItem("auth_token");
+
         if (!token) {
           setState((prev) => ({ ...prev, isLoading: false }));
           return;
@@ -45,19 +51,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Decode token to get user info
         const payload: JWTPayload = authApi.decodeToken(token);
-        
+
         if (!payload || !payload.sub) {
-          throw new Error('Invalid token');
+          throw new Error("Invalid token");
         }
 
         // Check if token is expired
         if (payload.exp && payload.exp * 1000 < Date.now()) {
-          throw new Error('Token expired');
+          throw new Error("Token expired");
         }
 
         // Verify role is corporate employee
         if (payload.role !== UserRole.CORPORATE_EMPLOYEE) {
-          throw new Error('Invalid user role');
+          throw new Error("Invalid user role");
         }
 
         const user: User = {
@@ -80,10 +86,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isAuthenticated: true,
         });
       } catch (error) {
-        console.error('Auth initialization failed:', error);
+        console.error("Auth initialization failed:", error);
         // Clear invalid auth data
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_data');
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("user_data");
         setState({
           user: null,
           corporateUser: null,
@@ -97,56 +103,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    try {
-      // Call login API
-      const { access_token } = await authApi.login(email, password);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      try {
+        // Call login API
+        const { access_token } = await authApi.login(email, password);
 
-      // Save token
-      localStorage.setItem('auth_token', access_token);
+        // Save token
+        localStorage.setItem("auth_token", access_token);
 
-      // Decode token
-      const payload: JWTPayload = authApi.decodeToken(access_token);
+        // Decode token
+        const payload: JWTPayload = authApi.decodeToken(access_token);
 
-      const user: User = {
-        id: payload.sub,
-        email: payload.email,
-        role: payload.role,
-        verified: payload.verified,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+        const user: User = {
+          id: payload.sub,
+          email: payload.email,
+          role: payload.role,
+          verified: payload.verified,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
 
-      // Fetch corporate user profile
-      const corporateUser = await authApi.getCorporateProfile(email);
+        // Fetch corporate user profile
+        const corporateUser = await authApi.getCorporateProfile(email);
 
-      setState({
-        user,
-        corporateUser,
-        token: access_token,
-        isLoading: false,
-        isAuthenticated: true,
-      });
+        setState({
+          user,
+          corporateUser,
+          token: access_token,
+          isLoading: false,
+          isAuthenticated: true,
+        });
 
-      // Redirect based on role
-      if (
-        corporateUser.corporateRole === CorporateUserRole.MANAGER ||
-        corporateUser.corporateRole === CorporateUserRole.ADMIN
-      ) {
-        router.push('/dashboard');
-      } else {
-        // Regular employees can't access manager dashboard
-        throw new Error('You do not have manager access');
+        // Redirect based on role
+        if (
+          corporateUser.corporateRole === CorporateUserRole.MANAGER ||
+          corporateUser.corporateRole === CorporateUserRole.ADMIN
+        ) {
+          router.push("/dashboard");
+        } else {
+          // Regular employees can't access manager dashboard
+          throw new Error("You do not have manager access");
+        }
+      } catch (error) {
+        console.error("Login failed:", error);
+        throw error;
       }
-    } catch (error: any) {
-      console.error('Login failed:', error);
-      throw error;
-    }
-  }, [router]);
+    },
+    [router]
+  );
 
   const logout = useCallback(() => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_data');
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_data");
     setState({
       user: null,
       corporateUser: null,
@@ -154,7 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading: false,
       isAuthenticated: false,
     });
-    router.push('/login');
+    router.push("/login");
   }, [router]);
 
   const value: AuthContextType = {
@@ -174,7 +183,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
