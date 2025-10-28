@@ -9,6 +9,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+        router.push('/dashboard');
     if (!isLoading) {
       if (isAuthenticated) {
         router.push('/dashboard');
