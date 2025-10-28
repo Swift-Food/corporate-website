@@ -25,7 +25,7 @@ export default function LoginPage() {
 
       {/* Right side - Forms Container */}
       <div className="w-full lg:w-1/2 bg-base-100 relative overflow-hidden">
-        <div className="h-full overflow-y-auto px-8 py-12">
+        <div className="h-full overflow-y-auto overflow-x-hidden px-8 py-12">
           <div className="w-full max-w-md mx-auto relative min-h-full flex items-center">
             {/* Login Form */}
             <div
