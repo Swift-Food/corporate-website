@@ -4,6 +4,7 @@ export enum UserRole {
   RESTAURANT_USER = 'RESTAURANT_USER',
   CORPORATE_EMPLOYEE =  'corporate_employee',
   ADMIN = 'admin',
+  
 }
 
 // Corporate User Roles

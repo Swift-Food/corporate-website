@@ -1,0 +1,35 @@
+@font-face {
+  font-family: 'Mont';
+  src: url('/fonts/Mont-HeavyDEMO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.montFont {
+  font-family: 'Mont', Arial, sans-serif;
+}
+
+/* Sliding logo ticker (hover on .group triggers the slide) */
+.logoTicker {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: middle;
+  line-height: 1; /* 1em height that follows current font-size */
+  height: 1em;
+}
+
+.logoTrack {
+  display: block;
+  transition: transform 480ms cubic-bezier(.2,.9,.2,1);
+  transform: translateY(0%);
+  will-change: transform;
+}
+
+.logoTrack span {
+  display: block;
+}
+
+/* When the ancestor has the Tailwind `group` hover, slide the track up by half its height (show second line) */
+:global(.group):hover .logoTrack {
+  transform: translateY(-50%);
+}
