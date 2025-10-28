@@ -9,6 +9,32 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [accountType, setAccountType] = useState<AccountType>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [accountTypeError, setAccountTypeError] = useState(false);
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accountType) {
+      setAccountTypeError(true);
+      return;
+    }
+    // Proceed with login
+    console.log("Login submitted with account type:", accountType);
+  };
+
+  const handleSignUpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accountType) {
+      setAccountTypeError(true);
+      return;
+    }
+    // Proceed with sign up
+    console.log("Sign up submitted with account type:", accountType);
+  };
+
+  const handleAccountTypeSelect = (type: AccountType) => {
+    setAccountType(type);
+    setAccountTypeError(false);
+  };
 
   return (
     <div className="h-screen flex overflow-hidden">
@@ -48,12 +74,12 @@ export default function LoginPage() {
                   Welcome Back
                 </h1>
                 <p className="text-sm text-base-content/70">
-                  Sign in to your Swift Food account
+                  Sign in to your corporate Swift Food account
                 </p>
               </div>
 
               {/* Login Form */}
-              <form className="space-y-4">
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
                 {/* Account Type Selection */}
                 <div>
                   <label className="block text-sm font-medium text-neutral mb-2">
@@ -62,10 +88,12 @@ export default function LoginPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setAccountType("manager")}
+                      onClick={() => handleAccountTypeSelect("manager")}
                       className={`px-4 py-2.5 rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
                         accountType === "manager"
                           ? "border-primary bg-primary/10"
+                          : accountTypeError
+                          ? "border-error hover:border-error/70"
                           : "border-base-300 hover:border-primary/50"
                       }`}
                     >
@@ -75,10 +103,12 @@ export default function LoginPage() {
 
                     <button
                       type="button"
-                      onClick={() => setAccountType("employee")}
+                      onClick={() => handleAccountTypeSelect("employee")}
                       className={`px-4 py-2.5 rounded-lg border-2 transition-all flex items-center justify-center gap-2 ${
                         accountType === "employee"
                           ? "border-primary bg-primary/10"
+                          : accountTypeError
+                          ? "border-error hover:border-error/70"
                           : "border-base-300 hover:border-primary/50"
                       }`}
                     >
@@ -86,6 +116,11 @@ export default function LoginPage() {
                       <span className="font-medium text-sm">Employee</span>
                     </button>
                   </div>
+                  {accountTypeError && (
+                    <p className="text-error text-xs mt-1">
+                      Please select an account type
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -196,9 +231,11 @@ export default function LoginPage() {
               <p className="text-center mt-4 text-sm text-base-content/70">
                 Don&apos;t have an account?{" "}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsSignUp(true);
                     setAccountType(null);
+                    setAccountTypeError(false);
                   }}
                   className="text-primary hover:text-primary/80 font-medium"
                 >
@@ -231,7 +268,7 @@ export default function LoginPage() {
               </div>
 
               {/* Sign Up Form */}
-              <form className="space-y-6">
+              <form onSubmit={handleSignUpSubmit} className="space-y-6">
                 {/* Account Type Selection */}
                 <div>
                   <label className="block text-sm font-medium text-neutral mb-3">
@@ -240,10 +277,12 @@ export default function LoginPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <button
                       type="button"
-                      onClick={() => setAccountType("manager")}
+                      onClick={() => handleAccountTypeSelect("manager")}
                       className={`p-4 rounded-lg border-2 transition-all ${
                         accountType === "manager"
                           ? "border-primary bg-primary/10"
+                          : accountTypeError
+                          ? "border-error hover:border-error/70"
                           : "border-base-300 hover:border-primary/50"
                       }`}
                     >
@@ -260,10 +299,12 @@ export default function LoginPage() {
 
                     <button
                       type="button"
-                      onClick={() => setAccountType("employee")}
+                      onClick={() => handleAccountTypeSelect("employee")}
                       className={`p-4 rounded-lg border-2 transition-all ${
                         accountType === "employee"
                           ? "border-primary bg-primary/10"
+                          : accountTypeError
+                          ? "border-error hover:border-error/70"
                           : "border-base-300 hover:border-primary/50"
                       }`}
                     >
@@ -278,6 +319,11 @@ export default function LoginPage() {
                       </div>
                     </button>
                   </div>
+                  {accountTypeError && (
+                    <p className="text-error text-xs mt-1">
+                      Please select an account type
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -395,12 +441,7 @@ export default function LoginPage() {
 
                 <button
                   type="submit"
-                  disabled={!accountType}
-                  className={`w-full font-semibold py-3 px-4 rounded-lg transition-all shadow-md ${
-                    accountType
-                      ? "bg-primary hover:bg-primary/90 text-primary-content hover:shadow-lg"
-                      : "bg-base-300 text-base-content/50 cursor-not-allowed"
-                  }`}
+                  className="w-full font-semibold py-3 px-4 rounded-lg transition-all shadow-md bg-primary hover:bg-primary/90 text-primary-content hover:shadow-lg"
                 >
                   Create Account
                 </button>
@@ -410,9 +451,11 @@ export default function LoginPage() {
               <p className="text-center mt-6 text-sm text-base-content/70">
                 Already have an account?{" "}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsSignUp(false);
                     setAccountType(null);
+                    setAccountTypeError(false);
                   }}
                   className="text-primary hover:text-primary/80 font-medium"
                 >
