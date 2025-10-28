@@ -1,11 +1,53 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "tailwindcss";
+@plugin "daisyui";
 
+@plugin "daisyui/theme" {
+  name: "Swift";
+  default: true;
+  prefersdark: true;
+
+  /* Primary colors from your palette */
+  --color-primary: #fa43ad; /* Hot Pink */
+  --color-primary-content: #ffffff;
+  
+  /* Secondary colors */
+  --color-secondary: #ffb3e6; /* Light Pink */
+  --color-secondary-content: #282828;
+
+  --color-text-grey: #6A6A6A;
+
+  /* Accent colors */
+  --color-accent: #ffcd5e; /* Yellow/Gold */
+  --color-accent-content: #282828;
+
+  /* Neutral colors */
+  --color-neutral: #282828; /* Dark Gray */
+  --color-neutral-content: #f6f5f3; /* Light Gray */
+
+  /* Base colors */
+  --color-base-100: #f6f5f3; /* Light background */
+  --color-base-200: #efeae0; /* Slightly darker background - beige */
+  --color-base-300: #e5ddd0; /* Border/divider color */
+  --color-base-content: #282828; /* Dark text */
+
+  /* Status colors */
+  --color-info: #94daf0; /* Light blue (your existing) */
+  --color-success: #4ade80; /* Green */
+  --color-warning: #ffcd5e; /* Yellow */
+  --color-error: #f87171; /* Red */
+}
+
+/* Additional custom color classes for direct use */
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  --dark-pink: #FA43AD;
+  --hot-pink: #FFB3E6;
+  --beige: #EFEAE0;
 }
 
 body {
