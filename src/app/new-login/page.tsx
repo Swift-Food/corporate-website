@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="min-h-screen flex overflow-hidden">
+    <div className="h-screen flex overflow-hidden">
       {/* Left side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-base-200 h-screen">
         <Image
