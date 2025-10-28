@@ -2,33 +2,129 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useAuth } from "../../../interceptors/auth/authContext";
+import { useRouter } from "next/navigation";
+import { authApi } from "../../../interceptors/auth";
 
 type AccountType = "manager" | "employee" | null;
 
 export default function LoginPage() {
+  const { login } = useAuth();
+  const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
   const [accountType, setAccountType] = useState<AccountType>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [accountTypeError, setAccountTypeError] = useState(false);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  // Login form state
+  const [loginData, setLoginData] = useState({
+    email: "",
+    password: "",
+  });
+
+  // Signup form state
+  const [signupData, setSignupData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accountType) {
       setAccountTypeError(true);
       return;
     }
-    // Proceed with login
-    console.log("Login submitted with account type:", accountType);
+
+    setError("");
+    setIsLoading(true);
+
+    try {
+      await login(loginData.email, loginData.password);
+      // Redirect based on account type
+      if (accountType === "manager") {
+        router.push("/dashboard");
+      } else {
+        router.push("/employee-dashboard");
+      }
+    } catch (err: any) {
+      console.error("Login error:", err);
+
+      if (err.response?.data?.needsVerification) {
+        setNeedsVerification(true);
+        setError("Please verify your email. A verification code has been sent.");
+      } else if (err.response?.status === 401) {
+        setError("Invalid email or password");
+      } else if (err.response?.status === 403) {
+        setError(err.response?.data?.message || "Your account is not active");
+      } else {
+        setError(err.response?.data?.message || "Login failed");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSignUpSubmit = (e: React.FormEvent) => {
+  const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accountType) {
       setAccountTypeError(true);
       return;
     }
-    // Proceed with sign up
-    console.log("Sign up submitted with account type:", accountType);
+
+    setError("");
+    setIsLoading(true);
+
+    try {
+      // Call register API
+      await authApi.register({
+        firstName: signupData.firstName,
+        lastName: signupData.lastName,
+        email: signupData.email,
+        password: signupData.password,
+        role: accountType,
+      });
+
+      setNeedsVerification(true);
+      setError("Account created! Please check your email for verification code.");
+    } catch (err: any) {
+      console.error("Signup error:", err);
+      setError(err.response?.data?.message || "Registration failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const email = isSignUp ? signupData.email : loginData.email;
+      await authApi.verifyCorporateEmail(email, verificationCode);
+      setNeedsVerification(false);
+      setVerificationCode("");
+      setError("");
+
+      if (isSignUp) {
+        // Switch to login view after successful verification
+        setIsSignUp(false);
+        alert("Email verified! Please sign in.");
+      } else {
+        alert("Email verified! Please login again.");
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Verification failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleAccountTypeSelect = (type: AccountType) => {
@@ -36,8 +132,73 @@ export default function LoginPage() {
     setAccountTypeError(false);
   };
 
+  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLoginData({
+      ...loginData,
+      [e.target.name]: e.target.value,
+    });
+    if (error) setError("");
+  };
+
+  const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSignupData({
+      ...signupData,
+      [e.target.name]: e.target.value,
+    });
+    if (error) setError("");
+  };
+
   return (
     <div className="h-screen flex overflow-hidden">
+      {/* Verification Modal */}
+      {needsVerification && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold text-neutral mb-4">
+              Verify Your Email
+            </h2>
+            <p className="text-sm text-base-content/70 mb-6">
+              We sent a 6-digit code to{" "}
+              {isSignUp ? signupData.email : loginData.email}
+            </p>
+            <form onSubmit={handleVerify} className="space-y-4">
+              <input
+                type="text"
+                maxLength={6}
+                required
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white text-center text-2xl tracking-widest"
+                placeholder="000000"
+                disabled={isLoading}
+              />
+              {error && (
+                <div className="bg-error/10 border border-error/20 text-error text-sm p-3 rounded-lg">
+                  {error}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-content font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isLoading ? "Verifying..." : "Verify Email"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNeedsVerification(false);
+                  setError("");
+                }}
+                className="w-full text-sm text-base-content/70 hover:text-base-content"
+              >
+                Back to {isSignUp ? "sign up" : "login"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Left side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-base-200 h-screen">
         <Image
@@ -134,8 +295,11 @@ export default function LoginPage() {
                     type="email"
                     id="email"
                     name="email"
+                    value={loginData.email}
+                    onChange={handleLoginChange}
                     className="w-full px-4 py-2.5 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
                     placeholder="you@example.com"
+                    disabled={isLoading}
                     required
                   />
                 </div>
@@ -152,8 +316,11 @@ export default function LoginPage() {
                       type={showPassword ? "text" : "password"}
                       id="password"
                       name="password"
+                      value={loginData.password}
+                      onChange={handleLoginChange}
                       className="w-full px-4 py-2.5 pr-12 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
                       placeholder="••••••••"
+                      disabled={isLoading}
                       required
                     />
                     <button
@@ -219,11 +386,44 @@ export default function LoginPage() {
                   </a>
                 </div>
 
+                {error && !needsVerification && (
+                  <div className="bg-error/10 border border-error/20 text-error text-sm p-3 rounded-lg">
+                    {error}
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-content font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                  disabled={isLoading}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-content font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Sign In
+                  {isLoading ? (
+                    <span className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Signing in...
+                    </span>
+                  ) : (
+                    "Sign In"
+                  )}
                 </button>
               </form>
 
@@ -236,6 +436,7 @@ export default function LoginPage() {
                     setIsSignUp(true);
                     setAccountType(null);
                     setAccountTypeError(false);
+                    setError("");
                   }}
                   className="text-primary hover:text-primary/80 font-medium"
                 >
@@ -337,9 +538,12 @@ export default function LoginPage() {
                     <input
                       type="text"
                       id="signup-first-name"
-                      name="first-name"
+                      name="firstName"
+                      value={signupData.firstName}
+                      onChange={handleSignupChange}
                       className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
                       placeholder="John"
+                      disabled={isLoading}
                       required
                     />
                   </div>
@@ -353,9 +557,12 @@ export default function LoginPage() {
                     <input
                       type="text"
                       id="signup-last-name"
-                      name="last-name"
+                      name="lastName"
+                      value={signupData.lastName}
+                      onChange={handleSignupChange}
                       className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
                       placeholder="Doe"
+                      disabled={isLoading}
                       required
                     />
                   </div>
@@ -372,8 +579,11 @@ export default function LoginPage() {
                     type="email"
                     id="signup-email"
                     name="email"
+                    value={signupData.email}
+                    onChange={handleSignupChange}
                     className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
                     placeholder="you@example.com"
+                    disabled={isLoading}
                     required
                   />
                 </div>
@@ -390,8 +600,11 @@ export default function LoginPage() {
                       type={showPassword ? "text" : "password"}
                       id="signup-password"
                       name="password"
+                      value={signupData.password}
+                      onChange={handleSignupChange}
                       className="w-full px-4 py-3 pr-12 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
                       placeholder="••••••••"
+                      disabled={isLoading}
                       required
                     />
                     <button
@@ -439,11 +652,44 @@ export default function LoginPage() {
                   </div>
                 </div>
 
+                {error && !needsVerification && (
+                  <div className="bg-error/10 border border-error/20 text-error text-sm p-3 rounded-lg">
+                    {error}
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full font-semibold py-3 px-4 rounded-lg transition-all shadow-md bg-primary hover:bg-primary/90 text-primary-content hover:shadow-lg"
+                  disabled={isLoading}
+                  className="w-full font-semibold py-3 px-4 rounded-lg transition-all shadow-md bg-primary hover:bg-primary/90 text-primary-content hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create Account
+                  {isLoading ? (
+                    <span className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Creating account...
+                    </span>
+                  ) : (
+                    "Create Account"
+                  )}
                 </button>
               </form>
 
@@ -456,6 +702,7 @@ export default function LoginPage() {
                     setIsSignUp(false);
                     setAccountType(null);
                     setAccountTypeError(false);
+                    setError("");
                   }}
                   className="text-primary hover:text-primary/80 font-medium"
                 >
