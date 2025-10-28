@@ -5,7 +5,7 @@ import Navbar from "./navbar";
 
 export default function ConditionalNavbar() {
   const pathname = usePathname();
-  const isAuthPage = pathname === "/login";
+  const isAuthPage = pathname === "/new-login";
 
   if (isAuthPage) {
     return null;
