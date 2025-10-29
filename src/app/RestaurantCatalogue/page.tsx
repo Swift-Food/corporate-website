@@ -66,17 +66,16 @@ export default function RestaurantCatalogue() {
             </svg>
           </button>
         </div>
-        <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-4 py-3 max-w-2xl">
+        <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1">
           <div className="flex-1 border-r border-gray-200 pr-3">
             <label className="block text-xs font-semibold text-gray-700 mb-1">
               When
             </label>
             <input
-              type="text"
-              placeholder="Add dates"
+              type="date"
               value={when}
               onChange={(e) => setWhen(e.target.value)}
-              className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none"
+              className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer"
             />
           </div>
           <div className="flex-1">
@@ -84,11 +83,10 @@ export default function RestaurantCatalogue() {
               What time
             </label>
             <input
-              type="text"
-              placeholder="Add time"
+              type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none"
+              className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer"
             />
           </div>
         </div>
