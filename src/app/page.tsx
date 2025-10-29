@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../../interceptors/auth/authContext';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../interceptors/auth/authContext";
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-        router.push('/dashboard');
+    router.push("/dashboard");
     if (!isLoading) {
       if (isAuthenticated) {
-        router.push('/dashboard');
+        router.push("/dashboard");
       } else {
-        router.push('/login');
+        router.push("/new-login");
       }
     }
   }, [isAuthenticated, isLoading, router]);
