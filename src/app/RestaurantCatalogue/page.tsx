@@ -8,9 +8,15 @@ export default function RestaurantCatalogue() {
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
   const [when, setWhen] = useState("");
   const [time, setTime] = useState("");
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
 
   useEffect(() => {
     fetchRestaurants();
+
+    // Detect if device is iOS or Android
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMobile = /iphone|ipad|ipod|android/.test(userAgent);
+    setIsMobileDevice(isMobile);
   }, []);
 
   const fetchRestaurants = async () => {
@@ -33,7 +39,11 @@ export default function RestaurantCatalogue() {
     <div className="w-full px-4 py-6 bg-white">
       <div className="mb-8">
         {/* Desktop Layout */}
-        <div className="hidden md:flex items-center justify-center gap-4">
+        <div
+          className={`${
+            isMobileDevice ? "hidden" : "hidden md:flex"
+          } items-center justify-center gap-4`}
+        >
           <div className="flex items-center gap-3 invisible">
             <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
               <svg
@@ -77,7 +87,7 @@ export default function RestaurantCatalogue() {
                 type="date"
                 value={when}
                 onChange={(e) => setWhen(e.target.value)}
-                className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer"
+                className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
               />
             </div>
             <div className="flex-1">
@@ -88,7 +98,7 @@ export default function RestaurantCatalogue() {
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer"
+                className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
               />
             </div>
           </div>
@@ -129,7 +139,7 @@ export default function RestaurantCatalogue() {
         </div>
 
         {/* Mobile Layout */}
-        <div className="md:hidden">
+        <div className={`${isMobileDevice ? "block" : "md:hidden"}`}>
           <div className="bg-white rounded-2xl shadow-lg p-4 space-y-3">
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-2">
@@ -139,7 +149,9 @@ export default function RestaurantCatalogue() {
                 type="date"
                 value={when}
                 onChange={(e) => setWhen(e.target.value)}
-                className="w-full text-sm text-gray-600 border border-gray-200 rounded-lg py-2 focus:outline-none focus:border-gray-400 cursor-pointer"
+                className={`w-full text-sm text-gray-600 border border-gray-200 rounded-lg py-2 focus:outline-none focus:border-gray-400 cursor-pointer ${
+                  !isMobileDevice ? "px-2" : ""
+                }`}
               />
             </div>
             <div>
@@ -150,7 +162,9 @@ export default function RestaurantCatalogue() {
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-full text-sm text-gray-600 border border-gray-200 rounded-lg py-2 focus:outline-none focus:border-gray-400 cursor-pointer"
+                className={`w-full text-sm text-gray-600 border border-gray-200 rounded-lg py-2 focus:outline-none focus:border-gray-400 cursor-pointer ${
+                  !isMobileDevice ? "px-2" : ""
+                }`}
               />
             </div>
             <div className="flex gap-2 pt-2">
