@@ -130,16 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isAuthenticated: true,
         });
 
-        // Redirect based on role
-        if (
-          corporateUser.corporateRole === CorporateUserRole.MANAGER ||
-          corporateUser.corporateRole === CorporateUserRole.ADMIN
-        ) {
-          router.push("/dashboard");
-        } else {
-          // Regular employees can't access manager dashboard
-          throw new Error("You do not have manager access");
-        }
+        // Redirect to restaurant catalogue after successful login
+        router.push("/RestaurantCatalogue");
       } catch (error) {
         console.error("Login failed:", error);
         throw error;
