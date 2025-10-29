@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { Menu } from "@deemlol/next-icons";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../../interceptors/auth/authContext";
 
 import styles from "./navbar.module.css";
 import LoginModal from "./LoginModal";
@@ -10,16 +12,30 @@ import LoginModal from "./LoginModal";
 interface NavbarActionProps {
   onLinkClick?: () => void;
   onLoginClick: () => void;
+  isAuthenticated: boolean;
 }
 
-function NavbarAction({ onLinkClick, onLoginClick }: NavbarActionProps) {
+function NavbarAction({ onLinkClick, onLoginClick, isAuthenticated }: NavbarActionProps) {
+  const router = useRouter();
+
+  const handleManagerClick = () => {
+    if (isAuthenticated) {
+      router.push("/dashboard");
+      if (onLinkClick) onLinkClick();
+    } else {
+      onLoginClick();
+      if (onLinkClick) onLinkClick();
+    }
+  };
+
   return (
     <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
-      <Link href={"/dashboard"} onClick={onLinkClick}>
-        <button className="btn btn-md bg-white hover:bg-gray-50 rounded-md text-black border-1 border-black font-semibold text-base px-6">
-          MANAGER
-        </button>
-      </Link>
+      <button
+        onClick={handleManagerClick}
+        className="btn btn-md bg-white hover:bg-gray-50 rounded-md text-black border-1 border-black font-semibold text-base px-6"
+      >
+        MANAGER
+      </button>
       <button
         onClick={() => {
           onLoginClick();
@@ -35,6 +51,7 @@ function NavbarAction({ onLinkClick, onLoginClick }: NavbarActionProps) {
 
 export default function Navbar() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const closeDrawer = () => {
     const drawerCheckbox = document.getElementById(
@@ -58,7 +75,7 @@ export default function Navbar() {
       <nav className="sticky top-0 left-0 right-0 flex flex-col z-50">
         <div className="flex items-center justify-between px-16 py-4 bg-secondary gap-5 flex-nowrap">
           <div className="invisible max-xl:hidden whitespace-nowrap">
-            <NavbarAction onLoginClick={openLoginModal} />
+            <NavbarAction onLoginClick={openLoginModal} isAuthenticated={isAuthenticated} />
           </div>
           <Link href={"/"} className="cursor-pointer">
             <div className="flex items-center gap-4 cursor-pointer h-full whitespace-nowrap group relative">
@@ -80,7 +97,7 @@ export default function Navbar() {
             </div>
           </Link>
           <div className="visible max-md:hidden whitespace-nowrap">
-            <NavbarAction onLoginClick={openLoginModal} />
+            <NavbarAction onLoginClick={openLoginModal} isAuthenticated={isAuthenticated} />
           </div>
           <div className="drawer w-fit hidden max-md:block">
             <input id="my-drawer" type="checkbox" className="drawer-toggle" />
@@ -100,7 +117,7 @@ export default function Navbar() {
               ></label>
               <div className="h-full bg-white w-[80%]">
                 <div className="px-3 mt-4">{/* <SearchBar /> */}</div>
-                <NavbarAction onLinkClick={closeDrawer} onLoginClick={openLoginModal} />
+                <NavbarAction onLinkClick={closeDrawer} onLoginClick={openLoginModal} isAuthenticated={isAuthenticated} />
               </div>
             </div>
           </div>

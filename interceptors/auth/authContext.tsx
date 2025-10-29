@@ -158,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading: false,
       isAuthenticated: false,
     });
-    router.push("/new-login");
+    router.push("/RestaurantCatalogue");
   }, [router]);
 
   const value: AuthContextType = {
