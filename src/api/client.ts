@@ -31,17 +31,23 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
+    // Only auto-logout on 401 if it's an authentication endpoint
+    // This prevents premature logout on temporary network issues
     if (error.response?.status === 401) {
-      // Clear auth data and redirect to login
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_data');
-      
-      // Only redirect if not already on login page
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      const url = error.config?.url || '';
+
+      // Only clear auth and redirect for auth-related endpoints
+      if (url.includes('/auth/') || url.includes('/corporate-users/email/')) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
+
+        // Only redirect if not already on login page
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
-    
+
     return Promise.reject(error);
   }
 );

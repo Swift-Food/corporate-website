@@ -37,22 +37,13 @@ export default function LoginPage() {
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accountType) {
-      setAccountTypeError(true);
-      return;
-    }
 
     setError("");
     setIsLoading(true);
 
     try {
       await login(loginData.email, loginData.password);
-      // Redirect based on account type
-      if (accountType === "manager") {
-        router.push("/dashboard");
-      } else {
-        router.push("/employee-dashboard");
-      }
+      // The login function in authContext will handle the redirect based on user's actual role
     } catch (err: any) {
       console.error("Login error:", err);
 
@@ -83,12 +74,11 @@ export default function LoginPage() {
 
     try {
       // Call register API
-      await authApi.register({
+      await authApi.registerCorporate({
         firstName: signupData.firstName,
         lastName: signupData.lastName,
         email: signupData.email,
         password: signupData.password,
-        role: accountType,
       });
 
       setNeedsVerification(true);

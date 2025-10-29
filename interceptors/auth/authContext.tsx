@@ -40,16 +40,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize auth state from localStorage
   useEffect(() => {
-    const initAuth = async () => {
+    const initAuth = () => {
       try {
         const token = localStorage.getItem("auth_token");
+        const storedUserData = localStorage.getItem("user_data");
 
-        if (!token) {
+        if (!token || !storedUserData) {
           setState((prev) => ({ ...prev, isLoading: false }));
           return;
         }
 
-        // Decode token to get user info
+        // Parse stored user data
+        const userData = JSON.parse(storedUserData);
+
+        // Decode token to check expiration
         const payload: JWTPayload = authApi.decodeToken(token);
 
         if (!payload || !payload.sub) {
@@ -61,26 +65,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error("Token expired");
         }
 
-        // Verify role is corporate employee
-        if (payload.role !== UserRole.CORPORATE_EMPLOYEE) {
-          throw new Error("Invalid user role");
-        }
-
-        const user: User = {
-          id: payload.sub,
-          email: payload.email,
-          role: payload.role,
-          verified: payload.verified,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        // Fetch corporate user profile
-        const corporateUser = await authApi.getCorporateProfile(payload.email);
-
+        // Restore auth state from localStorage
         setState({
-          user,
-          corporateUser,
+          user: userData.user,
+          corporateUser: userData.corporateUser,
           token,
           isLoading: false,
           isAuthenticated: true,
@@ -109,9 +97,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Call login API
         const { access_token } = await authApi.login(email, password);
 
-        // Save token
-        localStorage.setItem("auth_token", access_token);
-
         // Decode token
         const payload: JWTPayload = authApi.decodeToken(access_token);
 
@@ -126,6 +111,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Fetch corporate user profile
         const corporateUser = await authApi.getCorporateProfile(email);
+
+        // Save token and user data to localStorage
+        localStorage.setItem("auth_token", access_token);
+        localStorage.setItem(
+          "user_data",
+          JSON.stringify({
+            user,
+            corporateUser,
+          })
+        );
 
         setState({
           user,
@@ -163,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading: false,
       isAuthenticated: false,
     });
-    router.push("/login");
+    router.push("/new-login");
   }, [router]);
 
   const value: AuthContextType = {
