@@ -9,12 +9,12 @@ import styles from "./navbar.module.css";
 function NavbarAction({ onLinkClick }: { onLinkClick?: () => void }) {
   return (
     <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
-      <Link href={"/event-order"} onClick={onLinkClick}>
+      <Link href={"/dashboard"} onClick={onLinkClick}>
         <button className="btn btn-md bg-white hover:bg-gray-50 rounded-md text-black border-1 border-black font-semibold text-base px-6">
           MANAGER
         </button>
       </Link>
-      <Link href={"/#aboutus"} onClick={onLinkClick}>
+      <Link href={"/new-login"} onClick={onLinkClick}>
         <button className="btn btn-md bg-primary hover:bg-primary/90 rounded-md text-white border-0 font-semibold text-base px-6">
           LOGIN
         </button>
