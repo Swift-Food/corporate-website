@@ -64,10 +64,6 @@ export default function LoginPage() {
 
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accountType) {
-      setAccountTypeError(true);
-      return;
-    }
 
     setError("");
     setIsLoading(true);
@@ -232,7 +228,7 @@ export default function LoginPage() {
               {/* Login Form */}
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 {/* Account Type Selection */}
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-neutral mb-2">
                     Account Type
                   </label>
@@ -272,7 +268,7 @@ export default function LoginPage() {
                       Please select an account type
                     </p>
                   )}
-                </div>
+                </div> */}
 
                 <div>
                   <label
@@ -461,7 +457,7 @@ export default function LoginPage() {
               {/* Sign Up Form */}
               <form onSubmit={handleSignUpSubmit} className="space-y-6">
                 {/* Account Type Selection */}
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-neutral mb-3">
                     Account Type
                   </label>
@@ -515,7 +511,7 @@ export default function LoginPage() {
                       Please select an account type
                     </p>
                   )}
-                </div>
+                </div> */}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
