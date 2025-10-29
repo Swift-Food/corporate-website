@@ -139,7 +139,7 @@ export default function RestaurantCatalogue() {
                 type="date"
                 value={when}
                 onChange={(e) => setWhen(e.target.value)}
-                className="w-full text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 cursor-pointer"
+                className="w-full text-sm text-gray-600 border border-gray-200 rounded-lg py-2 focus:outline-none focus:border-gray-400 cursor-pointer"
               />
             </div>
             <div>
@@ -150,7 +150,7 @@ export default function RestaurantCatalogue() {
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-full text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 cursor-pointer"
+                className="w-full text-sm text-gray-600 border border-gray-200 rounded-lg py-2 focus:outline-none focus:border-gray-400 cursor-pointer"
               />
             </div>
             <div className="flex gap-2 pt-2">
