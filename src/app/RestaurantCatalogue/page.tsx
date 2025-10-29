@@ -31,98 +31,165 @@ export default function RestaurantCatalogue() {
 
   return (
     <div className="w-full px-4 py-6 bg-white">
-      <div className="flex items-center justify-center gap-4 mb-8">
-        <div className="flex items-center gap-3 max-md:hidden invisible">
-          <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6 text-gray-700"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-              />
-            </svg>
-          </button>
-          <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6 text-gray-700"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-              />
-            </svg>
-          </button>
-        </div>
-        <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1">
-          <div className="flex-1 border-r border-gray-200 pr-3">
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
-              When
-            </label>
-            <input
-              type="date"
-              value={when}
-              onChange={(e) => setWhen(e.target.value)}
-              className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer"
-            />
+      <div className="mb-8">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex items-center justify-center gap-4">
+          <div className="flex items-center gap-3 invisible">
+            <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6 text-gray-700"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                />
+              </svg>
+            </button>
+            <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6 text-gray-700"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                />
+              </svg>
+            </button>
           </div>
-          <div className="flex-1">
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
-              What time
-            </label>
-            <input
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer"
-            />
+          <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1">
+            <div className="flex-1 border-r border-gray-200 pr-3">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                When
+              </label>
+              <input
+                type="date"
+                value={when}
+                onChange={(e) => setWhen(e.target.value)}
+                className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                What time
+              </label>
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6 text-gray-700"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                />
+              </svg>
+            </button>
+            <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6 text-gray-700"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                />
+              </svg>
+            </button>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6 text-gray-700"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+
+        {/* Mobile Layout */}
+        <div className="md:hidden">
+          <div className="bg-white rounded-2xl shadow-lg p-4 space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-2">
+                When
+              </label>
+              <input
+                type="date"
+                value={when}
+                onChange={(e) => setWhen(e.target.value)}
+                className="w-full text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 cursor-pointer"
               />
-            </svg>
-          </button>
-          <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6 text-gray-700"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-2">
+                What time
+              </label>
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 cursor-pointer"
               />
-            </svg>
-          </button>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button className="flex-1 py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center justify-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-gray-700"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-gray-700">Filters</span>
+              </button>
+              <button className="flex-1 py-2 px-4 bg-primary hover:bg-primary/90 rounded-lg transition-colors flex items-center justify-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-white"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-white">Search</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
