@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 export default function RestaurantCatalogue() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
+  const [when, setWhen] = useState("");
+  const [time, setTime] = useState("");
 
   useEffect(() => {
     fetchRestaurants();
@@ -29,6 +31,103 @@ export default function RestaurantCatalogue() {
 
   return (
     <div className="w-full px-4 py-6 bg-white">
+      <div className="flex items-center justify-center gap-4 mb-8">
+        <div className="flex items-center gap-3 max-md:hidden invisible">
+          <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6 text-gray-700"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+              />
+            </svg>
+          </button>
+          <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6 text-gray-700"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+              />
+            </svg>
+          </button>
+        </div>
+        <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-4 py-3 max-w-2xl">
+          <div className="flex-1 border-r border-gray-200 pr-3">
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              When
+            </label>
+            <input
+              type="text"
+              placeholder="Add dates"
+              value={when}
+              onChange={(e) => setWhen(e.target.value)}
+              className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              What time
+            </label>
+            <input
+              type="text"
+              placeholder="Add time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6 text-gray-700"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+              />
+            </svg>
+          </button>
+          <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6 text-gray-700"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
       <h3 className="text-xl md:text-2xl font-semibold mb-6 text-base-content">
         Select Restaurant
       </h3>
