@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from './authContext';
-import { CorporateUserRole } from '@/types/user';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "./authContext";
+import { CorporateUserRole } from "@/types/user";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,13 +22,16 @@ export function ProtectedRoute({
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        router.push('/new-login');
+        router.push("/RestaurantCatalogue");
         return;
       }
 
       // Check role requirements
-      if (requireAdmin && corporateUser?.corporateRole !== CorporateUserRole.ADMIN) {
-        router.push('/unauthorized');
+      if (
+        requireAdmin &&
+        corporateUser?.corporateRole !== CorporateUserRole.ADMIN
+      ) {
+        router.push("/unauthorized");
         return;
       }
 
@@ -37,11 +40,18 @@ export function ProtectedRoute({
         corporateUser?.corporateRole !== CorporateUserRole.MANAGER &&
         corporateUser?.corporateRole !== CorporateUserRole.ADMIN
       ) {
-        router.push('/unauthorized');
+        router.push("/unauthorized");
         return;
       }
     }
-  }, [isLoading, isAuthenticated, corporateUser, requireManager, requireAdmin, router]);
+  }, [
+    isLoading,
+    isAuthenticated,
+    corporateUser,
+    requireManager,
+    requireAdmin,
+    router,
+  ]);
 
   if (isLoading) {
     return (
