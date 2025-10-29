@@ -94,15 +94,15 @@ function NavbarAction({
 
 export default function Navbar() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, logout } = useAuth();
 
-  const closeDrawer = () => {
-    const drawerCheckbox = document.getElementById(
-      "my-drawer"
-    ) as HTMLInputElement;
-    if (drawerCheckbox) {
-      drawerCheckbox.checked = false;
-    }
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   const openLoginModal = () => {
@@ -115,7 +115,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 left-0 right-0 flex flex-col z-50">
+      <nav className="sticky top-0 left-0 right-0 flex flex-col z-50 relative">
         <div className="flex items-center justify-between px-16 py-4 max-lg:px-4 bg-secondary gap-5 flex-nowrap">
           <div className="invisible max-xl:hidden whitespace-nowrap">
             <NavbarAction
@@ -152,32 +152,27 @@ export default function Navbar() {
               isAuthenticated={isAuthenticated}
             />
           </div>
-          <div className="drawer w-fit hidden max-md:block">
-            <input id="my-drawer" type="checkbox" className="drawer-toggle" />
-            <div className="drawer-content">
-              <label
-                className="btn btn-ghost btn-square drawer-button hover:bg-primary/10 border-0"
-                htmlFor="my-drawer"
-              >
-                <Menu size={28} color="var(--color-primary)" />
-              </label>
-            </div>
-            <div className="drawer-side">
-              <label
-                htmlFor="my-drawer"
-                aria-label="close sidebar"
-                className="drawer-overlay"
-              ></label>
-              <div className="h-full bg-white w-[80%]">
-                <div className="px-3 mt-4">{/* <SearchBar /> */}</div>
-                <NavbarAction
-                  onLinkClick={closeDrawer}
-                  onLoginClick={openLoginModal}
-                  onLogout={logout}
-                  isAuthenticated={isAuthenticated}
-                />
-              </div>
-            </div>
+          <button
+            onClick={toggleMenu}
+            className="btn btn-ghost btn-square hover:bg-primary/10 border-0 hidden max-md:flex"
+          >
+            <Menu size={28} color="var(--color-primary)" />
+          </button>
+        </div>
+
+        {/* Mobile Inline Menu */}
+        <div
+          className={`md:hidden bg-gradient-to-b from-secondary to-secondary/95 overflow-hidden transition-all duration-500 ease-in-out ${
+            isMenuOpen ? "max-h-80 py-6" : "max-h-0 py-0"
+          }`}
+        >
+          <div className="px-6">
+            <NavbarAction
+              onLinkClick={closeMenu}
+              onLoginClick={openLoginModal}
+              onLogout={logout}
+              isAuthenticated={isAuthenticated}
+            />
           </div>
         </div>
       </nav>
