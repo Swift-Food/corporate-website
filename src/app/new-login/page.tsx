@@ -49,7 +49,9 @@ export default function LoginPage() {
 
       if (err.response?.data?.needsVerification) {
         setNeedsVerification(true);
-        setError("Please verify your email. A verification code has been sent.");
+        setError(
+          "Please verify your email. A verification code has been sent."
+        );
       } else if (err.response?.status === 401) {
         setError("Invalid email or password");
       } else if (err.response?.status === 403) {
@@ -78,7 +80,9 @@ export default function LoginPage() {
       });
 
       setNeedsVerification(true);
-      setError("Account created! Please check your email for verification code.");
+      setError(
+        "Account created! Please check your email for verification code."
+      );
     } catch (err: any) {
       console.error("Signup error:", err);
       setError(err.response?.data?.message || "Registration failed");
@@ -275,7 +279,7 @@ export default function LoginPage() {
                     htmlFor="email"
                     className="block text-sm font-medium text-neutral mb-2"
                   >
-                    Email Address
+                    Corporate Email Address
                   </label>
                   <input
                     type="email"
@@ -559,7 +563,7 @@ export default function LoginPage() {
                     htmlFor="signup-email"
                     className="block text-sm font-medium text-neutral mb-2"
                   >
-                    Email Address
+                    Corporate Email Address
                   </label>
                   <input
                     type="email"
