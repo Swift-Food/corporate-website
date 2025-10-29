@@ -90,8 +90,7 @@ export default function LoginPage() {
               Verify Your Email
             </h2>
             <p className="text-sm text-base-content/70 mb-6">
-              We sent a 6-digit code to{" "}
-              {loginData.email}
+              We sent a 6-digit code to {loginData.email}
             </p>
             <form onSubmit={handleVerify} className="space-y-4">
               <input
@@ -230,7 +229,7 @@ export default function LoginPage() {
                     value={loginData.email}
                     onChange={handleLoginChange}
                     className="w-full px-4 py-2.5 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
-                    placeholder="you@example.com"
+                    placeholder="you@company.com"
                     disabled={isLoading}
                     required
                   />
