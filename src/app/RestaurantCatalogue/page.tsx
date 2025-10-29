@@ -36,7 +36,7 @@ export default function RestaurantCatalogue() {
   };
 
   return (
-    <div className="w-full px-4 py-6 bg-white">
+    <div className="w-full px-4 py-6 bg-base-100">
       <div className="mb-8">
         {/* Desktop Layout */}
         <div
@@ -221,7 +221,7 @@ export default function RestaurantCatalogue() {
           {restaurants.map((restaurant) => (
             <div
               key={restaurant.id}
-              className="bg-base-200 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 border border-base-300 cursor-pointer"
+              className="rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 border-2 border-base-300 cursor-pointer"
             >
               <div className="relative w-full aspect-[16/9] overflow-hidden">
                 <img
