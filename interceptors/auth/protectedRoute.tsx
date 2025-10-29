@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./authContext";
 import { CorporateUserRole } from "@/types/user";
@@ -18,6 +18,7 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, corporateUser } = useAuth();
   const router = useRouter();
+  const hasShownAlert = useRef(false);
 
   useEffect(() => {
     if (!isLoading) {
@@ -31,7 +32,11 @@ export function ProtectedRoute({
         requireAdmin &&
         corporateUser?.corporateRole !== CorporateUserRole.ADMIN
       ) {
-        router.push("/unauthorized");
+        if (!hasShownAlert.current) {
+          hasShownAlert.current = true;
+          alert("You don't have authorization to access this page. Admin access required.");
+          router.push("/RestaurantCatalogue");
+        }
         return;
       }
 
@@ -40,7 +45,11 @@ export function ProtectedRoute({
         corporateUser?.corporateRole !== CorporateUserRole.MANAGER &&
         corporateUser?.corporateRole !== CorporateUserRole.ADMIN
       ) {
-        router.push("/unauthorized");
+        if (!hasShownAlert.current) {
+          hasShownAlert.current = true;
+          alert("You don't have authorization to access this page. Manager access required.");
+          router.push("/RestaurantCatalogue");
+        }
         return;
       }
     }
@@ -62,6 +71,22 @@ export function ProtectedRoute({
   }
 
   if (!isAuthenticated) {
+    return null;
+  }
+
+  // Check authorization before rendering children
+  if (
+    requireAdmin &&
+    corporateUser?.corporateRole !== CorporateUserRole.ADMIN
+  ) {
+    return null;
+  }
+
+  if (
+    requireManager &&
+    corporateUser?.corporateRole !== CorporateUserRole.MANAGER &&
+    corporateUser?.corporateRole !== CorporateUserRole.ADMIN
+  ) {
     return null;
   }
 
