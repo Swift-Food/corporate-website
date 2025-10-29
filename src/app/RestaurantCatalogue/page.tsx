@@ -41,7 +41,7 @@ export default function RestaurantCatalogue() {
           {restaurants.map((restaurant) => (
             <div
               key={restaurant.id}
-              className="bg-base-200 rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-base-300"
+              className="bg-base-200 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 border border-base-300 cursor-pointer"
             >
               <div className="relative w-full aspect-[16/9] overflow-hidden">
                 <img
