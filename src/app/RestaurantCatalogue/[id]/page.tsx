@@ -16,6 +16,8 @@ export default function RestaurantDetailPage() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [activeGroup, setActiveGroup] = useState<string>("");
   const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const tabContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // Get restaurant data from URL params
@@ -79,6 +81,27 @@ export default function RestaurantDetailPage() {
       setActiveGroup(orderedGroups[0]);
     }
   }, [orderedGroups, activeGroup]);
+
+  // Auto-scroll the active tab into view
+  useEffect(() => {
+    if (activeGroup && tabRefs.current[activeGroup] && tabContainerRef.current) {
+      const activeTab = tabRefs.current[activeGroup];
+      const container = tabContainerRef.current;
+
+      const tabLeft = activeTab.offsetLeft;
+      const tabWidth = activeTab.offsetWidth;
+      const containerWidth = container.offsetWidth;
+      const containerScrollLeft = container.scrollLeft;
+
+      // Calculate the ideal scroll position to center the tab
+      const idealScrollPosition = tabLeft - (containerWidth / 2) + (tabWidth / 2);
+
+      container.scrollTo({
+        left: idealScrollPosition,
+        behavior: "smooth",
+      });
+    }
+  }, [activeGroup]);
 
   // Scroll to section handler
   const scrollToSection = (groupTitle: string) => {
@@ -164,10 +187,14 @@ export default function RestaurantDetailPage() {
       {!loading && orderedGroups.length > 0 && (
         <div className="border-b border-base-300 bg-base-100 sticky top-16 md:top-20 z-40 shadow-sm">
           <div className="px-4 md:px-8">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            <div
+              ref={tabContainerRef}
+              className="flex gap-2 overflow-x-auto scrollbar-hide"
+            >
               {orderedGroups.map((group) => (
                 <button
                   key={group}
+                  ref={(el) => (tabRefs.current[group] = el)}
                   onClick={() => scrollToSection(group)}
                   className={`py-4 px-4 font-medium text-sm md:text-base whitespace-nowrap border-b-2 transition-colors ${
                     activeGroup === group
