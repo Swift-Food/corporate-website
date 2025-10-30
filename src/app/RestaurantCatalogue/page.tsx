@@ -4,6 +4,8 @@ import { restaurantApi } from "@/api/restaurant";
 import { Restaurant } from "@/types/restaurant";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import CartSidebar from "@/components/cart/CartSidebar";
+import MobileCart from "@/components/cart/MobileCart";
 
 export default function RestaurantCatalogue() {
   const router = useRouter();
@@ -40,8 +42,10 @@ export default function RestaurantCatalogue() {
   };
 
   return (
-    <div className="w-full px-4 py-6 bg-base-100">
-      <div className="mb-8">
+    <div className="w-full bg-base-100">
+      <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6">
+        <div className="flex-1 max-w-6xl">
+          <div className="mb-8">
         {/* Desktop Layout */}
         <div
           className={`${
@@ -250,6 +254,14 @@ export default function RestaurantCatalogue() {
           ))}
         </div>
       )}
+        </div>
+
+        {/* Cart Sidebar */}
+        <CartSidebar />
+      </div>
+
+      {/* Mobile Cart */}
+      <MobileCart />
     </div>
   );
 }
