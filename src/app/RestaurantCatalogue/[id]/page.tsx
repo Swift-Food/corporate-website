@@ -4,7 +4,7 @@ import { menuItemApi } from "@/api/menu-items";
 import { CorporateMenuItem } from "@/types/menuItem";
 import { Restaurant } from "@/types/restaurant";
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function RestaurantDetailPage() {
   const params = useParams();
@@ -15,6 +15,7 @@ export default function RestaurantDetailPage() {
   const [loading, setLoading] = useState(true);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [activeGroup, setActiveGroup] = useState<string>("");
+  const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     // Get restaurant data from URL params
@@ -79,6 +80,48 @@ export default function RestaurantDetailPage() {
     }
   }, [orderedGroups, activeGroup]);
 
+  // Scroll to section handler
+  const scrollToSection = (groupTitle: string) => {
+    const element = groupRefs.current[groupTitle];
+    if (element) {
+      const offset = 100; // Offset for sticky header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+      setActiveGroup(groupTitle);
+    }
+  };
+
+  // Intersection Observer to update active tab on scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const groupTitle = entry.target.getAttribute("data-group");
+            if (groupTitle) {
+              setActiveGroup(groupTitle);
+            }
+          }
+        });
+      },
+      {
+        rootMargin: "-100px 0px -50% 0px",
+        threshold: 0,
+      }
+    );
+
+    Object.values(groupRefs.current).forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
+  }, [orderedGroups]);
+
   return (
     <div className="w-full min-h-screen bg-base-100">
       {/* Restaurant Header */}
@@ -125,7 +168,7 @@ export default function RestaurantDetailPage() {
               {orderedGroups.map((group) => (
                 <button
                   key={group}
-                  onClick={() => setActiveGroup(group)}
+                  onClick={() => scrollToSection(group)}
                   className={`py-4 px-4 font-medium text-sm md:text-base whitespace-nowrap border-b-2 transition-colors ${
                     activeGroup === group
                       ? "border-primary text-primary"
@@ -151,14 +194,21 @@ export default function RestaurantDetailPage() {
             No menu items available
           </div>
         ) : (
-          <div className="space-y-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-base-content">
-              {activeGroup}
-            </h2>
+          <div className="space-y-12">
+            {orderedGroups.map((groupTitle) => (
+              <div
+                key={groupTitle}
+                ref={(el) => (groupRefs.current[groupTitle] = el)}
+                data-group={groupTitle}
+                className="scroll-mt-24"
+              >
+                <h2 className="text-2xl md:text-3xl font-bold text-base-content mb-6">
+                  {groupTitle}
+                </h2>
 
-            {/* Menu Items List */}
-            <div className="space-y-4">
-              {groupedMenuItems[activeGroup]?.map((item) => (
+                {/* Menu Items List */}
+                <div className="space-y-4">
+                  {groupedMenuItems[groupTitle]?.map((item) => (
                 <div
                   key={item.id}
                   className="bg-base-100 border border-base-300 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
@@ -293,9 +343,11 @@ export default function RestaurantDetailPage() {
                       )}
                     </div>
                   )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
