@@ -46,6 +46,45 @@ export interface Addon {
   isRequired: boolean;
   selectionType: "single" | "multiple";
 }
+
+export interface ApiMenuItem {
+  id: string;
+  restaurantId: string;
+  restaurant?: { id: string; name?: string } | null;
+
+  name: string;
+  description?: string | null;
+  groupTitle?: string | null;
+  image?: string | null;
+
+  price: string;
+  discountPrice?: string | null;
+  isDiscount: boolean;
+
+  allergens: Allergen[];
+
+  addons?: ApiAddon[] | null;
+
+  style: MenuItemStyle;
+
+  itemDisplayOrder: string | number;
+  prepTime: string | number;
+  averageRating: string | number;
+  popular: boolean;
+  isAvailable: boolean;
+  status: MenuItemStatus;
+
+  cateringQuantityUnit: string | number;
+  feedsPerUnit: string | number;
+
+  maxPortionsPerSession?: string | number | null;
+
+  limitedIngredientsContained?: string[] | null;
+  limitedIngredientsRemaining?: Record<string, number> | null;
+
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
 export interface CorporateMenuItem {
   id: string;
   restaurantId: string;
