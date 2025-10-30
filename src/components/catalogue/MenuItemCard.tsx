@@ -188,8 +188,8 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                     const cartIndex = itemInCart?.cartIndex ?? -1;
                     const quantityInput = quantityInputs[item.id] || "0";
 
-                    // If quantity > 0 and no addons, show quantity controls
-                    if (!hasAddons(item)) {
+                    // If item is in cart (quantity > 0) and no addons, show quantity controls
+                    if (!hasAddons(item) && quantity > 0) {
                       return (
                         <div className="bg-base-200 p-2 rounded-lg border border-[#F0ECE3] flex items-center justify-between min-w-[140px]">
                           <div className="flex items-center gap-2">
