@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { CorporateMenuItem } from "@/types/menuItem";
 import { useCart } from "@/context/CartContext";
@@ -11,10 +11,42 @@ interface MenuItemCardProps {
 
 const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
   ({ groupTitle, groupedMenuItems, index }, ref) => {
-    const cart = useCart();
+    const { cartItems, addToCart, updateCartQuantity } = useCart();
+
+    // Create a map of item quantities from cart
+    const itemQuantities = useMemo(() => {
+      const map: Record<string, { quantity: number; cartIndex: number }> = {};
+      cartItems.forEach((cartItem, idx) => {
+        map[cartItem.item.id] = {
+          quantity: cartItem.quantity,
+          cartIndex: idx,
+        };
+      });
+      return map;
+    }, [cartItems]);
+
+    // Store quantity inputs for each item
+    const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
+
+    // Initialize quantity inputs when cart changes
+    useEffect(() => {
+      const newInputs: Record<string, string> = {};
+      cartItems.forEach((cartItem) => {
+        newInputs[cartItem.item.id] = cartItem.quantity.toString();
+      });
+      setQuantityInputs(newInputs);
+    }, [cartItems]);
 
     const handleAdd = (item: CorporateMenuItem) => {
-      cart.addToCart(item);
+      addToCart(item, 1);
+    };
+
+    const handleUpdateQuantity = (itemId: string, cartIndex: number, newQuantity: number) => {
+      updateCartQuantity(cartIndex, newQuantity);
+    };
+
+    const hasAddons = (item: CorporateMenuItem) => {
+      return item.addons && item.addons.length > 0;
     };
 
     return (
@@ -120,29 +152,135 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                     )}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAdd(item);
-                    }}
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-base-content flex items-center justify-center hover:bg-base-content hover:text-base-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={!item.isAvailable}
-                  >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </button>
+                  {/* Quantity controls or add button */}
+                  {(() => {
+                    const itemInCart = itemQuantities[item.id];
+                    const quantity = itemInCart?.quantity || 0;
+                    const cartIndex = itemInCart?.cartIndex ?? -1;
+                    const quantityInput = quantityInputs[item.id] || "0";
+
+                    // If item has addons, always show just the + button
+                    if (hasAddons(item)) {
+                      return (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAdd(item);
+                          }}
+                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-base-content flex items-center justify-center hover:bg-base-content hover:text-base-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={!item.isAvailable}
+                        >
+                          <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                        </button>
+                      );
+                    }
+
+                    // If quantity > 0 and no addons, show quantity controls
+                    if (quantity > 0) {
+                      return (
+                        <div className="bg-[#F5F1E8] p-2 rounded-lg border border-[#F0ECE3] flex items-center justify-between min-w-[140px]">
+                          <span className="text-sm text-base-content/80 ml-1">
+                            Quantity
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const newQty = Math.max(0, quantity - 1);
+                                handleUpdateQuantity(item.id, cartIndex, newQty);
+                              }}
+                              className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
+                            >
+                              −
+                            </button>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={quantityInput}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                const val = e.target.value;
+                                if (val === "" || /^\d+$/.test(val)) {
+                                  setQuantityInputs((prev) => ({
+                                    ...prev,
+                                    [item.id]: val,
+                                  }));
+                                  if (val !== "" && !isNaN(parseInt(val))) {
+                                    const newQty = Math.max(0, parseInt(val));
+                                    handleUpdateQuantity(item.id, cartIndex, newQty);
+                                  }
+                                }
+                              }}
+                              onBlur={(e) => {
+                                if (
+                                  e.target.value === "" ||
+                                  parseInt(e.target.value) < 1
+                                ) {
+                                  handleUpdateQuantity(item.id, cartIndex, 0);
+                                  setQuantityInputs((prev) => ({
+                                    ...prev,
+                                    [item.id]: "0",
+                                  }));
+                                }
+                              }}
+                              className="w-12 text-center font-medium text-xs md:text-sm text-base-content bg-base-100 border border-base-300 rounded px-1 py-1"
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const newQty = quantity + 1;
+                                handleUpdateQuantity(item.id, cartIndex, newQty);
+                              }}
+                              className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Default: show + button
+                    return (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAdd(item);
+                        }}
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-base-content flex items-center justify-center hover:bg-base-content hover:text-base-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={!item.isAvailable}
+                      >
+                        <svg
+                          className="w-6 h-6"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
+                          />
+                        </svg>
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
 
