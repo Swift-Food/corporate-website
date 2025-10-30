@@ -1,5 +1,6 @@
 "use client";
 
+import { restaurantApi } from "@/api/restaurant";
 import { Restaurant } from "@/types/restaurant";
 import { useEffect, useState } from "react";
 
@@ -22,11 +23,7 @@ export default function RestaurantCatalogue() {
   const fetchRestaurants = async () => {
     setRestaurantsLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/restaurant`
-      );
-      const data = await response.json();
-      console.log("Fetched restaurants: ", data);
+      const data = await restaurantApi.fetchRestaurants();
       setRestaurants(data);
     } catch (error) {
       console.error("Error fetching restaurants:", error);
