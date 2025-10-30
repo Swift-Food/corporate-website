@@ -8,6 +8,8 @@ import { CorporateUser } from '@/types/user';
 import { jobTitlesApi } from '@/api/jobTitle';
 import { JobTitleModal } from '@/modals/jobTitleModal';
 import { AssignJobTitleModal } from '@/modals/assignJobTitleModal';
+import axios from 'axios';
+import apiClient from '@/api/client';
 
 export default function DashboardPage() {
   return (
@@ -19,7 +21,7 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const { corporateUser, user, logout, organizationId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders'>('overview');
   const [employees, setEmployees] = useState<CorporateUser[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<CorporateUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +32,26 @@ function DashboardContent() {
   const [selectedJobTitle, setSelectedJobTitle] = useState<any>(null);
   const [employeesByJobTitle, setEmployeesByJobTitle] = useState<Record<string, CorporateUser[]>>({});
   const [error, setError] = useState('');
+  const [orderCutoffTime, setOrderCutoffTime] = useState('11:00:00');
+  const [isEditingCutoff, setIsEditingCutoff] = useState(false);
+  const [tempCutoffTime, setTempCutoffTime] = useState('11:00:00');
+  const [isSavingCutoff, setIsSavingCutoff] = useState(false);
+  const [todaysOrder, setTodaysOrder] = useState<any>(null);
+  const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedRejectSubOrder, setSelectedRejectSubOrder] = useState<any>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectNotes, setRejectNotes] = useState('');
+
+  const predefinedReasons = [
+    'Budget exceeded',
+    'Invalid items ordered',
+    'Duplicate order',
+    'Outside approved vendors',
+    'Missing approval',
+    'Policy violation',
+    'Other (specify in notes)',
+  ];
 
   useEffect(() => {
     if (activeTab === 'employees' && organizationId && corporateUser?.id) {
@@ -38,6 +60,10 @@ function DashboardContent() {
       loadPendingApprovals();
     } else if (activeTab === 'job-titles' && organizationId) {
       loadJobTitles();
+    } else if (activeTab === 'orders' && organizationId && corporateUser?.id) {
+      loadOrganizationSettings();
+      loadTodaysOrder();
+      
     }
   }, [activeTab, organizationId, corporateUser?.id]);
 
@@ -82,6 +108,7 @@ function DashboardContent() {
       setIsLoading(false);
     }
   };
+
   const loadJobTitles = async () => {
     if (!organizationId) return;
     setIsLoading(true);
@@ -95,6 +122,135 @@ function DashboardContent() {
       setIsLoading(false);
     }
   };
+
+  const loadOrganizationSettings = async () => {
+    if (!organizationId) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      // Replace with your actual API endpoint
+      const response = await apiClient.get(`/organizations/${organizationId}`);
+      const cutoffTime = response.data.orderCutoffTime || '11:00:00';
+      setOrderCutoffTime(cutoffTime);
+      setTempCutoffTime(cutoffTime);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load organization settings');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadTodaysOrder = async () => {
+    console.log("started loading")
+    if (!corporateUser?.id) return;
+    
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await apiClient.get(`/corporate-orders/pending/${corporateUser.id}`);
+      if (response.data) {
+        // Transform the data to match the expected format
+        const order = response.data;
+        const activeSubOrders = order.subOrders?.filter((sub: any) => 
+          sub.status !== 'CANCELLED'
+        ) || [];
+        
+        // Calculate restaurant breakdown
+        const restaurantMap = new Map();
+        activeSubOrders.forEach((sub: any) => {
+          sub.restaurantOrders?.forEach((ro: any) => {
+            if (!restaurantMap.has(ro.restaurantId)) {
+              restaurantMap.set(ro.restaurantId, {
+                restaurantId: ro.restaurantId,
+                name: ro.restaurantName || 'Unknown',
+                employeeCount: 0,
+                totalAmount: 0,
+              });
+            }
+            const rest = restaurantMap.get(ro.restaurantId);
+            rest.employeeCount += 1;
+            rest.totalAmount += Number(ro.totalAmount || 0);
+          });
+        });
+        console.log("the response coming", response.data)
+        
+        setTodaysOrder({
+          hasOrder: true,
+          orderId: order.id,
+          orderDate: order.orderDate,
+          status: order.status,
+          cutoffTime: order.cutoffTime,
+          requestedDeliveryTime: order.requestedDeliveryTime,
+          totalEmployees: activeSubOrders.length,
+          subtotal: Number(order.subtotal),
+          taxAmount: Number(order.taxAmount),
+          deliveryFee: Number(order.deliveryFee),
+          totalAmount: Number(order.totalAmount),
+          requiresApproval: order.requiresApproval,
+          approvedBy: order.approvedBy,
+          approvedAt: order.approvedAt,
+          restaurants: Array.from(restaurantMap.values()),
+          employeeOrders: activeSubOrders.map((sub: any) => ({
+            employeeId: sub.corporateUserId,
+            subOrderId: sub.id,
+            employeeName: `${sub.corporateUser?.firstName || ''} ${sub.corporateUser?.lastName || ''}`.trim(),
+            jobTitle: sub.corporateUser?.jobTitle?.name,
+            totalAmount: Number(sub.totalAmount),
+            restaurantCount: sub.restaurantOrders?.length || 0,
+            status: sub.status,
+            restaurantOrders: sub.restaurantOrders?.map((ro: any) => ({
+              restaurantId: ro.restaurantId,
+              restaurantName: ro.restaurantName || 'Unknown Restaurant',
+              totalAmount: Number(ro.totalAmount || 0),
+              items: ro.items || [],
+            })),
+          })),
+        });
+      } else {
+        setTodaysOrder({ hasOrder: false });
+      }
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        setTodaysOrder({ hasOrder: false });
+      } else {
+        setError(err.response?.data?.message || 'Failed to load today\'s order');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveCutoffTime = async () => {
+    if (!organizationId) return;
+    
+    // Validate time format
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
+    if (!timeRegex.test(tempCutoffTime)) {
+      setError('Invalid time format. Please use HH:MM:SS format (e.g., 11:00:00)');
+      return;
+    }
+
+    setIsSavingCutoff(true);
+    setError('');
+    try {
+      // Replace with your actual API endpoint
+      await apiClient.put(`/organizations/${organizationId}`, {
+        orderCutoffTime: tempCutoffTime,
+      });
+      setOrderCutoffTime(tempCutoffTime);
+      setIsEditingCutoff(false);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update cutoff time');
+    } finally {
+      setIsSavingCutoff(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setTempCutoffTime(orderCutoffTime);
+    setIsEditingCutoff(false);
+    setError('');
+  };
   
   const handleDeleteJobTitle = async (id: string) => {
     if (!organizationId) return;
@@ -107,12 +263,122 @@ function DashboardContent() {
     }
   };
 
+  const handleApproveOrder = async () => {
+    if (!corporateUser?.id || !todaysOrder?.orderId) return;
+    
+    const notes = prompt('Approve this order?\nOptional notes:');
+    if (notes === null) return; // User cancelled
+    
+    try {
+      await apiClient.post(`corporate-orders/${todaysOrder.orderId}/approve`, {
+        managerId: corporateUser.id,
+        notes: notes || undefined,
+      });
+      loadTodaysOrder();
+      alert('Order approved successfully!');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to approve order');
+    }
+  };
+
+  // Add missing handler for rejecting individual sub-order
+  const handleRejectSubOrder = async (subOrderId: string, employeeName: string) => {
+    if (!corporateUser?.id) return;
+    
+    setSelectedRejectSubOrder({ subOrderId, employeeName });
+    setShowRejectModal(true);
+  };
+  
+  // Replace the handleRejectEntireOrder function:
+  const handleRejectEntireOrder = async () => {
+    if (!corporateUser?.id || !todaysOrder?.orderId) return;
+    
+    setSelectedRejectSubOrder(null);
+    setShowRejectModal(true);
+  };
+  
+  // Replace the handleBulkRejectSubOrders function:
+  const handleBulkRejectSubOrders = async (subOrderIds: string[], employeeNames: string[]) => {
+    if (!corporateUser?.id) return;
+    
+    setSelectedRejectSubOrder({ subOrderIds, employeeNames });
+    setShowRejectModal(true);
+  };
+  
+  // Add checkbox state for bulk selection
+  const [selectedSubOrders, setSelectedSubOrders] = useState<Set<string>>(new Set());
+  
+  // Add select all handler
+  const handleSelectAll = () => {
+    if (selectedSubOrders.size === todaysOrder.employeeOrders?.length) {
+      setSelectedSubOrders(new Set());
+    } else {
+      const allIds : Set<string> = new Set(
+        todaysOrder.employeeOrders
+          ?.filter((emp: any) => emp.status !== 'REJECTED')
+          .map((emp: any) => emp.subOrderId) || []
+      );
+      setSelectedSubOrders(allIds);
+    }
+  };
+  const confirmReject = async () => {
+    if (!rejectReason) {
+      alert('Please select a reason');
+      return;
+    }
+  
+    try {
+      if (selectedRejectSubOrder?.subOrderId && !selectedRejectSubOrder?.subOrderIds) {
+        // Single sub-order
+        await apiClient.post(`/corporate-orders/sub-orders/${selectedRejectSubOrder.subOrderId}/reject`, {
+          managerId: corporateUser?.id,
+          reason: rejectReason,
+          notes: rejectNotes || undefined,
+        });
+      } else if (selectedRejectSubOrder?.subOrderIds) {
+        // Bulk reject
+        await apiClient.post(`/corporate-orders/sub-orders/bulk-reject`, {
+          subOrderIds: selectedRejectSubOrder.subOrderIds,
+          managerId: corporateUser?.id,
+          reason: rejectReason,
+          notes: rejectNotes || undefined,
+        });
+      } else {
+        // Entire order
+        await apiClient.post(`/corporate-orders/${todaysOrder.orderId}/reject`, {
+          managerId: corporateUser?.id,
+          reason: rejectReason,
+          notes: rejectNotes || undefined,
+        });
+      }
+      
+      setShowRejectModal(false);
+      setRejectReason('');
+      setRejectNotes('');
+      setSelectedRejectSubOrder(null);
+      loadTodaysOrder();
+      alert('Order rejected successfully!');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to reject order');
+    }
+  };
+  
+  // Add toggle handler
+  const handleToggleSubOrder = (subOrderId: string) => {
+    const newSelected = new Set(selectedSubOrders);
+    if (newSelected.has(subOrderId)) {
+      newSelected.delete(subOrderId);
+    } else {
+      newSelected.add(subOrderId);
+    }
+    setSelectedSubOrders(newSelected);
+  };
+
   const handleApprove = async (employeeId: string) => {
     if (!corporateUser?.id) return;
     
     try {
       await employeesApi.approveEmployee(employeeId, corporateUser.id);
-      // Reload pending approvals
       loadPendingApprovals();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to approve employee');
@@ -126,7 +392,6 @@ function DashboardContent() {
     
     try {
       await employeesApi.rejectEmployee(employeeId, corporateUser.id);
-      // Reload pending approvals
       loadPendingApprovals();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to reject employee');
@@ -150,6 +415,18 @@ function DashboardContent() {
       EMPLOYEE: 'bg-slate-100 text-slate-700',
     };
     return colors[role as keyof typeof colors] || 'bg-slate-100 text-slate-700';
+  };
+
+  const formatTimeDisplay = (time: string) => {
+    try {
+      const [hours, minutes] = time.split(':');
+      const hour = parseInt(hours);
+      const ampm  = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm}`;
+    } catch {
+      return time;
+    }
   };
 
   return (
@@ -237,6 +514,16 @@ function DashboardContent() {
                     {jobTitles.length}
                   </span>
                 )}
+              </button>
+              <button
+                onClick={() => setActiveTab('orders')}
+                className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
+                  activeTab === 'orders'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                }`}
+              >
+                Orders
               </button>
             </nav>
           </div>
@@ -751,6 +1038,411 @@ function DashboardContent() {
           </div>
         )}
 
+        {/* Orders Tab */}
+        {activeTab === 'orders' && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div className="p-6 border-b border-slate-200">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Order Settings</h2>
+                  <p className="text-sm text-slate-500 mt-1">Configure organization-wide order preferences</p>
+                </div>
+                <button 
+                  onClick={loadOrganizationSettings}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="m-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-start space-x-3">
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
+
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
+                <p className="text-slate-500 mt-4">Loading order settings...</p>
+              </div>
+            ) : (
+              <div className="p-6">
+                {/* Order Cutoff Time Card */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-12 h-12 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-slate-900">Daily Order Cutoff Time</h3>
+                        <p className="text-sm text-slate-600 mt-1">
+                          Orders placed after this time will be processed the next business day
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!isEditingCutoff ? (
+                    <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-slate-200">
+                      <div className="flex items-center space-x-4">
+                        <div className="text-3xl font-bold text-blue-600">
+                          {formatTimeDisplay(orderCutoffTime)}
+                        </div>
+                        <div className="text-sm text-slate-500">
+                          ({orderCutoffTime})
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIsEditingCutoff(true)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm flex items-center space-x-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span>Edit</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg p-4 border border-slate-200 space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Cutoff Time (24-hour format: HH:MM:SS)
+                        </label>
+                        <input
+                          type="text"
+                          value={tempCutoffTime}
+                          onChange={(e) => setTempCutoffTime(e.target.value)}
+                          placeholder="11:00:00"
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-slate-500 mt-2">
+                          Examples: 09:00:00, 11:30:00, 14:00:00
+                        </p>
+                      </div>
+                      
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={handleSaveCutoffTime}
+                          disabled={isSavingCutoff}
+                          className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isSavingCutoff ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                              <span>Saving...</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span>Save Changes</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          disabled={isSavingCutoff}
+                          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+
+{todaysOrder?.hasOrder && (
+  <div className="mt-6 space-y-6">
+    {/* Order Summary Card */}
+    <div className="bg-white rounded-xl border border-slate-200 p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-slate-900">Today's Order</h3>
+        <div className="flex items-center space-x-3">
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            todaysOrder.status === 'pending_approval' ? 'bg-amber-100 text-amber-700' :
+            todaysOrder.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+            todaysOrder.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+            'bg-slate-100 text-slate-700'
+          }`}>
+            {todaysOrder.status.replace('_', ' ')}
+          </span>
+          
+          {todaysOrder.status === 'pending_approval' && (
+            <>
+              <button
+                onClick={handleRejectEntireOrder}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>Reject All</span>
+              </button>
+              <button
+                onClick={handleApproveOrder}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Approve Order</span>
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-slate-50 rounded-lg p-4">
+          <p className="text-xs text-slate-500 mb-1">Total Employees</p>
+          <p className="text-2xl font-bold text-slate-900">{todaysOrder.totalEmployees}</p>
+        </div>
+        <div className="bg-blue-50 rounded-lg p-4">
+          <p className="text-xs text-blue-600 mb-1">Subtotal</p>
+          <p className="text-2xl font-bold text-blue-700">${todaysOrder.subtotal.toFixed(2)}</p>
+        </div>
+        <div className="bg-amber-50 rounded-lg p-4">
+          <p className="text-xs text-amber-600 mb-1">Tax + Delivery</p>
+          <p className="text-2xl font-bold text-amber-700">
+            ${(todaysOrder.taxAmount + todaysOrder.deliveryFee).toFixed(2)}
+          </p>
+        </div>
+        <div className="bg-emerald-50 rounded-lg p-4">
+          <p className="text-xs text-emerald-600 mb-1">Total</p>
+          <p className="text-2xl font-bold text-emerald-700">${todaysOrder.totalAmount.toFixed(2)}</p>
+        </div>
+      </div>
+
+      {todaysOrder.restaurants && todaysOrder.restaurants.length > 0 && (
+        <div>
+          <h4 className="text-sm font-semibold text-slate-900 mb-3">Restaurants</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {todaysOrder.restaurants.map((restaurant: any, idx: number) => (
+              <div key={idx} className="flex items-center justify-between bg-slate-50 rounded-lg p-3">
+                <div>
+                  <p className="font-medium text-slate-900">{restaurant.name}</p>
+                  <p className="text-xs text-slate-500">{restaurant.employeeCount} employees</p>
+                </div>
+                <p className="text-sm font-semibold text-slate-900">${restaurant.totalAmount.toFixed(2)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Employee Sub-Orders */}
+    <div className="bg-white rounded-xl border border-slate-200">
+      <div className="p-6 border-b border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Employee Orders</h3>
+            <p className="text-sm text-slate-500 mt-1">
+              {todaysOrder.employeeOrders?.length || 0} employees ordered today
+            </p>
+          </div>
+          {todaysOrder.status === 'pending_approval' && selectedSubOrders.size > 0 && (
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-slate-600">
+                {selectedSubOrders.size} selected
+              </span>
+              <button
+                onClick={() => {
+                  const selected = todaysOrder.employeeOrders?.filter((emp: any) => 
+                    selectedSubOrders.has(emp.subOrderId)
+                  );
+                  handleBulkRejectSubOrders(
+                    Array.from(selectedSubOrders),
+                    selected.map((emp: any) => emp.employeeName)
+                  );
+                }}
+                className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium text-sm"
+              >
+                Reject Selected
+              </button>
+            </div>
+          )}
+        </div>
+        {todaysOrder.status === 'pending_approval' && todaysOrder.employeeOrders?.length > 0 && (
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selectedSubOrders.size === todaysOrder.employeeOrders.filter((emp: any) => emp.status !== 'REJECTED').length}
+              onChange={handleSelectAll}
+              className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="text-sm text-slate-600">Select All</span>
+          </label>
+        )}
+      </div>
+
+      {todaysOrder.employeeOrders && todaysOrder.employeeOrders.length > 0 ? (
+        <div className="divide-y divide-slate-200">
+          {todaysOrder.employeeOrders.map((empOrder: any) => (
+            <div key={empOrder.employeeId}>
+              <div 
+                className="p-4 hover:bg-slate-50 transition-colors cursor-pointer"
+                onClick={() => setExpandedEmployeeId(
+                  expandedEmployeeId === empOrder.employeeId ? null : empOrder.employeeId
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {todaysOrder.status === 'pending_approval' && empOrder.status !== 'REJECTED' && (
+                      <input
+                        type="checkbox"
+                        checked={selectedSubOrders.has(empOrder.subOrderId)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleToggleSubOrder(empOrder.subOrderId);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                    )}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold">
+                      {empOrder.employeeName.split(' ').map((n: string) => n[0]).join('')}
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">{empOrder.employeeName}</p>
+                      {empOrder.jobTitle && (
+                        <p className="text-xs text-slate-500">{empOrder.jobTitle}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-slate-900">${empOrder.totalAmount.toFixed(2)}</p>
+                      <p className="text-xs text-slate-500">
+                        {empOrder.restaurantCount} {empOrder.restaurantCount === 1 ? 'restaurant' : 'restaurants'}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      empOrder.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                      empOrder.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
+                      empOrder.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                      'bg-slate-100 text-slate-700'
+                    }`}>
+                      {empOrder.status}
+                    </span>
+                    <svg 
+                      className={`w-5 h-5 text-slate-400 transition-transform ${
+                        expandedEmployeeId === empOrder.employeeId ? 'rotate-180' : ''
+                      }`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Expanded Restaurant Orders */}
+              {expandedEmployeeId === empOrder.employeeId && empOrder.restaurantOrders && (
+                <div className="bg-slate-50 border-t border-slate-200">
+                  <div className="p-4 space-y-3">
+                    {empOrder.restaurantOrders.map((ro: any, idx: number) => (
+                      <div key={idx} className="bg-white rounded-lg p-4 border border-slate-200">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <p className="font-medium text-slate-900">{ro.restaurantName}</p>
+                            <p className="text-xs text-slate-500 mt-1">{ro.items?.length || 0} items</p>
+                          </div>
+                          <p className="text-sm font-semibold text-slate-900">${ro.totalAmount?.toFixed(2)}</p>
+                        </div>
+                        
+                        {ro.items && ro.items.length > 0 && (
+                          <div className="space-y-2">
+                            {ro.items.map((item: any, itemIdx: number) => (
+                              <div key={itemIdx} className="flex items-start justify-between text-sm">
+                                <div className="flex-1">
+                                  <p className="text-slate-900">
+                                    {item.quantity}x {item.name}
+                                  </p>
+                                  {item.customizations && item.customizations.length > 0 && (
+                                    <p className="text-xs text-slate-500 ml-4">
+                                      {item.customizations.join(', ')}
+                                    </p>
+                                  )}
+                                </div>
+                                <p className="text-slate-600 ml-4">${item.price?.toFixed(2)}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {todaysOrder.status === 'pending_approval' && empOrder.status !== 'REJECTED' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRejectSubOrder(empOrder.subOrderId, empOrder.employeeName);
+                        }}
+                        className="w-full px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium text-sm"
+                      >
+                        Reject This Employee's Order
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-slate-500">No employee orders yet</p>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+              {!todaysOrder?.hasOrder && !isLoading && (
+                <div className="mt-6 text-center py-12 bg-slate-50 rounded-xl border border-slate-200">
+                  <svg className="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <p className="text-slate-600 font-medium">No orders placed today</p>
+                  <p className="text-slate-500 text-sm mt-1">Orders will appear here once employees start placing them</p>
+                </div>
+              )}
+
+                {/* Info Section */}
+                <div className="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Important Information</p>
+                      <ul className="list-disc list-inside space-y-1 text-blue-700">
+                        <li>The cutoff time applies to all orders across the organization</li>
+                        <li>Orders placed before the cutoff time will be processed on the same day</li>
+                        <li>Orders placed after the cutoff time will be queued for the next business day</li>
+                        <li>Time must be in 24-hour format (HH:MM:SS)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Modal */}
         {showCreateModal && (
           <JobTitleModal
@@ -771,6 +1463,94 @@ function DashboardContent() {
             managerId={corporateUser?.id || ''}
             jobTitle={selectedJobTitleForAssign}
           />
+        )}
+        {showRejectModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-slate-900">Reject Order</h3>
+                <button
+                  onClick={() => {
+                    setShowRejectModal(false);
+                    setRejectReason('');
+                    setRejectNotes('');
+                    setSelectedRejectSubOrder(null);
+                  }}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-sm text-slate-600 mb-2">
+                  {selectedRejectSubOrder?.employeeName ? (
+                    <>Rejecting order for: <span className="font-semibold">{selectedRejectSubOrder.employeeName}</span></>
+                  ) : selectedRejectSubOrder?.employeeNames ? (
+                    <>Rejecting orders for: <span className="font-semibold">{selectedRejectSubOrder.employeeNames.join(', ')}</span></>
+                  ) : (
+                    <>Rejecting entire order for all employees</>
+                  )}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Reason <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    <option value="">Select a reason...</option>
+                    {predefinedReasons.map((reason) => (
+                      <option key={reason} value={reason}>
+                        {reason}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Additional Notes (Optional)
+                  </label>
+                  <textarea
+                    value={rejectNotes}
+                    onChange={(e) => setRejectNotes(e.target.value)}
+                    placeholder="Provide additional context..."
+                    rows={3}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowRejectModal(false);
+                    setRejectReason('');
+                    setRejectNotes('');
+                    setSelectedRejectSubOrder(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmReject}
+                  disabled={!rejectReason}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Confirm Reject
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>
