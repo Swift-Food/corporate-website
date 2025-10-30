@@ -22,11 +22,11 @@ export default function CartSidebar({
 
   return (
     <div
-      className={`hidden lg:block border sticky ${topOffset} items-center justify-center`}
+      className={`hidden lg:block sticky ${topOffset} items-center justify-center`}
       style={{
         maxHeight: `calc(100vh - ${maxHeightOffset})`,
         width: `${widthPercentage}%`,
-        minWidth: '280px'
+        minWidth: "280px",
       }}
     >
       <div className="bg-base-100 rounded-xl p-6 border border-base-300 flex flex-col h-full">
