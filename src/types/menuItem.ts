@@ -25,13 +25,27 @@ export interface Addon {
   id?: string;
   name: string;
   // whether customer must pick one of the options
-  required?: boolean;
+  isRequired: boolean;
+  price: number;
   // min/max selection counts for this addon group
   min?: number;
   max?: number;
   options: AddonOption[];
 }
+interface AddonGroup {
+  items: Addon[];
+  isRequired: boolean;
+  selectionType: "single" | "multiple";
+}
 
+export interface Addon {
+  name: string;
+  price: string;
+  allergens: string;
+  groupTitle: string;
+  isRequired: boolean;
+  selectionType: "single" | "multiple";
+}
 export interface CorporateMenuItem {
   id: string;
   restaurantId: string;

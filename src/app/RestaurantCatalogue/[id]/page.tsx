@@ -217,9 +217,9 @@ export default function RestaurantDetailPage() {
       )}
 
       {/* Main Content Container */}
-      <div className="flex gap-6 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8">
+      <div className="flex gap-6 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
         {/* Menu Items */}
-        <div className="flex-1 max-w-5xl">
+        <div className="flex-1">
           {loading ? (
             <div className="text-center py-12 text-base-content/60">
               Loading menu items...

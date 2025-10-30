@@ -47,8 +47,8 @@ export default function RestaurantCatalogue() {
 
   return (
     <div className="w-full bg-base-100">
-      <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6">
-        <div className="flex-1 max-w-6xl relative">
+      <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 max-w-7xl mx-auto">
+        <div className="flex-1 relative">
           {/* Sticky Search/Filter Section */}
           <div className="md:sticky top-16 md:top-20 z-40 -mx-4 px-4 py-6 mb-[-1px]">
             {/* Desktop Layout */}
