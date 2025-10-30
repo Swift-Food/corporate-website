@@ -7,6 +7,7 @@ interface CartSidebarProps {
   checkoutButtonText?: string;
   topOffset?: string;
   maxHeightOffset?: string;
+  widthPercentage?: number;
 }
 
 export default function CartSidebar({
@@ -14,19 +15,22 @@ export default function CartSidebar({
   checkoutButtonText = "Proceed to Checkout",
   topOffset = "top-40",
   maxHeightOffset = "12rem",
+  widthPercentage = 30,
 }: CartSidebarProps) {
   const { cartItems, removeFromCart, updateCartQuantity, getTotalPrice } =
     useCart();
 
   return (
     <div
-      className={`hidden lg:block lg:w-[25%] sticky ${topOffset} items-center justify-center`}
-      style={{ maxHeight: `calc(100vh - ${maxHeightOffset})` }}
+      className={`hidden lg:block border sticky ${topOffset} items-center justify-center`}
+      style={{
+        maxHeight: `calc(100vh - ${maxHeightOffset})`,
+        width: `${widthPercentage}%`,
+        minWidth: '280px'
+      }}
     >
       <div className="bg-base-100 rounded-xl p-6 border border-base-300 flex flex-col h-full">
-        <h3 className="text-xl font-bold text-base-content mb-6">
-          Your Order
-        </h3>
+        <h3 className="text-xl font-bold text-base-content mb-6">Your Order</h3>
 
         {cartItems.length === 0 ? (
           <p className="text-base-content/50 text-center py-8">
@@ -44,9 +48,12 @@ export default function CartSidebar({
                   item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
                 // Calculate addon price
-                const addonPrice = (selectedAddons || []).reduce((sum, addon) => {
-                  return sum + (addon.price || 0);
-                }, 0);
+                const addonPrice = (selectedAddons || []).reduce(
+                  (sum, addon) => {
+                    return sum + (addon.price || 0);
+                  },
+                  0
+                );
 
                 const subtotal = (itemPrice + addonPrice) * quantity;
 
@@ -75,7 +82,8 @@ export default function CartSidebar({
                           {selectedAddons.map((addon, addonIndex) => (
                             <div key={addonIndex}>
                               + {addon.optionName}
-                              {addon.price > 0 && ` (£${addon.price.toFixed(2)})`}
+                              {addon.price > 0 &&
+                                ` (£${addon.price.toFixed(2)})`}
                             </div>
                           ))}
                         </div>
