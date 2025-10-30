@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { CorporateMenuItem } from "@/types/menuItem";
-import { useCart } from "@/context/CartContext";
+import { useCart, SelectedAddon } from "@/context/CartContext";
+import MenuItemModal from "./MenuItemModal";
 
 interface MenuItemCardProps {
   groupTitle: string;
@@ -13,20 +14,29 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
   ({ groupTitle, groupedMenuItems, index }, ref) => {
     const { cartItems, addToCart, updateCartQuantity } = useCart();
 
-    // Create a map of item quantities from cart
+    // Modal state
+    const [modalItem, setModalItem] = useState<CorporateMenuItem | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Create a map of item quantities from cart (only for items without addons)
     const itemQuantities = useMemo(() => {
       const map: Record<string, { quantity: number; cartIndex: number }> = {};
       cartItems.forEach((cartItem, idx) => {
-        map[cartItem.item.id] = {
-          quantity: cartItem.quantity,
-          cartIndex: idx,
-        };
+        // Only map items without addons to avoid conflicts
+        if (!cartItem.selectedAddons || cartItem.selectedAddons.length === 0) {
+          map[cartItem.item.id] = {
+            quantity: cartItem.quantity,
+            cartIndex: idx,
+          };
+        }
       });
       return map;
     }, [cartItems]);
 
     // Store quantity inputs for each item
-    const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
+    const [quantityInputs, setQuantityInputs] = useState<
+      Record<string, string>
+    >({});
 
     // Initialize quantity inputs when cart changes
     useEffect(() => {
@@ -38,10 +48,29 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
     }, [cartItems]);
 
     const handleAdd = (item: CorporateMenuItem) => {
-      addToCart(item, 1);
+      if (hasAddons(item)) {
+        // Open modal for items with addons
+        setModalItem(item);
+        setIsModalOpen(true);
+      } else {
+        // Directly add items without addons
+        addToCart(item, 1);
+      }
     };
 
-    const handleUpdateQuantity = (itemId: string, cartIndex: number, newQuantity: number) => {
+    const handleAddItemWithModal = (
+      item: CorporateMenuItem,
+      quantity: number,
+      selectedAddons: SelectedAddon[]
+    ) => {
+      addToCart(item, quantity, selectedAddons);
+    };
+
+    const handleUpdateQuantity = (
+      itemId: string,
+      cartIndex: number,
+      newQuantity: number
+    ) => {
       updateCartQuantity(cartIndex, newQuantity);
     };
 
@@ -159,48 +188,20 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                     const cartIndex = itemInCart?.cartIndex ?? -1;
                     const quantityInput = quantityInputs[item.id] || "0";
 
-                    // If item has addons, always show just the + button
-                    if (hasAddons(item)) {
-                      return (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAdd(item);
-                          }}
-                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-base-content flex items-center justify-center hover:bg-base-content hover:text-base-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          disabled={!item.isAvailable}
-                        >
-                          <svg
-                            className="w-6 h-6"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 4v16m8-8H4"
-                            />
-                          </svg>
-                        </button>
-                      );
-                    }
-
                     // If quantity > 0 and no addons, show quantity controls
-                    if (quantity > 0) {
+                    if (!hasAddons(item)) {
                       return (
-                        <div className="bg-[#F5F1E8] p-2 rounded-lg border border-[#F0ECE3] flex items-center justify-between min-w-[140px]">
-                          <span className="text-sm text-base-content/80 ml-1">
-                            Quantity
-                          </span>
+                        <div className="bg-base-200 p-2 rounded-lg border border-[#F0ECE3] flex items-center justify-between min-w-[140px]">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const newQty = Math.max(0, quantity - 1);
-                                handleUpdateQuantity(item.id, cartIndex, newQty);
+                                handleUpdateQuantity(
+                                  item.id,
+                                  cartIndex,
+                                  newQty
+                                );
                               }}
                               className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
                             >
@@ -221,7 +222,11 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                                   }));
                                   if (val !== "" && !isNaN(parseInt(val))) {
                                     const newQty = Math.max(0, parseInt(val));
-                                    handleUpdateQuantity(item.id, cartIndex, newQty);
+                                    handleUpdateQuantity(
+                                      item.id,
+                                      cartIndex,
+                                      newQty
+                                    );
                                   }
                                 }
                               }}
@@ -243,7 +248,11 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const newQty = quantity + 1;
-                                handleUpdateQuantity(item.id, cartIndex, newQty);
+                                handleUpdateQuantity(
+                                  item.id,
+                                  cartIndex,
+                                  newQty
+                                );
                               }}
                               className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
                             >
@@ -254,30 +263,17 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                       );
                     }
 
-                    // Default: show + button
+                    // Otherwise, show + button (for initial add or if item has addons)
                     return (
                       <button
-                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleAdd(item);
                         }}
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-base-content flex items-center justify-center hover:bg-base-content hover:text-base-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-base-200 w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
                         disabled={!item.isAvailable}
                       >
-                        <svg
-                          className="w-6 h-6"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4v16m8-8H4"
-                          />
-                        </svg>
+                        +
                       </button>
                     );
                   })()}
@@ -301,6 +297,19 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
             </div>
           ))}
         </div>
+
+        {/* Modal for items with addons */}
+        {modalItem && (
+          <MenuItemModal
+            item={modalItem}
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setModalItem(null);
+            }}
+            onAddItem={handleAddItemWithModal}
+          />
+        )}
       </div>
     );
   }

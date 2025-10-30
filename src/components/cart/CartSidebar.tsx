@@ -35,14 +35,20 @@ export default function CartSidebar({
         ) : (
           <>
             <div className="space-y-4 mb-6 flex-1 overflow-y-auto">
-              {cartItems.map(({ item, quantity }, index) => {
+              {cartItems.map(({ item, quantity, selectedAddons }, index) => {
                 const price = parseFloat(item.price?.toString() || "0");
                 const discountPrice = parseFloat(
                   item.discountPrice?.toString() || "0"
                 );
                 const itemPrice =
                   item.isDiscount && discountPrice > 0 ? discountPrice : price;
-                const subtotal = itemPrice * quantity;
+
+                // Calculate addon price
+                const addonPrice = (selectedAddons || []).reduce((sum, addon) => {
+                  return sum + (addon.price || 0);
+                }, 0);
+
+                const subtotal = (itemPrice + addonPrice) * quantity;
 
                 return (
                   <div
@@ -64,6 +70,16 @@ export default function CartSidebar({
                       <h4 className="font-semibold text-sm text-base-content mb-1">
                         {item.name}
                       </h4>
+                      {selectedAddons && selectedAddons.length > 0 && (
+                        <div className="text-xs text-base-content/60 mb-1">
+                          {selectedAddons.map((addon, addonIndex) => (
+                            <div key={addonIndex}>
+                              + {addon.optionName}
+                              {addon.price > 0 && ` (£${addon.price.toFixed(2)})`}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <p className="text-xl font-bold text-primary mb-2">
                         £{subtotal.toFixed(2)}
                       </p>

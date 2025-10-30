@@ -9,15 +9,23 @@ import {
   ReactNode,
 } from "react";
 
-interface CartItem {
+export interface SelectedAddon {
+  addonName: string;
+  optionName: string;
+  price: number;
+  quantity: number;
+}
+
+export interface CartItem {
   item: CorporateMenuItem;
   quantity: number;
+  selectedAddons?: SelectedAddon[];
 }
 
 interface CartContextType {
   cartItems: CartItem[];
   totalPrice: number;
-  addToCart: (item: CorporateMenuItem, quantity?: number) => void;
+  addToCart: (item: CorporateMenuItem, quantity?: number, selectedAddons?: SelectedAddon[]) => void;
   removeFromCart: (index: number) => void;
   updateCartQuantity: (index: number, quantity: number) => void;
   getTotalPrice: () => number;
@@ -68,29 +76,50 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const calculateTotalPrice = (items: CartItem[]) => {
-    const newTotalPrice = items.reduce((sum, { item, quantity }) => {
+    const newTotalPrice = items.reduce((sum, { item, quantity, selectedAddons }) => {
       const price = parseFloat(item.price?.toString() || "0");
       const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
       const itemPrice =
         item.isDiscount && discountPrice > 0 ? discountPrice : price;
-      return sum + itemPrice * quantity;
+
+      // Calculate addon costs (raw prices)
+      const addonPrice = (selectedAddons || []).reduce((addonSum, addon) => {
+        return addonSum + (addon.price || 0);
+      }, 0);
+
+      return sum + (itemPrice + addonPrice) * quantity;
     }, 0);
     setTotalPrice(newTotalPrice);
     return newTotalPrice;
   };
 
-  const addToCart = (item: CorporateMenuItem, quantity: number = 1) => {
+  const addToCart = (
+    item: CorporateMenuItem,
+    quantity: number = 1,
+    selectedAddons: SelectedAddon[] = []
+  ) => {
     setCartItemsState((prev) => {
-      const existingIndex = prev.findIndex(
-        (cartItem) => cartItem.item.id === item.id
-      );
-
+      // For items with addons, always add as a new entry (don't merge)
+      // For items without addons, merge if same item exists
       let updated;
-      if (existingIndex >= 0) {
-        updated = [...prev];
-        updated[existingIndex].quantity += quantity;
+
+      if (selectedAddons.length > 0) {
+        // Always add items with addons as separate entries
+        updated = [...prev, { item, quantity, selectedAddons }];
       } else {
-        updated = [...prev, { item, quantity }];
+        // For items without addons, check if we can merge
+        const existingIndex = prev.findIndex(
+          (cartItem) =>
+            cartItem.item.id === item.id &&
+            (!cartItem.selectedAddons || cartItem.selectedAddons.length === 0)
+        );
+
+        if (existingIndex >= 0) {
+          updated = [...prev];
+          updated[existingIndex].quantity += quantity;
+        } else {
+          updated = [...prev, { item, quantity, selectedAddons }];
+        }
       }
 
       // Save to localStorage
@@ -115,6 +144,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
     setCartItemsState((prev) => {
+      // Validate index
+      if (index < 0 || index >= prev.length) {
+        console.error("Invalid cart index:", index);
+        return prev;
+      }
+
       const updated = [...prev];
       updated[index].quantity = quantity;
       localStorage.setItem(STORAGE_KEYS.CART_ITEMS, JSON.stringify(updated));
