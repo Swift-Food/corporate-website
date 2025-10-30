@@ -18,6 +18,8 @@ export default function RestaurantDetailPage() {
   const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const tabContainerRef = useRef<HTMLDivElement | null>(null);
+  const [cartItems, setCartItems] = useState<Array<{ item: CorporateMenuItem; quantity: number }>>([]);
+  const [showCartMobile, setShowCartMobile] = useState(false);
 
   useEffect(() => {
     // Get restaurant data from URL params
@@ -119,6 +121,44 @@ export default function RestaurantDetailPage() {
     }
   };
 
+  // Cart handlers
+  const addToCart = (item: CorporateMenuItem, quantity: number = 1) => {
+    setCartItems(prev => {
+      const existingIndex = prev.findIndex(cartItem => cartItem.item.id === item.id);
+      if (existingIndex >= 0) {
+        const updated = [...prev];
+        updated[existingIndex].quantity += quantity;
+        return updated;
+      }
+      return [...prev, { item, quantity }];
+    });
+  };
+
+  const removeFromCart = (index: number) => {
+    setCartItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateCartQuantity = (index: number, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(index);
+      return;
+    }
+    setCartItems(prev => {
+      const updated = [...prev];
+      updated[index].quantity = quantity;
+      return updated;
+    });
+  };
+
+  const getTotalPrice = () => {
+    return cartItems.reduce((sum, { item, quantity }) => {
+      const price = parseFloat(item.price?.toString() || "0");
+      const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+      const itemPrice = item.isDiscount && discountPrice > 0 ? discountPrice : price;
+      return sum + (itemPrice * quantity);
+    }, 0);
+  };
+
   // Intersection Observer to update active tab on scroll
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -210,8 +250,10 @@ export default function RestaurantDetailPage() {
         </div>
       )}
 
-      {/* Menu Items */}
-      <div className="px-4 md:px-8 py-6 md:py-8 max-w-7xl mx-auto">
+      {/* Main Content Container */}
+      <div className="flex gap-6 px-4 md:px-8 py-6 md:py-8">
+        {/* Menu Items */}
+        <div className="flex-1 max-w-5xl">
         {loading ? (
           <div className="text-center py-12 text-base-content/60">
             Loading menu items...
@@ -335,7 +377,8 @@ export default function RestaurantDetailPage() {
                         )}
                       </div>
                       <button
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-base-content flex items-center justify-center hover:bg-base-content hover:text-base-100 transition-colors"
+                        onClick={() => addToCart(item, 1)}
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-base-content flex items-center justify-center hover:bg-base-content hover:text-base-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={!item.isAvailable}
                       >
                         <svg
@@ -377,7 +420,245 @@ export default function RestaurantDetailPage() {
             ))}
           </div>
         )}
+        </div>
+
+        {/* Cart Sidebar - Desktop */}
+        <div
+          className="hidden lg:block lg:w-[25%] sticky top-32 items-center justify-center"
+          style={{ maxHeight: "calc(100vh - 10rem)" }}
+        >
+          <div className="bg-base-100 rounded-xl p-6 border border-base-300 flex flex-col h-full">
+            <h3 className="text-xl font-bold text-base-content mb-6">
+              Your Order
+            </h3>
+
+            {cartItems.length === 0 ? (
+              <p className="text-base-content/50 text-center py-8">
+                No items added yet
+              </p>
+            ) : (
+              <>
+                <div className="space-y-4 mb-6 flex-1 overflow-y-auto">
+                  {cartItems.map(({ item, quantity }, index) => {
+                    const price = parseFloat(item.price?.toString() || "0");
+                    const discountPrice = parseFloat(
+                      item.discountPrice?.toString() || "0"
+                    );
+                    const itemPrice =
+                      item.isDiscount && discountPrice > 0
+                        ? discountPrice
+                        : price;
+                    const subtotal = itemPrice * quantity;
+
+                    return (
+                      <div
+                        key={index}
+                        className={`flex gap-3 pb-4${
+                          index !== cartItems.length - 1
+                            ? " border-b border-base-300"
+                            : ""
+                        }`}
+                      >
+                        {item.image && (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm text-base-content mb-1">
+                            {item.name}
+                          </h4>
+                          <p className="text-xl font-bold text-primary mb-2">
+                            £{subtotal.toFixed(2)}
+                          </p>
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() =>
+                                  updateCartQuantity(index, quantity - 1)
+                                }
+                                className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
+                              >
+                                −
+                              </button>
+                              <span className="text-sm font-medium text-base-content">
+                                {quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  updateCartQuantity(index, quantity + 1)
+                                }
+                                className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
+                              >
+                                +
+                              </button>
+                            </div>
+                            <button
+                              onClick={() => removeFromCart(index)}
+                              className="text-error hover:opacity-80 text-xs"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-2 border-t border-base-300 pt-4 mb-6 flex-shrink-0">
+                  <div className="flex justify-between text-lg font-bold text-base-content">
+                    <span>Total:</span>
+                    <span>£{getTotalPrice().toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <button
+                  className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-md transition-all flex-shrink-0"
+                  onClick={() => alert("Checkout functionality coming soon!")}
+                >
+                  Proceed to Checkout
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Mobile Cart Button - Fixed at bottom */}
+      {cartItems.length > 0 && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 p-3 z-20">
+          <button
+            onClick={() => setShowCartMobile(true)}
+            className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-bold text-base transition-all flex items-center justify-between px-4"
+          >
+            <span>View Cart ({cartItems.length})</span>
+            <span>£{getTotalPrice().toFixed(2)}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Mobile Cart Modal */}
+      {showCartMobile && (
+        <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
+          <div className="bg-base-100 w-full rounded-t-3xl max-h-[85vh] flex flex-col">
+            <div className="bg-base-100 border-b border-base-300 p-4 flex justify-between items-center flex-shrink-0">
+              <h3 className="text-xl font-bold text-base-content">
+                Your Order
+              </h3>
+              <button
+                onClick={() => setShowCartMobile(false)}
+                className="text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {cartItems.length === 0 ? (
+                <p className="text-base-content/50 text-center py-8">
+                  No items added yet
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {cartItems.map(({ item, quantity }, index) => {
+                    const price = parseFloat(item.price?.toString() || "0");
+                    const discountPrice = parseFloat(
+                      item.discountPrice?.toString() || "0"
+                    );
+                    const itemPrice =
+                      item.isDiscount && discountPrice > 0
+                        ? discountPrice
+                        : price;
+                    const subtotal = itemPrice * quantity;
+
+                    return (
+                      <div
+                        key={index}
+                        className={`flex gap-3 pb-4${
+                          index !== cartItems.length - 1
+                            ? " border-b border-base-300"
+                            : ""
+                        }`}
+                      >
+                        {item.image && (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm text-base-content mb-1">
+                            {item.name}
+                          </h4>
+                          <p className="text-lg font-bold text-primary mb-2">
+                            £{subtotal.toFixed(2)}
+                          </p>
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() =>
+                                  updateCartQuantity(index, quantity - 1)
+                                }
+                                className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
+                              >
+                                −
+                              </button>
+                              <span className="text-sm font-medium text-base-content">
+                                {quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  updateCartQuantity(index, quantity + 1)
+                                }
+                                className="w-6 h-6 bg-base-200 rounded flex items-center justify-center hover:bg-base-300"
+                              >
+                                +
+                              </button>
+                            </div>
+                            <button
+                              onClick={() => removeFromCart(index)}
+                              className="text-error hover:opacity-80 text-sm"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {cartItems.length > 0 && (
+              <div className="border-t border-base-300 bg-base-100 p-4 flex-shrink-0">
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-lg font-bold text-base-content">
+                    <span>Total:</span>
+                    <span>£{getTotalPrice().toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <button
+                  className="w-full bg-primary hover:opacity-90 text-white py-4 px-2 rounded-lg font-bold text-lg transition-all"
+                  onClick={() => {
+                    setShowCartMobile(false);
+                    alert("Checkout functionality coming soon!");
+                  }}
+                >
+                  Proceed to Checkout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
