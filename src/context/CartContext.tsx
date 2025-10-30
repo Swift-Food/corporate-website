@@ -22,17 +22,24 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const addToCart = (item: CorporateMenuItem, quantity: number = 1) => {
+  const addToCart = (item: CorporateMenuItem) => {
     setCartItems((prev) => {
       const existingIndex = prev.findIndex(
         (cartItem) => cartItem.item.id === item.id
       );
+      console.log("Found index at: ", existingIndex);
       if (existingIndex >= 0) {
         const updated = [...prev];
-        updated[existingIndex].quantity += quantity;
+        updated[existingIndex].quantity += 1;
+        console.log(
+          "Updating quantity for: ",
+          existingIndex,
+          " to : ",
+          updated[existingIndex].quantity
+        );
         return updated;
       }
-      return [...prev, { item, quantity }];
+      return [...prev, { item, quantity: 1 }];
     });
   };
 
