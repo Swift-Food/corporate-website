@@ -6,16 +6,19 @@ import { useCart } from "@/context/CartContext";
 interface MenuItemCardProps {
   groupTitle: string;
   groupedMenuItems: Record<string, CorporateMenuItem[]>;
-  onAdd?: (item: CorporateMenuItem) => void;
+  index: number;
 }
 
 const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
-  ({ groupTitle, groupedMenuItems, onAdd }, ref) => {
+  ({ groupTitle, groupedMenuItems, index }, ref) => {
     const cart = useCart();
 
     const handleAdd = (item: CorporateMenuItem) => {
-      if (onAdd) return onAdd(item);
       cart.addToCart(item);
+    };
+
+    const handleRemove = () => {
+      cart.removeFromCart(index);
     };
 
     return (

@@ -230,10 +230,11 @@ export default function RestaurantDetailPage() {
             </div>
           ) : (
             <div className="space-y-12">
-              {orderedGroups.map((groupTitle) => (
+              {orderedGroups.map((groupTitle, index) => (
                 <MenuItemCard
                   key={groupTitle}
                   groupTitle={groupTitle}
+                  index={index}
                   ref={(el) => {
                     groupRefs.current[groupTitle] = el;
                   }}
