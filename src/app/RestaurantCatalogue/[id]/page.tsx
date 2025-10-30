@@ -84,7 +84,7 @@ export default function RestaurantDetailPage() {
   const scrollToSection = (groupTitle: string) => {
     const element = groupRefs.current[groupTitle];
     if (element) {
-      const offset = 100; // Offset for sticky header
+      const offset = 150; // Offset for navbar + tabs
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
 
@@ -110,7 +110,7 @@ export default function RestaurantDetailPage() {
         });
       },
       {
-        rootMargin: "-100px 0px -50% 0px",
+        rootMargin: "-150px 0px -50% 0px",
         threshold: 0,
       }
     );
@@ -162,7 +162,7 @@ export default function RestaurantDetailPage() {
 
       {/* Group Tabs Navigation */}
       {!loading && orderedGroups.length > 0 && (
-        <div className="border-b border-base-300 bg-base-100 sticky top-0 z-10">
+        <div className="border-b border-base-300 bg-base-100 sticky top-16 md:top-20 z-40 shadow-sm">
           <div className="px-4 md:px-8">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               {orderedGroups.map((group) => (
@@ -200,7 +200,7 @@ export default function RestaurantDetailPage() {
                 key={groupTitle}
                 ref={(el) => (groupRefs.current[groupTitle] = el)}
                 data-group={groupTitle}
-                className="scroll-mt-24"
+                className="scroll-mt-36"
               >
                 <h2 className="text-2xl md:text-3xl font-bold text-base-content mb-6">
                   {groupTitle}
