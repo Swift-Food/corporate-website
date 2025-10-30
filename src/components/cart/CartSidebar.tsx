@@ -5,19 +5,23 @@ import { useCart } from "@/context/CartContext";
 interface CartSidebarProps {
   onCheckout?: () => void;
   checkoutButtonText?: string;
+  topOffset?: string;
+  maxHeightOffset?: string;
 }
 
 export default function CartSidebar({
   onCheckout,
   checkoutButtonText = "Proceed to Checkout",
+  topOffset = "top-40",
+  maxHeightOffset = "12rem",
 }: CartSidebarProps) {
   const { cartItems, removeFromCart, updateCartQuantity, getTotalPrice } =
     useCart();
 
   return (
     <div
-      className="hidden lg:block lg:w-[25%] sticky top-40 items-center justify-center"
-      style={{ maxHeight: "calc(100vh - 12rem)" }}
+      className={`hidden lg:block lg:w-[25%] sticky ${topOffset} items-center justify-center`}
+      style={{ maxHeight: `calc(100vh - ${maxHeightOffset})` }}
     >
       <div className="bg-base-100 rounded-xl p-6 border border-base-300 flex flex-col h-full">
         <h3 className="text-xl font-bold text-base-content mb-6">

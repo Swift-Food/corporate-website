@@ -257,7 +257,7 @@ export default function RestaurantCatalogue() {
         </div>
 
         {/* Cart Sidebar */}
-        <CartSidebar />
+        <CartSidebar topOffset="top-24" maxHeightOffset="8rem" />
       </div>
 
       {/* Mobile Cart */}

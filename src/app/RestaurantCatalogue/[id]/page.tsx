@@ -391,7 +391,7 @@ export default function RestaurantDetailPage() {
         </div>
 
         {/* Cart Sidebar - Desktop */}
-        <CartSidebar />
+        <CartSidebar topOffset="top-40" maxHeightOffset="12rem" />
       </div>
 
       {/* Mobile Cart */}
