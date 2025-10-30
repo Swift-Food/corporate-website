@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { CorporateMenuItem, Addon } from "@/types/menuItem";
 import { SelectedAddon } from "@/context/CartContext";
 
@@ -8,7 +8,11 @@ interface MenuItemModalProps {
   item: CorporateMenuItem;
   isOpen: boolean;
   onClose: () => void;
-  onAddItem: (item: CorporateMenuItem, quantity: number, selectedAddons: SelectedAddon[]) => void;
+  onAddItem: (
+    item: CorporateMenuItem,
+    quantity: number,
+    selectedAddons: SelectedAddon[]
+  ) => void;
 }
 
 interface AddonGroup {
@@ -26,84 +30,100 @@ export default function MenuItemModal({
   onClose,
   onAddItem,
 }: MenuItemModalProps) {
+  // Reset quantity when modal opens/closes using isOpen as a key driver
   const [itemQuantity, setItemQuantity] = useState(1);
   const [itemQuantityInput, setItemQuantityInput] = useState("1");
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, Record<string, boolean>>
   >({});
-  const [addonGroups, setAddonGroups] = useState<AddonGroup[]>([]);
-  const [totalPrice, setTotalPrice] = useState(0);
 
   const price = parseFloat(item.price?.toString() || "0");
   const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
   const displayPrice =
     item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
-  // Reset state when modal opens and group addons
-  useEffect(() => {
-    if (isOpen) {
-      setItemQuantity(1);
-      setItemQuantityInput("1");
-
-      // Group addons by groupTitle
-      if (item.addons && item.addons.length > 0) {
-        const grouped: Record<string, AddonGroup> = {};
-
-        item.addons.forEach((addon) => {
-          const groupTitle = addon.groupTitle || "Options";
-
-          if (!grouped[groupTitle]) {
-            grouped[groupTitle] = {
-              groupTitle,
-              addons: [],
-              isRequired: addon.isRequired || false,
-              selectionType: addon.selectionType || "multiple",
-              min: addon.min,
-              max: addon.max,
-            };
-          }
-
-          grouped[groupTitle].addons.push(addon);
-        });
-
-        setAddonGroups(Object.values(grouped));
-
-        // Initialize selected options
-        const initialSelections: Record<string, Record<string, boolean>> = {};
-        Object.values(grouped).forEach((group) => {
-          initialSelections[group.groupTitle] = {};
-          group.addons.forEach((addon) => {
-            initialSelections[group.groupTitle][addon.name] = false;
-          });
-        });
-        setSelectedOptions(initialSelections);
-      } else {
-        setAddonGroups([]);
-        setSelectedOptions({});
-      }
+  // Derive addon groups from item.addons using useMemo
+  const addonGroups = useMemo(() => {
+    if (!item.addons || item.addons.length === 0) {
+      return [];
     }
-  }, [isOpen, item]);
 
-  // Calculate total price when quantity or selected addons change
+    const grouped: Record<string, AddonGroup> = {};
+
+    item.addons.forEach((addon) => {
+      const groupTitle = addon.groupTitle || "Options";
+
+      if (!grouped[groupTitle]) {
+        grouped[groupTitle] = {
+          groupTitle,
+          addons: [],
+          isRequired: addon.isRequired,
+          selectionType: addon.selectionType,
+        };
+      }
+
+      grouped[groupTitle].addons.push(addon);
+    });
+
+    return Object.values(grouped);
+  }, [item.addons]);
+
+  // Derive initial selected options from addon groups
+  const initialSelectedOptions = useMemo(() => {
+    const initialSelections: Record<string, Record<string, boolean>> = {};
+    addonGroups.forEach((group) => {
+      initialSelections[group.groupTitle] = {};
+      group.addons.forEach((addon) => {
+        initialSelections[group.groupTitle][addon.name] = false;
+      });
+    });
+    return initialSelections;
+  }, [addonGroups]);
+
+  // Reset state when item changes (which typically happens when modal opens with new item)
+  const prevItemIdRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!item) return;
+    // Reset when item changes or when opening
+    const itemChanged = prevItemIdRef.current !== item.id;
+    if (itemChanged || (isOpen && prevItemIdRef.current === null)) {
+      prevItemIdRef.current = item.id || null;
+      // Schedule state updates to next tick to avoid synchronous setState warning
+      Promise.resolve().then(() => {
+        setItemQuantity(1);
+        setItemQuantityInput("1");
+        setSelectedOptions(initialSelectedOptions);
+      });
+    }
 
-    let basePrice = displayPrice * itemQuantity;
+    // Clear ref when modal closes
+    if (!isOpen) {
+      prevItemIdRef.current = null;
+    }
+  }, [item.id, isOpen, initialSelectedOptions]);
+
+  // Calculate total price using useMemo
+  const totalPrice = useMemo(() => {
+    const basePrice = displayPrice * itemQuantity;
 
     // Calculate addon costs (raw prices, no multipliers)
     let addonCost = 0;
     addonGroups.forEach((group) => {
       group.addons.forEach((addon) => {
         if (selectedOptions[group.groupTitle]?.[addon.name]) {
-          addonCost += (addon.price || 0) * itemQuantity;
+          const addonPrice = parseFloat(addon.price?.toString() || "0");
+          addonCost += addonPrice * itemQuantity;
         }
       });
     });
 
-    setTotalPrice(basePrice + addonCost);
-  }, [item, itemQuantity, selectedOptions, displayPrice, addonGroups]);
+    return basePrice + addonCost;
+  }, [displayPrice, itemQuantity, selectedOptions, addonGroups]);
 
-  const toggleOption = (groupTitle: string, addonName: string, group: AddonGroup) => {
+  const toggleOption = (
+    groupTitle: string,
+    addonName: string,
+    group: AddonGroup
+  ) => {
     setSelectedOptions((prev) => {
       const newSelections = { ...prev };
 
@@ -112,7 +132,9 @@ export default function MenuItemModal({
       }
 
       const currentValue = prev[groupTitle]?.[addonName] || false;
-      const selectedCount = Object.values(prev[groupTitle] || {}).filter(Boolean).length;
+      const selectedCount = Object.values(prev[groupTitle] || {}).filter(
+        Boolean
+      ).length;
 
       // Check if this is single selection
       if (group.selectionType === "single") {
@@ -181,10 +203,11 @@ export default function MenuItemModal({
     addonGroups.forEach((group) => {
       group.addons.forEach((addon) => {
         if (selectedOptions[group.groupTitle]?.[addon.name]) {
+          const addonPrice = parseFloat(addon.price?.toString() || "0");
           selectedAddons.push({
             addonName: group.groupTitle,
             optionName: addon.name,
-            price: addon.price || 0,
+            price: addonPrice,
             quantity: itemQuantity,
           });
         }
@@ -389,7 +412,9 @@ export default function MenuItemModal({
                       {group.addons.map((addon, addonIndex) => (
                         <button
                           key={addonIndex}
-                          onClick={() => toggleOption(group.groupTitle, addon.name, group)}
+                          onClick={() =>
+                            toggleOption(group.groupTitle, addon.name, group)
+                          }
                           className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
                             selectedOptions[group.groupTitle]?.[addon.name]
                               ? "border-primary bg-primary/5"
@@ -404,7 +429,9 @@ export default function MenuItemModal({
                                   : "border-base-300"
                               }`}
                             >
-                              {selectedOptions[group.groupTitle]?.[addon.name] && (
+                              {selectedOptions[group.groupTitle]?.[
+                                addon.name
+                              ] && (
                                 <svg
                                   className="w-3 h-3 text-white"
                                   fill="none"
@@ -426,11 +453,13 @@ export default function MenuItemModal({
                               </span>
                             </div>
                           </div>
-                          {addon.price > 0 && (
-                            <span className="text-sm font-medium text-primary">
-                              +£{addon.price.toFixed(2)}
-                            </span>
-                          )}
+                          {addon.price &&
+                            parseFloat(addon.price.toString()) > 0 && (
+                              <span className="text-sm font-medium text-primary">
+                                +£
+                                {parseFloat(addon.price.toString()).toFixed(2)}
+                              </span>
+                            )}
                         </button>
                       ))}
                     </div>
