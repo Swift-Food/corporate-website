@@ -21,7 +21,7 @@ const parseNumber = (value: string | number | null | undefined): number => {
   return isNaN(parsed) ? 0 : parsed;
 };
 
-export const transformData = (apiData: ApiMenuItem[]): CorporateMenuItem[] => {
+export const transformMenuItems = (apiData: ApiMenuItem[]): CorporateMenuItem[] => {
   const transformedData = (apiData || []).map((item: ApiMenuItem) => {
     return {
       id: item.id,

@@ -25,7 +25,11 @@ export interface CartItem {
 interface CartContextType {
   cartItems: CartItem[];
   totalPrice: number;
-  addToCart: (item: CorporateMenuItem, quantity?: number, selectedAddons?: SelectedAddon[]) => void;
+  addToCart: (
+    item: CorporateMenuItem,
+    quantity?: number,
+    selectedAddons?: SelectedAddon[]
+  ) => void;
   removeFromCart: (index: number) => void;
   updateCartQuantity: (index: number, quantity: number) => void;
   getTotalPrice: () => number;
@@ -76,19 +80,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const calculateTotalPrice = (items: CartItem[]) => {
-    const newTotalPrice = items.reduce((sum, { item, quantity, selectedAddons }) => {
-      const price = parseFloat(item.price?.toString() || "0");
-      const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
-      const itemPrice =
-        item.isDiscount && discountPrice > 0 ? discountPrice : price;
+    const newTotalPrice = items.reduce(
+      (sum, { item, quantity, selectedAddons }) => {
+        const price = item.price ?? 0;
+        const discountPrice = item.discountPrice ?? 0;
+        const itemPrice =
+          item.isDiscount && discountPrice > 0 ? discountPrice : price;
 
-      // Calculate addon costs (raw prices)
-      const addonPrice = (selectedAddons || []).reduce((addonSum, addon) => {
-        return addonSum + (addon.price || 0);
-      }, 0);
+        // Calculate addon costs (raw prices)
+        const addonPrice = (selectedAddons || []).reduce((addonSum, addon) => {
+          return addonSum + (addon.price || 0);
+        }, 0);
 
-      return sum + (itemPrice + addonPrice) * quantity;
-    }, 0);
+        return sum + (itemPrice + addonPrice) * quantity;
+      },
+      0
+    );
     setTotalPrice(newTotalPrice);
     return newTotalPrice;
   };

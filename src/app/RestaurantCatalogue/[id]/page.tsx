@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import CartSidebar from "@/components/cart/CartSidebar";
 import MobileCart from "@/components/cart/MobileCart";
 import MenuItemCard from "@/components/catalogue/MenuItemCard";
+import { transformMenuItems } from "@/util/menuItems";
 
 export default function RestaurantDetailPage() {
   const params = useParams();
@@ -35,7 +36,8 @@ export default function RestaurantDetailPage() {
     const fetchItems = async () => {
       setLoading(true);
       try {
-        const items = await menuItemApi.fetchItemsFromRestaurant(restaurantId);
+        const apiItems = await menuItemApi.fetchItemsFromRestaurant(restaurantId);
+        const items = transformMenuItems(apiItems)
         setMenuItems(items);
       } catch (error) {
         console.error("Error fetching menu items:", error);

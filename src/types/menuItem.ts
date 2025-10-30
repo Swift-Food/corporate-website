@@ -12,36 +12,36 @@ export enum MenuItemStyle {
   HORIZONTAL = "HORIZONTAL",
 }
 
-export interface AddonOption {
-  id?: string;
-  name: string;
-  price: number;
-  // any extra metadata the UI might need
-  description?: string;
-  isDefault?: boolean;
-}
+// export interface AddonOption {
+//   id?: string;
+//   name: string;
+//   price: number;
+//   // any extra metadata the UI might need
+//   description?: string;
+//   isDefault?: boolean;
+// }
 
-export interface Addon {
-  id?: string;
-  name: string;
-  // whether customer must pick one of the options
-  isRequired: boolean;
-  price: number;
-  // min/max selection counts for this addon group
-  min?: number;
-  max?: number;
-  options: AddonOption[];
-}
-interface AddonGroup {
-  items: Addon[];
-  isRequired: boolean;
-  selectionType: "single" | "multiple";
-}
+// export interface Addon {
+//   id?: string;
+//   name: string;
+//   // whether customer must pick one of the options
+//   isRequired: boolean;
+//   price: number;
+//   // min/max selection counts for this addon group
+//   min?: number;
+//   max?: number;
+//   options: AddonOption[];
+// }
+// interface AddonGroup {
+//   items: Addon[];
+//   isRequired: boolean;
+//   selectionType: "single" | "multiple";
+// }
 
 export interface Addon {
   name: string;
   price: string;
-  allergens: string;
+  allergens: string[];
   groupTitle: string;
   isRequired: boolean;
   selectionType: "single" | "multiple";
@@ -63,7 +63,7 @@ export interface ApiMenuItem {
 
   allergens: Allergen[];
 
-  addons?: ApiAddon[] | null;
+  addons?: Addon[] | null;
 
   style: MenuItemStyle;
 

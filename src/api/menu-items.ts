@@ -1,10 +1,10 @@
-import { CorporateMenuItem } from "@/types/menuItem";
+import { ApiMenuItem, CorporateMenuItem } from "@/types/menuItem";
 import apiClient from "./client";
 
 export const menuItemApi = {
   fetchItemsFromRestaurant: async (
     restaurantId: string
-  ): Promise<CorporateMenuItem[]> => {
+  ): Promise<ApiMenuItem[]> => {
     const response = await apiClient.get(
       `${process.env.NEXT_PUBLIC_API_URL}/corporate-menu-item/restaurant/${restaurantId}`
     );
