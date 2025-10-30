@@ -1,7 +1,13 @@
 "use client";
 
 import { CorporateMenuItem } from "@/types/menuItem";
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 interface CartItem {
   item: CorporateMenuItem;
@@ -10,6 +16,7 @@ interface CartItem {
 
 interface CartContextType {
   cartItems: CartItem[];
+  totalPrice: number;
   addToCart: (item: CorporateMenuItem, quantity?: number) => void;
   removeFromCart: (index: number) => void;
   updateCartQuantity: (index: number, quantity: number) => void;
@@ -19,32 +26,87 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+// LocalStorage keys
+const STORAGE_KEYS = {
+  CART_ITEMS: "corporate_cart_items",
+  ORDER_SUBMITTED: "corporate_order_submitted",
+};
 
-  const addToCart = (item: CorporateMenuItem) => {
-    setCartItems((prev) => {
+export function CartProvider({ children }: { children: ReactNode }) {
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [cartItems, setCartItemsState] = useState<CartItem[]>([]);
+  const [totalPrice, setTotalPrice] = useState(0);
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    try {
+      // Check if order was submitted in previous session
+      const orderSubmitted = localStorage.getItem(STORAGE_KEYS.ORDER_SUBMITTED);
+
+      if (orderSubmitted === "true") {
+        // Clear all cart data if order was submitted
+        localStorage.removeItem(STORAGE_KEYS.CART_ITEMS);
+        localStorage.removeItem(STORAGE_KEYS.ORDER_SUBMITTED);
+
+        // States are already initialized to empty values
+        setIsHydrated(true);
+        return;
+      }
+
+      const savedItems = localStorage.getItem(STORAGE_KEYS.CART_ITEMS);
+
+      if (savedItems) {
+        const items = JSON.parse(savedItems);
+        setCartItemsState(items);
+        calculateTotalPrice(items);
+      }
+    } catch (error) {
+      console.error("Error loading cart data from localStorage:", error);
+    } finally {
+      setIsHydrated(true);
+    }
+  }, []);
+
+  const calculateTotalPrice = (items: CartItem[]) => {
+    const newTotalPrice = items.reduce((sum, { item, quantity }) => {
+      const price = parseFloat(item.price?.toString() || "0");
+      const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
+      const itemPrice =
+        item.isDiscount && discountPrice > 0 ? discountPrice : price;
+      return sum + itemPrice * quantity;
+    }, 0);
+    setTotalPrice(newTotalPrice);
+    return newTotalPrice;
+  };
+
+  const addToCart = (item: CorporateMenuItem, quantity: number = 1) => {
+    setCartItemsState((prev) => {
       const existingIndex = prev.findIndex(
         (cartItem) => cartItem.item.id === item.id
       );
-      console.log("Found index at: ", existingIndex);
+
+      let updated;
       if (existingIndex >= 0) {
-        const updated = [...prev];
-        updated[existingIndex].quantity += 1;
-        console.log(
-          "Updating quantity for: ",
-          existingIndex,
-          " to : ",
-          updated[existingIndex].quantity
-        );
-        return updated;
+        updated = [...prev];
+        updated[existingIndex].quantity += quantity;
+      } else {
+        updated = [...prev, { item, quantity }];
       }
-      return [...prev, { item, quantity: 1 }];
+
+      // Save to localStorage
+      localStorage.setItem(STORAGE_KEYS.CART_ITEMS, JSON.stringify(updated));
+      calculateTotalPrice(updated);
+      return updated;
     });
   };
 
   const removeFromCart = (index: number) => {
-    setCartItems((prev) => prev.filter((_, i) => i !== index));
+    setCartItemsState((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      localStorage.setItem(STORAGE_KEYS.CART_ITEMS, JSON.stringify(updated));
+      calculateTotalPrice(updated);
+      return updated;
+    });
   };
 
   const updateCartQuantity = (index: number, quantity: number) => {
@@ -52,31 +114,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeFromCart(index);
       return;
     }
-    setCartItems((prev) => {
+    setCartItemsState((prev) => {
       const updated = [...prev];
       updated[index].quantity = quantity;
+      localStorage.setItem(STORAGE_KEYS.CART_ITEMS, JSON.stringify(updated));
+      calculateTotalPrice(updated);
       return updated;
     });
   };
 
   const getTotalPrice = () => {
-    return cartItems.reduce((sum, { item, quantity }) => {
-      const price = parseFloat(item.price?.toString() || "0");
-      const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
-      const itemPrice =
-        item.isDiscount && discountPrice > 0 ? discountPrice : price;
-      return sum + itemPrice * quantity;
-    }, 0);
+    return totalPrice;
   };
 
   const clearCart = () => {
-    setCartItems([]);
+    setCartItemsState([]);
+    setTotalPrice(0);
+
+    // Clear localStorage
+    localStorage.removeItem(STORAGE_KEYS.CART_ITEMS);
+    localStorage.removeItem(STORAGE_KEYS.ORDER_SUBMITTED);
   };
+
+  // Prevent hydration mismatch by not rendering until client-side data is loaded
+  if (!isHydrated) {
+    return null;
+  }
 
   return (
     <CartContext.Provider
       value={{
         cartItems,
+        totalPrice,
         addToCart,
         removeFromCart,
         updateCartQuantity,

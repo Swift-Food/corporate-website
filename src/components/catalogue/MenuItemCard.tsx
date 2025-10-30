@@ -17,10 +17,6 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
       cart.addToCart(item);
     };
 
-    const handleRemove = () => {
-      cart.removeFromCart(index);
-    };
-
     return (
       <div ref={ref} data-group={groupTitle} className="scroll-mt-36">
         <h2 className="text-2xl md:text-3xl font-bold text-base-content mb-6">
@@ -123,6 +119,7 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                       </div>
                     )}
                   </div>
+
                   <button
                     type="button"
                     onClick={(e) => {
