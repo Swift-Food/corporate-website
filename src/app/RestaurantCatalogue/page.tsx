@@ -37,8 +37,12 @@ export default function RestaurantCatalogue() {
   };
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
-    const restaurantData = encodeURIComponent(JSON.stringify(restaurant));
-    router.push(`/RestaurantCatalogue/${restaurant.id}?data=${restaurantData}`);
+    // Store restaurant data in sessionStorage to avoid URL length limits
+    sessionStorage.setItem(
+      `restaurant_${restaurant.id}`,
+      JSON.stringify(restaurant)
+    );
+    router.push(`/RestaurantCatalogue/${restaurant.id}`);
   };
 
   return (

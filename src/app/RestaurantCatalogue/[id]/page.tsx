@@ -3,18 +3,15 @@
 import { menuItemApi } from "@/api/menu-items";
 import { CorporateMenuItem } from "@/types/menuItem";
 import { Restaurant } from "@/types/restaurant";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useCart } from "@/context/CartContext";
 import CartSidebar from "@/components/cart/CartSidebar";
 import MobileCart from "@/components/cart/MobileCart";
 import MenuItemCard from "@/components/catalogue/MenuItemCard";
 
 export default function RestaurantDetailPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const restaurantId = params.id as string;
-  const { addToCart } = useCart();
 
   const [menuItems, setMenuItems] = useState<CorporateMenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,30 +22,30 @@ export default function RestaurantDetailPage() {
   const tabContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Get restaurant data from URL params
-    const restaurantData = searchParams.get("data");
-    if (restaurantData) {
+    // Get restaurant data from sessionStorage
+    const storedData = sessionStorage.getItem(`restaurant_${restaurantId}`);
+    if (storedData) {
       try {
-        setRestaurant(JSON.parse(decodeURIComponent(restaurantData)));
+        setRestaurant(JSON.parse(storedData));
       } catch (error) {
         console.error("Error parsing restaurant data:", error);
       }
     }
 
-    fetchMenuItems();
-  }, [restaurantId]);
+    const fetchItems = async () => {
+      setLoading(true);
+      try {
+        const items = await menuItemApi.fetchItemsFromRestaurant(restaurantId);
+        setMenuItems(items);
+      } catch (error) {
+        console.error("Error fetching menu items:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchMenuItems = async () => {
-    setLoading(true);
-    try {
-      const items = await menuItemApi.fetchItemsFromRestaurant(restaurantId);
-      setMenuItems(items);
-    } catch (error) {
-      console.error("Error fetching menu items:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchItems();
+  }, [restaurantId]);
 
   // Group menu items by groupTitle
   const groupedMenuItems = menuItems.reduce((acc, item) => {
