@@ -3,8 +3,10 @@
 import { restaurantApi } from "@/api/restaurant";
 import { Restaurant } from "@/types/restaurant";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RestaurantCatalogue() {
+  const router = useRouter();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
   const [when, setWhen] = useState("");
@@ -30,6 +32,11 @@ export default function RestaurantCatalogue() {
     } finally {
       setRestaurantsLoading(false);
     }
+  };
+
+  const handleRestaurantClick = (restaurant: Restaurant) => {
+    const restaurantData = encodeURIComponent(JSON.stringify(restaurant));
+    router.push(`/RestaurantCatalogue/${restaurant.id}?data=${restaurantData}`);
   };
 
   return (
@@ -218,6 +225,7 @@ export default function RestaurantCatalogue() {
           {restaurants.map((restaurant) => (
             <div
               key={restaurant.id}
+              onClick={() => handleRestaurantClick(restaurant)}
               className="rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 border-2 border-base-300 cursor-pointer"
             >
               <div className="relative w-full aspect-[16/9] overflow-hidden">
