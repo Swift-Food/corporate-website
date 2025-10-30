@@ -453,7 +453,7 @@ export default function MenuItemModal({
                               </span>
                             </div>
                           </div>
-                          {addon.price &&
+                          {addon.price > 0 &&
                             parseFloat(addon.price.toString()) > 0 && (
                               <span className="text-sm font-medium text-primary">
                                 +£

@@ -40,7 +40,7 @@ export enum MenuItemStyle {
 
 export interface Addon {
   name: string;
-  price: string;
+  price: number;
   allergens: string[];
   groupTitle: string;
   isRequired: boolean;
