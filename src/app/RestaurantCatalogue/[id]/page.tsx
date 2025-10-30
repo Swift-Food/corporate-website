@@ -189,7 +189,7 @@ export default function RestaurantDetailPage() {
           <div className="px-4 md:px-8">
             <div
               ref={tabContainerRef}
-              className="flex gap-2 overflow-x-auto scrollbar-hide"
+              className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
             >
               {orderedGroups.map((group) => (
                 <button
