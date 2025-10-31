@@ -16,6 +16,8 @@ export default function RestaurantCatalogue() {
   const [when, setWhen] = useState("");
   const [time, setTime] = useState<string | null>("");
   const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { corporateUser } = useAuth();
 
   useEffect(() => {
@@ -98,7 +100,7 @@ export default function RestaurantCatalogue() {
             <div
               className={`${
                 isMobileDevice ? "hidden" : "hidden md:flex"
-              } items-center justify-center gap-4`}
+              } items-center justify-center gap-4 relative`}
             >
               <div className="flex items-center gap-3 invisible">
                 <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
@@ -134,7 +136,13 @@ export default function RestaurantCatalogue() {
                   </svg>
                 </button>
               </div>
-              <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1">
+
+              {/* Date/Time Inputs */}
+              <div
+                className={`flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1 transition-opacity duration-300 ${
+                  searchExpanded ? "opacity-0 pointer-events-none" : "opacity-100"
+                }`}
+              >
                 <div className="flex-1 border-r border-gray-200 pr-3">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Date
@@ -153,14 +161,63 @@ export default function RestaurantCatalogue() {
                   <p className="text-sm text-gray-600 placeholder-gray-400">
                     {time ? time : "Login To View"}
                   </p>
-                  {/* <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
-                  /> */}
                 </div>
               </div>
+
+              {/* Expanding Search Bar */}
+              <div
+                className={`absolute right-0 bg-white rounded-full shadow-lg px-6 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out ${
+                  searchExpanded
+                    ? "w-[calc(100%-120px)] opacity-100"
+                    : "w-12 opacity-0 pointer-events-none"
+                }`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-gray-400 flex-shrink-0"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search restaurants..."
+                  className="flex-1 text-sm text-gray-600 placeholder-gray-400 focus:outline-none"
+                  autoFocus={searchExpanded}
+                />
+                <button
+                  onClick={() => {
+                    setSearchExpanded(false);
+                    setSearchQuery("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
               <div className="flex items-center gap-3">
                 <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
                   <svg
@@ -178,7 +235,10 @@ export default function RestaurantCatalogue() {
                     />
                   </svg>
                 </button>
-                <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+                <button
+                  onClick={() => setSearchExpanded(true)}
+                  className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -282,33 +342,41 @@ export default function RestaurantCatalogue() {
               Loading restaurants...
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {restaurants.map((restaurant) => (
-                <div
-                  key={restaurant.id}
-                  onClick={() => handleRestaurantClick(restaurant)}
-                  className="rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 border-2 border-base-300 cursor-pointer"
-                >
-                  <div className="relative w-full aspect-[16/9] overflow-hidden">
-                    <img
-                      src={restaurant.images?.[0] || "/placeholder.jpg"}
-                      alt={restaurant.restaurant_name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h4 className="font-semibold text-lg text-base-content mb-2 line-clamp-1">
-                      {restaurant.restaurant_name}
-                    </h4>
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-500 text-base">★</span>
-                      <span className="text-sm text-base-content/70">
-                        {restaurant.averageRating || "No rating"}
-                      </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
+              {restaurants
+                .filter((restaurant) =>
+                  searchQuery
+                    ? restaurant.restaurant_name
+                        .toLowerCase()
+                        .includes(searchQuery.toLowerCase())
+                    : true
+                )
+                .map((restaurant) => (
+                  <div
+                    key={restaurant.id}
+                    onClick={() => handleRestaurantClick(restaurant)}
+                    className="rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 border-2 border-base-300 cursor-pointer"
+                  >
+                    <div className="relative w-full aspect-[16/9] overflow-hidden">
+                      <img
+                        src={restaurant.images?.[0] || "/placeholder.jpg"}
+                        alt={restaurant.restaurant_name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h4 className="font-semibold text-lg text-base-content mb-2 line-clamp-1">
+                        {restaurant.restaurant_name}
+                      </h4>
+                      <div className="flex items-center gap-1">
+                        <span className="text-yellow-500 text-base">★</span>
+                        <span className="text-sm text-base-content/70">
+                          {restaurant.averageRating || "No rating"}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>
