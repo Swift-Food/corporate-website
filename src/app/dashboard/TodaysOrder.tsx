@@ -44,14 +44,14 @@ export function TodaysOrder({ order, onApprove, onReject, onBulkReject }: Todays
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-900">Today's Order</h3>
           <div className="flex items-center space-x-3">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            {/* <span className={`px-3 py-1 rounded-full text-sm font-medium ${
               order.status === 'pending_approval' ? 'bg-amber-100 text-amber-700' :
               order.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
               order.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
               'bg-slate-100 text-slate-700'
             }`}>
               {order.status.replace('_', ' ')}
-            </span>
+            </span> */}
             
             {order.status === 'pending_approval' && (
               <>
