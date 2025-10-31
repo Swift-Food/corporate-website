@@ -166,7 +166,7 @@ export default function RestaurantCatalogue() {
 
               {/* Expanding Search Bar */}
               <div
-                className={`absolute right-0 bg-white rounded-full shadow-lg px-6 py-3 flex items-center gap-3 transition-all duration-300 ease-in-out ${
+                className={`absolute right-0 bg-white rounded-full shadow-lg px-4 h-12 flex items-center gap-3 transition-all duration-300 ease-in-out ${
                   searchExpanded
                     ? "w-[calc(100%-120px)] opacity-100"
                     : "w-12 opacity-0 pointer-events-none"
@@ -178,7 +178,9 @@ export default function RestaurantCatalogue() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="w-5 h-5 text-gray-400 flex-shrink-0"
+                  className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-opacity duration-200 ${
+                    searchExpanded ? "opacity-100" : "opacity-0"
+                  }`}
                 >
                   <path
                     strokeLinecap="round"
@@ -191,7 +193,9 @@ export default function RestaurantCatalogue() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search restaurants..."
-                  className="flex-1 text-sm text-gray-600 placeholder-gray-400 focus:outline-none"
+                  className={`flex-1 text-sm text-gray-600 placeholder-gray-400 focus:outline-none transition-opacity duration-200 ${
+                    searchExpanded ? "opacity-100" : "opacity-0"
+                  }`}
                   autoFocus={searchExpanded}
                 />
                 <button
@@ -199,7 +203,9 @@ export default function RestaurantCatalogue() {
                     setSearchExpanded(false);
                     setSearchQuery("");
                   }}
-                  className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                  className={`text-gray-400 hover:text-gray-600 flex-shrink-0 transition-opacity duration-200 ${
+                    searchExpanded ? "opacity-100" : "opacity-0"
+                  }`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -219,7 +225,11 @@ export default function RestaurantCatalogue() {
               </div>
 
               <div className="flex items-center gap-3">
-                <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+                <button
+                  className={`p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 ${
+                    searchExpanded ? "opacity-0 pointer-events-none" : "opacity-100"
+                  }`}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -237,7 +247,9 @@ export default function RestaurantCatalogue() {
                 </button>
                 <button
                   onClick={() => setSearchExpanded(true)}
-                  className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow"
+                  className={`p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 ${
+                    searchExpanded ? "opacity-0 pointer-events-none" : "opacity-100"
+                  }`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
