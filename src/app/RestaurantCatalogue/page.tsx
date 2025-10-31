@@ -22,6 +22,7 @@ export default function RestaurantCatalogue() {
   const [time, setTime] = useState<string | null>("");
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantSearchResults, setRestaurantSearchResults] = useState<
     Restaurant[]
@@ -131,6 +132,7 @@ export default function RestaurantCatalogue() {
     setRestaurantSearchResults([]);
     setMenuItemSearchResults([]);
     setSearchExpanded(false);
+    setSearchFocused(false);
   };
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
@@ -184,7 +186,7 @@ export default function RestaurantCatalogue() {
                   className="group flex items-center"
                   onMouseEnter={() => setSearchExpanded(true)}
                   onMouseLeave={() => {
-                    if (!searchQuery) setSearchExpanded(false);
+                    if (!searchQuery && !searchFocused) setSearchExpanded(false);
                   }}
                 >
                   <div
@@ -214,6 +216,8 @@ export default function RestaurantCatalogue() {
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
+                          onFocus={() => setSearchFocused(true)}
+                          onBlur={() => setSearchFocused(false)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               handleSearch();
