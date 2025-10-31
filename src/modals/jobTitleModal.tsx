@@ -118,7 +118,7 @@ export function JobTitleModal({ isOpen, onClose, onSuccess, organizationId, jobT
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Monthly Budget Limit ($)</label>
               <input
                 type="number"
@@ -128,7 +128,7 @@ export function JobTitleModal({ isOpen, onClose, onSuccess, organizationId, jobT
                 onChange={(e) => setFormData({ ...formData, monthlyBudgetLimit: e.target.value ? Number(e.target.value) : undefined })}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
-            </div>
+            </div> */}
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Approval Threshold ($)</label>
