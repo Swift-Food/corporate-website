@@ -11,12 +11,13 @@ import {
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
+import LoginModal from "../components/LoginModal";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, getTotalPrice, clearCart } = useCart();
-  const { user, corporateUser } = useAuth();
-  const employeeId = user?.id || corporateUser?.id;
+  const { user, corporateUser, isAuthenticated } = useAuth();
+  const employeeId = corporateUser?.id; //user?.id || corporateUser?.id;
 
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [dietaryRestrictions, setDietaryRestrictions] = useState("");
@@ -24,8 +25,11 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
-  const [restaurantNames, setRestaurantNames] = useState<Record<string, string>>({});
+  const [restaurantNames, setRestaurantNames] = useState<
+    Record<string, string>
+  >({});
   const [loadingRestaurants, setLoadingRestaurants] = useState(true);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Load delivery date and time from localStorage
   useEffect(() => {
@@ -99,6 +103,14 @@ export default function CheckoutPage() {
   const handleSubmitOrder = async () => {
     if (cartItems.length === 0) {
       setError("Your cart is empty");
+      return;
+    }
+
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      // Store current page for redirect after login
+      localStorage.setItem("redirect_after_login", "/checkout");
+      setShowLoginModal(true);
       return;
     }
 
@@ -438,6 +450,12 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </div>
   );
 }

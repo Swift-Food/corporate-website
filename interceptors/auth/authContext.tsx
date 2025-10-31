@@ -130,8 +130,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isAuthenticated: true,
         });
 
-        // Redirect to restaurant catalogue after successful login
-        router.push("/RestaurantCatalogue");
+        // Check if there's a redirect URL stored (e.g., from checkout page)
+        const redirectUrl = localStorage.getItem("redirect_after_login");
+        if (redirectUrl) {
+          localStorage.removeItem("redirect_after_login");
+          router.push(redirectUrl);
+        } else {
+          // Default redirect to restaurant catalogue after successful login
+          router.push("/RestaurantCatalogue");
+        }
       } catch (error) {
         console.error("Login failed:", error);
         throw error;
