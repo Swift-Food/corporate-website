@@ -1,5 +1,8 @@
 // components/dashboard/EmployeesTab.tsx
+
 import { CorporateUser } from '@/types/user';
+import { useState } from 'react';
+import { ChangeRoleModal } from '@/modals/changeRoleModal';
 
 interface EmployeesTabProps {
   employees: CorporateUser[];
@@ -8,6 +11,7 @@ interface EmployeesTabProps {
   isLoading: boolean;
   error: string;
   onRefresh: () => void;
+  onChangeRole: (employeeId: string, newRole: string) => Promise<void>;
 }
 
 export function EmployeesTab({ 
@@ -16,8 +20,13 @@ export function EmployeesTab({
   jobTitles, 
   isLoading, 
   error, 
-  onRefresh 
+  onRefresh,
+  onChangeRole 
 }: EmployeesTabProps) {
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<CorporateUser | null>(null);
+  const [isChangingRole, setIsChangingRole] = useState(false);
+
   const getRoleColor = (role: string) => {
     const colors = {
       ADMIN: 'bg-purple-100 text-purple-700',
@@ -35,6 +44,30 @@ export function EmployeesTab({
       DEACTIVATED: 'bg-gray-100 text-gray-700',
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-700';
+  };
+
+  const handleOpenRoleModal = (employee: CorporateUser) => {
+    setSelectedEmployee(employee);
+    setShowRoleModal(true);
+  };
+
+  const handleCloseRoleModal = () => {
+    setShowRoleModal(false);
+    setSelectedEmployee(null);
+  };
+
+  const handleConfirmRoleChange = async (newRole: string) => {
+    if (!selectedEmployee) return;
+
+    setIsChangingRole(true);
+    try {
+      await onChangeRole(selectedEmployee.id, newRole);
+      handleCloseRoleModal();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to change role');
+    } finally {
+      setIsChangingRole(false);
+    }
   };
 
   return (
@@ -155,6 +188,17 @@ export function EmployeesTab({
                                 <span className="font-medium text-slate-900">£{emp.monthlyBudgetRemaining?.toFixed(2) || '0.00'}</span>
                               </div>
                             </div>
+                            
+                            {/* Change Role Button */}
+                            <button
+                              onClick={() => handleOpenRoleModal(emp)}
+                              className="mt-3 w-full px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium flex items-center justify-center space-x-1"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                              </svg>
+                              <span>Change Role</span>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -166,6 +210,15 @@ export function EmployeesTab({
           </div>
         )}
       </div>
+
+      {/* Role Change Modal */}
+      <ChangeRoleModal
+        isOpen={showRoleModal}
+        onClose={handleCloseRoleModal}
+        onConfirm={handleConfirmRoleChange}
+        employee={selectedEmployee}
+        isLoading={isChangingRole}
+      />
     </div>
   );
 }

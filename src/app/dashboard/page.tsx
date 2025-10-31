@@ -242,6 +242,25 @@ function DashboardContent() {
     }
   };
 
+  const handleChangeRole = async (employeeId: string, newRole: string) => {
+    if (!corporateUser?.id || !organizationId) return;
+    
+    try {
+      await apiClient.patch(
+        `/corporate-users/${employeeId}/change-role`,
+        { role: newRole },
+        { params: { managerId: corporateUser.id } }
+      );
+      
+      // Reload employees to reflect the change
+      await loadEmployees();
+      
+      alert('Role changed successfully!');
+    } catch (err: any) {
+      throw err; // Let the modal handle the error
+    }
+  };
+
   const handleDeleteJobTitle = async (id: string) => {
     if (!organizationId) return;
     if (!confirm('Delete this job title?')) return;
@@ -435,6 +454,7 @@ function DashboardContent() {
             jobTitles={jobTitles}
             isLoading={isLoading}
             error={error}
+            onChangeRole={handleChangeRole} 
             onRefresh={loadEmployees}
           />
         )}

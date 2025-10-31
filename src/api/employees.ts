@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { CorporateUser } from '../types/user';
+import { CorporateUser, CorporateUserRole } from '../types/user';
 
 export const employeesApi = {
   /**
@@ -49,6 +49,46 @@ export const employeesApi = {
    */
   getEmployee: async (id: string): Promise<CorporateUser> => {
     const response = await apiClient.get<CorporateUser>(`/corporate-users/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Change employee role (promote/demote)
+   */
+  changeRole: async (
+    employeeId: string,
+    managerId: string,
+    newRole: CorporateUserRole
+  ) => {
+    const response = await apiClient.patch(
+      `/corporate-users/${employeeId}/change-role`,
+      { newRole },
+      { params: { managerId } }
+    );
+    return response.data;
+  },
+
+  /**
+   * Promote employee to manager
+   */
+  promoteToManager: async (employeeId: string, managerId: string) => {
+    const response = await apiClient.post(
+      `/corporate-users/${employeeId}/promote-to-manager`,
+      {},
+      { params: { managerId } }
+    );
+    return response.data;
+  },
+
+  /**
+   * Demote manager to employee
+   */
+  demoteToEmployee: async (employeeId: string, managerId: string) => {
+    const response = await apiClient.post(
+      `/corporate-users/${employeeId}/demote-to-employee`,
+      {},
+      { params: { managerId } }
+    );
     return response.data;
   },
 };

@@ -31,6 +31,7 @@ export interface CreateJobTitleDto {
 export interface AssignJobTitleDto {
   jobTitleId: string;
   employeeIds: string[];
+  removedEmployeeIds?: string[];
 }
 
 export const jobTitlesApi = {
@@ -100,7 +101,12 @@ export const jobTitlesApi = {
     organizationId: string,
     data: AssignJobTitleDto,
     managerId: string
-  ): Promise<any> => {
+  ): Promise<{
+    assigned: number;
+    removed: number;
+    failed: number;
+    errors: any[];
+  }> => {
     const response = await apiClient.post(
       `/corporate-users/organization/${organizationId}/assign-job-title`,
       data,
