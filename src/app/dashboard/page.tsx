@@ -21,6 +21,7 @@ import { TodaysOrder } from './TodaysOrder';
 import { RejectModal } from '@/modals/RejectModal';
 import { corporateOrdersApi } from '@/api/corporateOrders';
 import { ApprovedOrdersTab } from './ApprovedOrdersTab';
+import { WalletTab } from './WalletTab';
 
 export default function DashboardPage() {
   return (
@@ -32,7 +33,7 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const { corporateUser, user, logout, organizationId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders' | 'approved-orders'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders' | 'approved-orders' | 'wallet'>('overview');
   const [employees, setEmployees] = useState<CorporateUser[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<CorporateUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -418,7 +419,7 @@ function DashboardContent() {
           {/* Tabs */}
           <div className="mt-6 border-b border-slate-200">
             <nav className="flex space-x-8">
-              {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders'] as const).map((tab) => (
+              {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders', 'wallet'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -449,6 +450,9 @@ function DashboardContent() {
                     <span className="ml-2 px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
                       {jobTitles.length}
                     </span>
+                  )}
+                  {tab === 'wallet' && organizationId && (
+                   <></>
                   )}
                 </button>
               ))}
@@ -560,6 +564,13 @@ function DashboardContent() {
             isLoading={isLoading}
             error={error}
             onRefresh={loadApprovedOrders}
+          />
+        )}
+
+        {activeTab === 'wallet' && organizationId && corporateUser?.id && (
+          <WalletTab
+            organizationId={organizationId}
+            managerId={corporateUser?.id}
           />
         )}
       </main>
