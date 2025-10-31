@@ -2,13 +2,6 @@ import { SearchFilters, SearchResponse } from "@/types/search";
 import apiClient from "./client";
 
 export const searchApi = {
-  fetchRestaurants: async (): Promise<any[]> => {
-    const response = await apiClient.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/restaurant/corporate/restaurants`
-    );
-    console.log("Fetched restaurants: ", response);
-    return response.data;
-  },
   searchMenuItems: async (
     query: string,
     filters?: SearchFilters

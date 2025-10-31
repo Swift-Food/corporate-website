@@ -8,9 +8,14 @@ import CartSidebar from "@/components/cart/CartSidebar";
 import MobileCart from "@/components/cart/MobileCart";
 import { organizationApi } from "@/api/organization";
 import { useAuth } from "../../../interceptors/auth/authContext";
+import { searchApi } from "@/api/search";
+import SearchResults from "@/components/restaurant/SearchResults";
+import RestaurantCard from "@/components/restaurant/RestaurantCard";
 
 export default function RestaurantCatalogue() {
   const router = useRouter();
+  const { corporateUser } = useAuth();
+
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
   const [when, setWhen] = useState("");
@@ -18,7 +23,10 @@ export default function RestaurantCatalogue() {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { corporateUser } = useAuth();
+  const [restaurantSearchResults, setRestaurantSearchResults] = useState<Restaurant[]>([]);
+  const [menuItemSearchResults, setMenuItemSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
     fetchRestaurants();
@@ -75,6 +83,52 @@ export default function RestaurantCatalogue() {
       console.error("Failed to fetch organization delivery time window: ", err);
       setTime(null);
     }
+  };
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    if (!searchQuery.trim()) {
+      setHasSearched(false);
+      setRestaurantSearchResults([]);
+      setMenuItemSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    setHasSearched(true);
+
+    try {
+      // Search restaurants
+      const restaurantMatches = restaurants.filter((restaurant) =>
+        restaurant.restaurant_name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      );
+      setRestaurantSearchResults(restaurantMatches);
+
+      // Search menu items
+      const response = await searchApi.searchMenuItems(searchQuery, {
+        page: 1,
+        limit: 50,
+      });
+
+      setMenuItemSearchResults(response.menuItems || []);
+    } catch (error) {
+      console.error("Error searching:", error);
+      setRestaurantSearchResults([]);
+      setMenuItemSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setHasSearched(false);
+    setRestaurantSearchResults([]);
+    setMenuItemSearchResults([]);
+    setSearchExpanded(false);
   };
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
@@ -198,6 +252,11 @@ export default function RestaurantCatalogue() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearch();
+                      }
+                    }}
                     placeholder="Search restaurants..."
                     className={`flex-1 text-sm text-gray-600 placeholder-gray-400 focus:outline-none transition-opacity ${
                       searchExpanded
@@ -207,10 +266,7 @@ export default function RestaurantCatalogue() {
                     autoFocus={searchExpanded}
                   />
                   <button
-                    onClick={() => {
-                      setSearchExpanded(false);
-                      setSearchQuery("");
-                    }}
+                    onClick={clearSearch}
                     className={`text-gray-400 hover:text-gray-600 flex-shrink-0 transition-opacity ${
                       searchExpanded
                         ? "opacity-100 duration-200 delay-150"
@@ -287,6 +343,23 @@ export default function RestaurantCatalogue() {
               <div className="bg-white rounded-2xl shadow-lg p-4 space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-2">
+                    Search
+                  </label>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearch();
+                      }
+                    }}
+                    placeholder="Search restaurants or menu items..."
+                    className="w-full text-sm text-gray-600 border border-gray-200 rounded-lg py-2 px-2 focus:outline-none focus:border-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">
                     Date
                   </label>
                   <input
@@ -305,14 +378,6 @@ export default function RestaurantCatalogue() {
                   <p className="text-sm text-gray-600 placeholder-gray-400 border border-gray-200 rounded-lg py-2 px-2">
                     {time ? time : "Login To View"}
                   </p>
-                  {/* <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className={`w-full text-sm text-gray-600 border border-gray-200 rounded-lg py-2 focus:outline-none focus:border-gray-400 cursor-pointer ${
-                      !isMobileDevice ? "px-2" : ""
-                    }`}
-                  /> */}
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button className="flex-1 py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center justify-center gap-2">
@@ -334,7 +399,10 @@ export default function RestaurantCatalogue() {
                       Filters
                     </span>
                   </button>
-                  <button className="flex-1 py-2 px-4 bg-primary hover:bg-primary/90 rounded-lg transition-colors flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => handleSearch()}
+                    className="flex-1 py-2 px-4 bg-primary hover:bg-primary/90 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
@@ -353,56 +421,51 @@ export default function RestaurantCatalogue() {
                       Search
                     </span>
                   </button>
+                  {hasSearched && (
+                    <button
+                      onClick={clearSearch}
+                      className="flex-shrink-0 py-2 px-4 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span className="text-sm font-medium text-gray-700">
+                        Clear
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Restaurant Grid */}
-          <h3 className="text-xl md:text-2xl font-semibold mb-6 text-base-content">
-            Select Restaurant
-          </h3>
-          {restaurantsLoading ? (
-            <div className="text-center py-12 text-base-content/60">
-              Loading restaurants...
-            </div>
+          {/* Restaurant Grid / Search Results */}
+          {hasSearched ? (
+            <SearchResults
+              restaurantResults={restaurantSearchResults}
+              menuItemResults={menuItemSearchResults}
+              isLoading={isSearching}
+              searchQuery={searchQuery}
+              onRestaurantClick={handleRestaurantClick}
+            />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
-              {restaurants
-                .filter((restaurant) =>
-                  searchQuery
-                    ? restaurant.restaurant_name
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase())
-                    : true
-                )
-                .map((restaurant) => (
-                  <div
-                    key={restaurant.id}
-                    onClick={() => handleRestaurantClick(restaurant)}
-                    className="rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 border-2 border-base-300 cursor-pointer"
-                  >
-                    <div className="relative w-full aspect-[16/9] overflow-hidden">
-                      <img
-                        src={restaurant.images?.[0] || "/placeholder.jpg"}
-                        alt={restaurant.restaurant_name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h4 className="font-semibold text-lg text-base-content mb-2 line-clamp-1">
-                        {restaurant.restaurant_name}
-                      </h4>
-                      <div className="flex items-center gap-1">
-                        <span className="text-yellow-500 text-base">★</span>
-                        <span className="text-sm text-base-content/70">
-                          {restaurant.averageRating || "No rating"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
+            <>
+              <h3 className="text-xl md:text-2xl font-semibold mb-6 text-base-content">
+                Select Restaurant
+              </h3>
+              {restaurantsLoading ? (
+                <div className="text-center py-12 text-base-content/60">
+                  Loading restaurants...
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
+                  {restaurants.map((restaurant) => (
+                    <RestaurantCard
+                      key={restaurant.id}
+                      restaurant={restaurant}
+                      onClick={handleRestaurantClick}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 
