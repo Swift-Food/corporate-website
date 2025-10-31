@@ -73,7 +73,7 @@ export default function CheckoutPage() {
   const getRequestedDeliveryTime = (): string => {
     if (deliveryDate && deliveryTime) {
       // Combine date and time into ISO format
-      const dateTimeString = `${deliveryDate}T${deliveryTime}:00`;
+      const dateTimeString = `${deliveryDate}T${deliveryTime}`;
       const date = new Date(dateTimeString);
 
       // Check if date is valid

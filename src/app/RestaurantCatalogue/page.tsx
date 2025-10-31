@@ -20,7 +20,6 @@ export default function RestaurantCatalogue() {
 
   useEffect(() => {
     fetchRestaurants();
-    fetchOrganizationDeliveryTime();
 
     // Detect if device is iOS or Android
     const userAgent = navigator.userAgent.toLowerCase();
@@ -31,6 +30,10 @@ export default function RestaurantCatalogue() {
     const savedDate = localStorage.getItem("delivery_date");
     if (savedDate) setWhen(savedDate);
   }, []);
+
+  useEffect(() => {
+    fetchOrganizationDeliveryTime();
+  });
 
   // Save date and time to localStorage whenever they change
   useEffect(() => {
@@ -148,7 +151,7 @@ export default function RestaurantCatalogue() {
                     Time
                   </label>
                   <p className="text-sm text-gray-600 placeholder-gray-400">
-                    {time}
+                    {time ? time : "Login To View"}
                   </p>
                   {/* <input
                     type="time"
@@ -215,7 +218,7 @@ export default function RestaurantCatalogue() {
                     Time
                   </label>
                   <p className="text-sm text-gray-600 placeholder-gray-400 border border-gray-200 rounded-lg py-2 px-2">
-                    {time}
+                    {time ? time : "Login To View"}
                   </p>
                   {/* <input
                     type="time"
