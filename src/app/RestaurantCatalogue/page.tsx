@@ -22,7 +22,26 @@ export default function RestaurantCatalogue() {
     const userAgent = navigator.userAgent.toLowerCase();
     const isMobile = /iphone|ipad|ipod|android/.test(userAgent);
     setIsMobileDevice(isMobile);
+
+    // Load saved date/time from localStorage
+    const savedDate = localStorage.getItem("delivery_date");
+    const savedTime = localStorage.getItem("delivery_time");
+    if (savedDate) setWhen(savedDate);
+    if (savedTime) setTime(savedTime);
   }, []);
+
+  // Save date and time to localStorage whenever they change
+  useEffect(() => {
+    if (when) {
+      localStorage.setItem("delivery_date", when);
+    }
+  }, [when]);
+
+  useEffect(() => {
+    if (time) {
+      localStorage.setItem("delivery_time", time);
+    }
+  }, [time]);
 
   const fetchRestaurants = async () => {
     setRestaurantsLoading(true);

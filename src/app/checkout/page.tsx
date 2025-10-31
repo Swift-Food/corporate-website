@@ -2,18 +2,53 @@
 
 import { useCart } from "@/context/CartContext";
 import { checkoutApi } from "@/api/checkout";
-import { CreateEmployeeOrderDto, RestaurantOrder, MenuItem } from "@/types/order";
-import { useState } from "react";
+import {
+  CreateEmployeeOrderDto,
+  RestaurantOrder,
+  MenuItem,
+} from "@/types/order";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../../../interceptors/auth/authContext";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, getTotalPrice, clearCart } = useCart();
+  const { user, corporateUser } = useAuth();
+  const employeeId = user?.id || corporateUser?.id;
 
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [dietaryRestrictions, setDietaryRestrictions] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState("");
+
+  // Load delivery date and time from localStorage
+  useEffect(() => {
+    const savedDate = localStorage.getItem("delivery_date");
+    const savedTime = localStorage.getItem("delivery_time");
+
+    if (savedDate) setDeliveryDate(savedDate);
+    if (savedTime) setDeliveryTime(savedTime);
+  }, []);
+
+  // Helper function to create ISO date string from date and time
+  const getRequestedDeliveryTime = (): string => {
+    if (deliveryDate && deliveryTime) {
+      // Combine date and time into ISO format
+      const dateTimeString = `${deliveryDate}T${deliveryTime}:00`;
+      const date = new Date(dateTimeString);
+
+      // Check if date is valid
+      if (!isNaN(date.getTime())) {
+        return date.toISOString();
+      }
+    }
+
+    // Fallback to 1 hour from now if no date/time selected
+    return new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  };
 
   // Group cart items by restaurant
   const groupedByRestaurant = cartItems.reduce((acc, cartItem) => {
@@ -40,62 +75,63 @@ export default function CheckoutPage() {
 
     try {
       // Transform cart items into the backend DTO format
-      const restaurantOrders: RestaurantOrder[] = Object.values(groupedByRestaurant).map(
-        (group) => {
-          const menuItems: MenuItem[] = group.items.map((cartItem) => {
-            const price = parseFloat(cartItem.item.price?.toString() || "0");
-            const discountPrice = parseFloat(
-              cartItem.item.discountPrice?.toString() || "0"
-            );
-            const unitPrice =
-              cartItem.item.isDiscount && discountPrice > 0 ? discountPrice : price;
+      const restaurantOrders: RestaurantOrder[] = Object.values(
+        groupedByRestaurant
+      ).map((group) => {
+        const menuItems: MenuItem[] = group.items.map((cartItem) => {
+          const price = parseFloat(cartItem.item.price?.toString() || "0");
+          const discountPrice = parseFloat(
+            cartItem.item.discountPrice?.toString() || "0"
+          );
+          const unitPrice =
+            cartItem.item.isDiscount && discountPrice > 0
+              ? discountPrice
+              : price;
 
-            // Calculate addon price
-            const addonPrice = (cartItem.selectedAddons || []).reduce(
-              (sum, addon) => sum + (addon.price || 0),
-              0
-            );
+          // Calculate addon price
+          const addonPrice = (cartItem.selectedAddons || []).reduce(
+            (sum, addon) => sum + (addon.price || 0),
+            0
+          );
 
-            const totalItemPrice = (unitPrice + addonPrice) * cartItem.quantity;
-
-            return {
-              menuItemId: cartItem.item.id,
-              name: cartItem.item.name,
-              quantity: cartItem.quantity,
-              unitPrice,
-              totalPrice: totalItemPrice,
-              restaurantPrice: unitPrice,
-              cateringQuantityUnit: cartItem.item.cateringQuantityUnit,
-              feedsPerUnit: cartItem.item.feedsPerUnit,
-              selectedAddons: cartItem.selectedAddons?.map((addon) => ({
-                name: addon.optionName,
-                price: addon.price,
-                quantity: addon.quantity || 1,
-                groupTitle: addon.addonName,
-              })),
-            };
-          });
+          const totalItemPrice = (unitPrice + addonPrice) * cartItem.quantity;
 
           return {
-            restaurantId: group.restaurantId,
-            restaurantName: group.restaurantName,
-            menuItems,
-            specialInstructions: specialInstructions || undefined,
+            menuItemId: cartItem.item.id,
+            name: cartItem.item.name,
+            quantity: cartItem.quantity,
+            unitPrice,
+            totalPrice: totalItemPrice,
+            restaurantPrice: unitPrice,
+            cateringQuantityUnit: cartItem.item.cateringQuantityUnit,
+            feedsPerUnit: cartItem.item.feedsPerUnit,
+            selectedAddons: cartItem.selectedAddons?.map((addon) => ({
+              name: addon.optionName,
+              price: addon.price,
+              quantity: addon.quantity || 1,
+              groupTitle: addon.addonName,
+            })),
           };
-        }
-      );
+        });
+
+        return {
+          restaurantId: group.restaurantId,
+          restaurantName: group.restaurantName,
+          menuItems,
+          specialInstructions: specialInstructions || undefined,
+        };
+      });
 
       const orderData: CreateEmployeeOrderDto = {
         restaurantOrders,
         deliveryAddressId: "default-address-id", // TODO: Get from user context
-        requestedDeliveryTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour from now
+        requestedDeliveryTime: getRequestedDeliveryTime(),
         specialInstructions: specialInstructions || undefined,
         dietaryRestrictions: dietaryRestrictions
           ? dietaryRestrictions.split(",").map((r) => r.trim())
           : undefined,
       };
 
-      const employeeId = "default-employee-id"; // TODO: Get from auth context
       const response = await checkoutApi.createOrder(employeeId, orderData);
 
       console.log("Order created successfully:", response);
@@ -106,9 +142,12 @@ export default function CheckoutPage() {
 
       // Redirect to success page or orders page
       router.push("/order"); // You can create a success page later
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error creating order:", err);
-      setError(err?.response?.data?.message || "Failed to submit order. Please try again.");
+      setError(
+        err?.response?.data?.message ||
+          "Failed to submit order. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -118,8 +157,12 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-base-100 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-base-content mb-4">Your cart is empty</h1>
-          <p className="text-base-content/60 mb-6">Add some items before checking out</p>
+          <h1 className="text-3xl font-bold text-base-content mb-4">
+            Your cart is empty
+          </h1>
+          <p className="text-base-content/60 mb-6">
+            Add some items before checking out
+          </p>
           <button
             onClick={() => router.push("/RestaurantCatalogue")}
             className="bg-primary hover:opacity-90 text-white py-3 px-6 rounded-lg font-bold"
@@ -193,70 +236,84 @@ export default function CheckoutPage() {
 
               <div className="space-y-6">
                 {Object.values(groupedByRestaurant).map((group) => (
-                  <div key={group.restaurantId} className="border-b border-base-300 pb-6 last:border-b-0 last:pb-0">
+                  <div
+                    key={group.restaurantId}
+                    className="border-b border-base-300 pb-6 last:border-b-0 last:pb-0"
+                  >
                     <h3 className="text-xl font-bold text-base-content mb-4">
                       {group.restaurantName}
                     </h3>
 
                     <div className="space-y-4">
-                      {group.items.map(({ item, quantity, selectedAddons }, index) => {
-                        const price = parseFloat(item.price?.toString() || "0");
-                        const discountPrice = parseFloat(
-                          item.discountPrice?.toString() || "0"
-                        );
-                        const itemPrice =
-                          item.isDiscount && discountPrice > 0 ? discountPrice : price;
+                      {group.items.map(
+                        ({ item, quantity, selectedAddons }, index) => {
+                          const price = parseFloat(
+                            item.price?.toString() || "0"
+                          );
+                          const discountPrice = parseFloat(
+                            item.discountPrice?.toString() || "0"
+                          );
+                          const itemPrice =
+                            item.isDiscount && discountPrice > 0
+                              ? discountPrice
+                              : price;
 
-                        const addonPrice = (selectedAddons || []).reduce(
-                          (sum, addon) => sum + (addon.price || 0),
-                          0
-                        );
+                          const addonPrice = (selectedAddons || []).reduce(
+                            (sum, addon) => sum + (addon.price || 0),
+                            0
+                          );
 
-                        const subtotal = (itemPrice + addonPrice) * quantity;
+                          const subtotal = (itemPrice + addonPrice) * quantity;
 
-                        return (
-                          <div
-                            key={`${group.restaurantId}-${index}`}
-                            className="flex gap-4 p-4 bg-base-200 rounded-lg"
-                          >
-                            {item.image && (
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="w-20 h-20 object-cover rounded-lg"
-                              />
-                            )}
-                            <div className="flex-1">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h4 className="font-semibold text-base text-base-content">
-                                    {item.name}
-                                  </h4>
-                                  {selectedAddons && selectedAddons.length > 0 && (
-                                    <div className="text-sm text-base-content/60 mt-1">
-                                      {selectedAddons.map((addon, addonIndex) => (
-                                        <div key={addonIndex}>
-                                          + {addon.optionName}
-                                          {addon.price > 0 &&
-                                            ` (£${addon.price.toFixed(2)})`}
+                          return (
+                            <div
+                              key={`${group.restaurantId}-${index}`}
+                              className="flex gap-4 p-4 bg-base-200 rounded-lg"
+                            >
+                              {item.image && (
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-20 h-20 object-cover rounded-lg"
+                                />
+                              )}
+                              <div className="flex-1">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h4 className="font-semibold text-base text-base-content">
+                                      {item.name}
+                                    </h4>
+                                    {selectedAddons &&
+                                      selectedAddons.length > 0 && (
+                                        <div className="text-sm text-base-content/60 mt-1">
+                                          {selectedAddons.map(
+                                            (addon, addonIndex) => (
+                                              <div key={addonIndex}>
+                                                + {addon.optionName}
+                                                {addon.price > 0 &&
+                                                  ` (£${addon.price.toFixed(
+                                                    2
+                                                  )})`}
+                                              </div>
+                                            )
+                                          )}
                                         </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-lg font-bold text-primary">
-                                    £{subtotal.toFixed(2)}
-                                  </p>
-                                  <p className="text-sm text-base-content/60">
-                                    Qty: {quantity}
-                                  </p>
+                                      )}
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-lg font-bold text-primary">
+                                      £{subtotal.toFixed(2)}
+                                    </p>
+                                    <p className="text-sm text-base-content/60">
+                                      Qty: {quantity}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        }
+                      )}
                     </div>
                   </div>
                 ))}
@@ -270,6 +327,28 @@ export default function CheckoutPage() {
               <h2 className="text-2xl font-bold text-base-content mb-6">
                 Order Summary
               </h2>
+
+              {/* Delivery Date and Time */}
+              {deliveryDate && deliveryTime && (
+                <div className="mb-6 p-4 bg-base-200 rounded-lg">
+                  <h3 className="text-sm font-semibold text-base-content/60 mb-2">
+                    Delivery Time
+                  </h3>
+                  <p className="text-base font-medium text-base-content">
+                    {new Date(
+                      `${deliveryDate}T${deliveryTime}`
+                    ).toLocaleDateString("en-GB", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                  <p className="text-base font-medium text-base-content">
+                    {deliveryTime}
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-base-content">
