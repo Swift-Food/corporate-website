@@ -345,7 +345,13 @@ export default function CheckoutPage() {
                     })}
                   </p>
                   <p className="text-base font-medium text-base-content">
-                    {deliveryTime}
+                    {new Date(
+                      `${deliveryDate}T${deliveryTime}`
+                    ).toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}
                   </p>
                 </div>
               )}
