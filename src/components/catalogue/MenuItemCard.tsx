@@ -99,8 +99,8 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                       fill
                       className="object-cover"
                     />
-                    {item.isDiscount && (
-                      <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                    {item.isDiscount && item.discountPrice !== item.price && (
+                      <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded text-xs font-semibold">
                         SALE
                       </div>
                     )}

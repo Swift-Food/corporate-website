@@ -45,6 +45,10 @@ export default function RestaurantCatalogue() {
     router.push(`/RestaurantCatalogue/${restaurant.id}`);
   };
 
+  const handleCheckout = () => {
+    router.push("/checkout");
+  };
+
   return (
     <div className="w-full bg-base-100">
       <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto">
@@ -268,12 +272,13 @@ export default function RestaurantCatalogue() {
         <CartSidebar
           topOffset="top-36"
           maxHeightOffset="11rem"
-          widthPercentage={35}
+          widthPercentage={25}
+          onCheckout={handleCheckout}
         />
       </div>
 
       {/* Mobile Cart */}
-      <MobileCart />
+      <MobileCart onCheckout={handleCheckout} />
     </div>
   );
 }

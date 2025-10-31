@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AuthProvider } from "../../interceptors/auth/authContext";
+import { CartProvider } from "@/context/CartContext";
 import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import ConditionalNavbar from "./components/ConditionalNavbar";
@@ -72,10 +73,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${openSans.className} ${openSans.variable}`}>
         <AuthProvider>
-          <div className="min-h-screen flex flex-col">
-            <ConditionalNavbar />
-            <main className="flex-1">{children}</main>
-          </div>
+          <CartProvider>
+            <div className="min-h-screen flex flex-col">
+              <ConditionalNavbar />
+              <main className="flex-1">{children}</main>
+            </div>
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

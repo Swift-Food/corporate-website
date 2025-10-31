@@ -3,7 +3,7 @@
 import { menuItemApi } from "@/api/menu-items";
 import { CorporateMenuItem } from "@/types/menuItem";
 import { Restaurant } from "@/types/restaurant";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import CartSidebar from "@/components/cart/CartSidebar";
 import MobileCart from "@/components/cart/MobileCart";
@@ -12,6 +12,7 @@ import { transformMenuItems } from "@/util/menuItems";
 
 export default function RestaurantDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const restaurantId = params.id as string;
 
   const [menuItems, setMenuItems] = useState<CorporateMenuItem[]>([]);
@@ -153,6 +154,10 @@ export default function RestaurantDetailPage() {
     return () => observer.disconnect();
   }, [orderedGroups]);
 
+  const handleCheckout = () => {
+    router.push("/checkout");
+  };
+
   return (
     <div className="w-full min-h-screen bg-base-100">
       {/* Restaurant Header */}
@@ -252,11 +257,12 @@ export default function RestaurantDetailPage() {
           topOffset="top-40"
           maxHeightOffset="12rem"
           widthPercentage={35}
+          onCheckout={handleCheckout}
         />
       </div>
 
       {/* Mobile Cart */}
-      <MobileCart />
+      <MobileCart onCheckout={handleCheckout} />
     </div>
   );
 }

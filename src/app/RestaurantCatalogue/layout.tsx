@@ -1,6 +1,3 @@
-"use client";
-
-import { CartProvider } from "@/context/CartContext";
 import { ReactNode } from "react";
 
 export default function RestaurantCatalogueLayout({
@@ -8,5 +5,5 @@ export default function RestaurantCatalogueLayout({
 }: {
   children: ReactNode;
 }) {
-  return <CartProvider>{children}</CartProvider>;
+  return <>{children}</>;
 }
