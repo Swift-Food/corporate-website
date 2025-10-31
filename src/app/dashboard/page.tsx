@@ -19,6 +19,8 @@ import { JobTitlesTab } from './JobTitlesTab';
 import { OrderSettings } from './OrderSettings';
 import { TodaysOrder } from './TodaysOrder';
 import { RejectModal } from '@/modals/RejectModal';
+import { corporateOrdersApi } from '@/api/corporateOrders';
+import { ApprovedOrdersTab } from './ApprovedOrdersTab';
 
 export default function DashboardPage() {
   return (
@@ -30,7 +32,7 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const { corporateUser, user, logout, organizationId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders' | 'approved-orders'>('overview');
   const [employees, setEmployees] = useState<CorporateUser[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<CorporateUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +48,7 @@ function DashboardContent() {
   const [todaysOrder, setTodaysOrder] = useState<any>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedRejectSubOrder, setSelectedRejectSubOrder] = useState<any>(null);
+  const [approvedOrders, setApprovedOrders] = useState<any[]>([]);
 
   useEffect(() => {
     if (activeTab === 'employees' && organizationId && corporateUser?.id) {
@@ -57,6 +60,8 @@ function DashboardContent() {
     } else if (activeTab === 'orders' && organizationId && corporateUser?.id) {
       loadOrganizationSettings();
       loadTodaysOrder();
+    }else if (activeTab === 'approved-orders' && organizationId && corporateUser?.id) {
+      loadApprovedOrders();
     }
   }, [activeTab, organizationId, corporateUser?.id]);
 
@@ -222,6 +227,21 @@ function DashboardContent() {
     }
   };
 
+  const loadApprovedOrders = async () => {
+    if (!corporateUser?.id) return;
+    
+    setIsLoading(true);
+    setError('');
+    try {
+      const data = await corporateOrdersApi.getApprovedOrders(corporateUser.id);
+      setApprovedOrders(data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load approved orders');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleDeleteJobTitle = async (id: string) => {
     if (!organizationId) return;
     if (!confirm('Delete this job title?')) return;
@@ -363,7 +383,7 @@ function DashboardContent() {
           {/* Tabs */}
           <div className="mt-6 border-b border-slate-200">
             <nav className="flex space-x-8">
-              {(['overview', 'employees', 'approvals', 'job-titles', 'orders'] as const).map((tab) => (
+              {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -379,9 +399,15 @@ function DashboardContent() {
                       {employees.length}
                     </span>
                   )}
+                  
                   {tab === 'approvals' && pendingApprovals.length > 0 && (
                     <span className="ml-2 px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs">
                       {pendingApprovals.length}
+                    </span>
+                  )}
+                  {tab === 'approved-orders' && approvedOrders.length > 0 && (
+                    <span className="ml-2 px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full text-xs">
+                      {approvedOrders.length}
                     </span>
                   )}
                   {tab === 'job-titles' && jobTitles.length > 0 && (
@@ -487,6 +513,16 @@ function DashboardContent() {
               </>
             )}
           </div>
+
+        )}
+
+        {activeTab === 'approved-orders' && (
+          <ApprovedOrdersTab
+            orders={approvedOrders}
+            isLoading={isLoading}
+            error={error}
+            onRefresh={loadApprovedOrders}
+          />
         )}
       </main>
 

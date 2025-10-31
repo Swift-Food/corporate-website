@@ -38,12 +38,21 @@ export function OrderSettings({
   const handleSaveCutoffTime = async () => {
     if (!organizationId) return;
     
+    // Validate time format
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
     if (!timeRegex.test(tempCutoffTime)) {
       setError('Invalid time format. Please use HH:MM:SS format (e.g., 11:00:00)');
       return;
     }
-
+  
+    // Validate cutoff time is before 6 PM
+    const [hours, minutes] = tempCutoffTime.split(':').map(Number);
+    const timeInMinutes = hours * 60 + minutes;
+    if (timeInMinutes >= 18 * 60) {
+      setError('Cutoff time must be before 6:00 PM (18:00)');
+      return;
+    }
+  
     setIsSavingCutoff(true);
     setError('');
     try {
@@ -66,21 +75,33 @@ export function OrderSettings({
   };
 
   const handleSaveDeliveryWindow = async () => {
+    // Validate time format
     if (!tempDeliveryWindow.match(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)) {
-      alert('Please enter a valid time in HH:MM:SS format');
+      setError('Please enter a valid time in HH:MM:SS format');
+      return;
+    }
+  
+    // Validate delivery time is between 12:30 PM and 8:00 PM
+    const [hours, minutes] = tempDeliveryWindow.split(':').map(Number);
+    const timeInMinutes = hours * 60 + minutes;
+    const minTime = 12 * 60 + 30; // 12:30 PM
+    const maxTime = 20 * 60;      // 8:00 PM
+  
+    if (timeInMinutes < minTime || timeInMinutes > maxTime) {
+      setError('Delivery time must be between 12:30 PM (12:30:00) and 8:00 PM (20:00:00)');
       return;
     }
   
     setIsSavingDeliveryWindow(true);
+    setError('');
     try {
       await apiClient.put(`/organizations/${organizationId}`, {
         defaultDeliveryTimeWindow: tempDeliveryWindow,
       });
       setIsEditingDeliveryWindow(false);
       onUpdate();
-    } catch (error) {
-      console.error('Error updating delivery window:', error);
-      alert('Error updating delivery window');
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Error updating delivery window');
     } finally {
       setIsSavingDeliveryWindow(false);
     }
@@ -154,7 +175,7 @@ export function OrderSettings({
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <p className="text-xs text-slate-500 mt-2">
-                Examples: 09:00:00, 11:30:00, 14:00:00
+                Examples: 09:00:00, 11:30:00, 14:00:00 (Must be before 6:00 PM)
               </p>
             </div>
             
@@ -247,7 +268,9 @@ export function OrderSettings({
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
               <p className="text-xs text-slate-500 mt-2">
-                Examples: 01:00:00 (1 hour), 02:00:00 (2 hours), 04:00:00 (4 hours)
+                Examples: 13:00:00 (1 PM), 18:00:00 (6 PM), 20:00:00 (8 PM)
+                <br />
+                Must be between 12:30 PM and 8:00 PM
               </p>
             </div>
             
