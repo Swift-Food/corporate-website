@@ -166,9 +166,9 @@ export default function RestaurantCatalogue() {
   return (
     <div className="w-full bg-base-100">
       <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto">
-        <div className="flex-1 relative">
+        <div className="flex-1">
           {/* Sticky Search/Filter Section */}
-          <div className="md:sticky top-16 md:top-20 z-40 -mx-4 px-4 py-6 mb-[-1px] overflow-visible">
+          <div className="md:sticky top-16 md:top-20 z-40 -mx-4 px-4 py-6 mb-[-1px] overflow-visible relative">
             {/* Desktop Layout */}
             <div className="hidden md:flex items-center justify-center gap-4 relative w-full">
               {/* Date/Time Inputs */}
@@ -322,12 +322,6 @@ export default function RestaurantCatalogue() {
                 </div>
               </div>
 
-              {/* Filter Dropdown - Positioned relative to entire row */}
-              <FilterModal
-                isOpen={filterModalOpen}
-                onClose={() => setFilterModalOpen(false)}
-                onApply={handleApplyFilters}
-              />
             </div>
 
             {/* Mobile Layout */}
@@ -411,10 +405,16 @@ export default function RestaurantCatalogue() {
                     )}
                   </div>
                 </div>
-                {/* Filter Button - always a circle */}
+                {/* Filter Button - animated on mobile */}
                 <button
                   onClick={() => setFilterModalOpen(!filterModalOpen)}
-                  className={`rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-12 w-12 bg-white`}
+                  className={`rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-12 overflow-hidden
+    ${
+      filterModalOpen
+        ? "w-32 px-4 gap-2 bg-primary text-white"
+        : "w-12 bg-white"
+    }
+  `}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -422,7 +422,9 @@ export default function RestaurantCatalogue() {
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className="w-5 h-5 text-gray-700"
+                    className={`w-5 h-5 flex-shrink-0 ${
+                      filterModalOpen ? "text-white" : "text-gray-700"
+                    }`}
                   >
                     <path
                       strokeLinecap="round"
@@ -430,9 +432,21 @@ export default function RestaurantCatalogue() {
                       d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
                     />
                   </svg>
+                  {filterModalOpen && (
+                    <span className="text-sm font-medium whitespace-nowrap text-white">
+                      Filters
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
+
+            {/* Filter Modal - Works for both Desktop and Mobile */}
+            <FilterModal
+              isOpen={filterModalOpen}
+              onClose={() => setFilterModalOpen(false)}
+              onApply={handleApplyFilters}
+            />
           </div>
 
           {/* Restaurant Grid / Search Results */}
