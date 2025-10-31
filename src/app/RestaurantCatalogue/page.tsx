@@ -23,7 +23,9 @@ export default function RestaurantCatalogue() {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [restaurantSearchResults, setRestaurantSearchResults] = useState<Restaurant[]>([]);
+  const [restaurantSearchResults, setRestaurantSearchResults] = useState<
+    Restaurant[]
+  >([]);
   const [menuItemSearchResults, setMenuItemSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -152,53 +154,8 @@ export default function RestaurantCatalogue() {
           <div className="md:sticky top-16 md:top-20 z-40 -mx-4 px-4 py-6 mb-[-1px]">
             {/* Desktop Layout */}
             <div className="hidden md:flex items-center justify-center gap-4">
-              <div className="flex items-center gap-3 invisible">
-                <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-6 h-6 text-gray-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-                    />
-                  </svg>
-                </button>
-                <button
-                  className={`p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow ${
-                    searchExpanded && "invisible"
-                  }`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-6 h-6 text-gray-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                    />
-                  </svg>
-                </button>
-              </div>
-
               {/* Date/Time Inputs */}
-              <div
-                className={`flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1 transition-opacity ${
-                  searchExpanded
-                    ? "opacity-0 pointer-events-none duration-100"
-                    : "opacity-100 duration-1000"
-                }`}
-              >
+              <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1">
                 <div className="flex-1 border-r border-gray-200 pr-3">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Date
@@ -220,57 +177,19 @@ export default function RestaurantCatalogue() {
                 </div>
               </div>
 
-              {/* Right buttons container with search bar */}
-              <div className="flex items-center gap-3 relative">
-                {/* Expanding Search Bar */}
+              {/* Right Side Buttons Container */}
+              <div className="flex items-center gap-3">
+                {/* Search Button/Bar */}
                 <div
-                  className={`absolute right-0 bg-white rounded-full shadow-lg px-4 h-12 flex items-center gap-3 transition-all duration-700 ease-in-out ${
-                    searchExpanded
-                      ? "w-[800px] max-w-[800px]"
-                      : "w-12 pointer-events-none invisible"
-                  }`}
+                  className="group flex items-center"
+                  onMouseEnter={() => setSearchExpanded(true)}
+                  onMouseLeave={() => {
+                    if (!searchQuery) setSearchExpanded(false);
+                  }}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-opacity ${
-                      searchExpanded
-                        ? "opacity-100 duration-200 delay-150"
-                        : "opacity-0 duration-75"
-                    }`}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                    />
-                  </svg>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSearch();
-                      }
-                    }}
-                    placeholder="Search restaurants..."
-                    className={`flex-1 text-sm text-gray-600 placeholder-gray-400 focus:outline-none transition-opacity ${
-                      searchExpanded
-                        ? "opacity-100 duration-200 delay-150"
-                        : "opacity-0 duration-75"
-                    }`}
-                    autoFocus={searchExpanded}
-                  />
-                  <button
-                    onClick={clearSearch}
-                    className={`text-gray-400 hover:text-gray-600 flex-shrink-0 transition-opacity ${
-                      searchExpanded
-                        ? "opacity-100 duration-200 delay-150"
-                        : "opacity-0 duration-75"
+                  <div
+                    className={`flex items-center gap-3 bg-white rounded-full shadow-lg transition-all duration-300 ease-in-out overflow-hidden ${
+                      searchExpanded ? "w-[400px] px-4 h-12" : "w-12 h-12"
                     }`}
                   >
                     <svg
@@ -279,24 +198,56 @@ export default function RestaurantCatalogue() {
                       viewBox="0 0 24 24"
                       strokeWidth={1.5}
                       stroke="currentColor"
-                      className="w-5 h-5"
+                      className="w-5 h-5 text-gray-400 flex-shrink-0"
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        d="M6 18L18 6M6 6l12 12"
+                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
                       />
                     </svg>
-                  </button>
+                    {searchExpanded && (
+                      <>
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleSearch();
+                            }
+                          }}
+                          placeholder="Search restaurants..."
+                          className="flex-1 text-sm text-gray-600 placeholder-gray-400 focus:outline-none"
+                        />
+                        {searchQuery && (
+                          <button
+                            onClick={clearSearch}
+                            className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.5}
+                              stroke="currentColor"
+                              className="w-5 h-5"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
 
-                <button
-                  className={`p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 ${
-                    searchExpanded
-                      ? "opacity-0 pointer-events-none"
-                      : "opacity-100"
-                  }`}
-                >
+                {/* Filter Button */}
+                <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow flex-shrink-0">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -309,29 +260,6 @@ export default function RestaurantCatalogue() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setSearchExpanded(true)}
-                  className={`p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 ${
-                    searchExpanded
-                      ? "opacity-0 pointer-events-none"
-                      : "opacity-100"
-                  }`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-6 h-6 text-gray-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
                     />
                   </svg>
                 </button>
@@ -470,16 +398,16 @@ export default function RestaurantCatalogue() {
         </div>
 
         {/* Cart Sidebar */}
-        <CartSidebar
+        {/* <CartSidebar
           topOffset="top-36"
           maxHeightOffset="11rem"
           widthPercentage={25}
           onCheckout={handleCheckout}
-        />
+        /> */}
       </div>
 
       {/* Mobile Cart */}
-      <MobileCart onCheckout={handleCheckout} />
+      {/* <MobileCart onCheckout={handleCheckout} /> */}
     </div>
   );
 }
