@@ -65,6 +65,7 @@ export default function RestaurantCatalogue() {
     try {
       const fetchedOrgTime = organizationData.defaultDeliveryTimeWindow ?? null;
       setTime(fetchedOrgTime);
+      console.log("Fetched org time: ", fetchedOrgTime);
     } catch (err) {
       console.error("Failed to fetch organization delivery time window: ", err);
       setTime(null);
@@ -133,7 +134,7 @@ export default function RestaurantCatalogue() {
               <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1">
                 <div className="flex-1 border-r border-gray-200 pr-3">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    When
+                    Date
                   </label>
                   <input
                     type="date"
@@ -144,14 +145,17 @@ export default function RestaurantCatalogue() {
                 </div>
                 <div className="flex-1">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    What time
+                    Time
                   </label>
-                  <input
+                  <p className="text-sm text-gray-600 placeholder-gray-400">
+                    {time}
+                  </p>
+                  {/* <input
                     type="time"
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
                     className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
-                  />
+                  /> */}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -195,7 +199,7 @@ export default function RestaurantCatalogue() {
               <div className="bg-white rounded-2xl shadow-lg p-4 space-y-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-2">
-                    When
+                    Date
                   </label>
                   <input
                     type="date"
@@ -208,16 +212,19 @@ export default function RestaurantCatalogue() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-2">
-                    What time
+                    Time
                   </label>
-                  <input
+                  <p className="text-sm text-gray-600 placeholder-gray-400 border border-gray-200 rounded-lg py-2 px-2">
+                    {time}
+                  </p>
+                  {/* <input
                     type="time"
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
                     className={`w-full text-sm text-gray-600 border border-gray-200 rounded-lg py-2 focus:outline-none focus:border-gray-400 cursor-pointer ${
                       !isMobileDevice ? "px-2" : ""
                     }`}
-                  />
+                  /> */}
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button className="flex-1 py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center justify-center gap-2">
