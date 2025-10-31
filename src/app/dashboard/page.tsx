@@ -49,12 +49,14 @@ function DashboardContent() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedRejectSubOrder, setSelectedRejectSubOrder] = useState<any>(null);
   const [approvedOrders, setApprovedOrders] = useState<any[]>([]);
+  const [autoApproveEmployees, setAutoApproveEmployees] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'employees' && organizationId && corporateUser?.id) {
       loadEmployees();
     } else if (activeTab === 'approvals' && organizationId) {
       loadPendingApprovals();
+      loadOrganizationSettings();
     } else if (activeTab === 'job-titles' && organizationId) {
       loadJobTitles();
     } else if (activeTab === 'orders' && organizationId && corporateUser?.id) {
@@ -131,6 +133,7 @@ function DashboardContent() {
       if (response.data.defaultDeliveryTimeWindow) {
         setDeliveryTimeWindow(response.data.defaultDeliveryTimeWindow);
       }
+      setAutoApproveEmployees(response.data.autoApproveEmployees || false);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load organization settings');
     } finally {
@@ -239,6 +242,19 @@ function DashboardContent() {
       setError(err.response?.data?.message || 'Failed to load approved orders');
     } finally {
       setIsLoading(false);
+    }
+  };
+  const handleToggleAutoApprove = async (enabled: boolean) => {
+    if (!organizationId) return;
+    
+    try {
+      await apiClient.put(`/organizations/${organizationId}`, {
+        autoApproveEmployees: enabled,
+      });
+      
+      setAutoApproveEmployees(enabled);
+    } catch (err: any) {
+      throw err; // Let the component handle the error
     }
   };
 
@@ -467,6 +483,8 @@ function DashboardContent() {
             onRefresh={loadPendingApprovals}
             onApprove={handleApprove}
             onReject={handleReject}
+            autoApproveEmployees={autoApproveEmployees}
+            onToggleAutoApprove={handleToggleAutoApprove}
           />
         )}
 
