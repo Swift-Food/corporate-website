@@ -2,6 +2,7 @@
 
 import { useCart } from "@/context/CartContext";
 import { checkoutApi } from "@/api/checkout";
+import { restaurantApi } from "@/api/restaurant";
 import {
   CreateEmployeeOrderDto,
   RestaurantOrder,
@@ -24,6 +25,7 @@ export default function CheckoutPage() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
   const [restaurantNames, setRestaurantNames] = useState<Record<string, string>>({});
+  const [loadingRestaurants, setLoadingRestaurants] = useState(true);
 
   // Load delivery date and time from localStorage
   useEffect(() => {
@@ -32,28 +34,36 @@ export default function CheckoutPage() {
 
     if (savedDate) setDeliveryDate(savedDate);
     if (savedTime) setDeliveryTime(savedTime);
+  }, []);
 
-    // Load restaurant names from sessionStorage
-    const restaurantMap: Record<string, string> = {};
-    cartItems.forEach((cartItem) => {
-      const restaurantId = cartItem.item.restaurantId;
-      if (!restaurantMap[restaurantId]) {
-        const storedData = sessionStorage.getItem(`restaurant_${restaurantId}`);
-        if (storedData) {
-          try {
-            const restaurant = JSON.parse(storedData);
-            restaurantMap[restaurantId] = restaurant.restaurant_name || "Unknown Restaurant";
-          } catch (error) {
-            console.error("Error parsing restaurant data:", error);
-            restaurantMap[restaurantId] = "Unknown Restaurant";
-          }
-        } else {
-          restaurantMap[restaurantId] = "Unknown Restaurant";
-        }
+  // Fetch restaurant data from API
+  useEffect(() => {
+    const fetchRestaurantNames = async () => {
+      if (cartItems.length === 0) {
+        setLoadingRestaurants(false);
+        return;
       }
-    });
-    setRestaurantNames(restaurantMap);
-  }, [cartItems]);
+
+      try {
+        setLoadingRestaurants(true);
+        const restaurants = await restaurantApi.fetchRestaurants();
+
+        // Create a map of restaurant ID to name
+        const restaurantMap: Record<string, string> = {};
+        restaurants.forEach((restaurant) => {
+          restaurantMap[restaurant.id] = restaurant.restaurant_name;
+        });
+
+        setRestaurantNames(restaurantMap);
+      } catch (error) {
+        console.error("Error fetching restaurants:", error);
+      } finally {
+        setLoadingRestaurants(false);
+      }
+    };
+
+    fetchRestaurantNames();
+  }, [cartItems.length]);
 
   // Helper function to create ISO date string from date and time
   const getRequestedDeliveryTime = (): string => {
@@ -191,6 +201,17 @@ export default function CheckoutPage() {
           >
             Browse Restaurants
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadingRestaurants) {
+    return (
+      <div className="min-h-screen bg-base-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="loading loading-spinner loading-lg text-primary"></div>
+          <p className="text-base-content/60 mt-4">Loading checkout...</p>
         </div>
       </div>
     );
