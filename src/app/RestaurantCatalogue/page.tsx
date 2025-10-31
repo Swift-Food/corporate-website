@@ -155,7 +155,7 @@ export default function RestaurantCatalogue() {
             {/* Desktop Layout */}
             <div className="hidden md:flex items-center justify-center gap-4">
               {/* Date/Time Inputs */}
-              <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1">
+              <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 h-12 max-w-2xl flex-1">
                 <div className="flex-1 border-r border-gray-200 pr-3">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Date
@@ -188,8 +188,8 @@ export default function RestaurantCatalogue() {
                   }}
                 >
                   <div
-                    className={`flex items-center gap-3 bg-white rounded-full shadow-lg transition-all duration-300 ease-in-out overflow-hidden ${
-                      searchExpanded ? "w-[400px] px-4 h-12" : "w-12 h-12"
+                    className={`flex items-center bg-white rounded-full shadow-lg transition-all duration-300 ease-in-out overflow-hidden h-12 ${
+                      searchExpanded ? "w-[400px] px-4 gap-3" : "w-12 justify-center"
                     }`}
                   >
                     <svg
@@ -247,14 +247,14 @@ export default function RestaurantCatalogue() {
                 </div>
 
                 {/* Filter Button */}
-                <button className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow flex-shrink-0">
+                <button className="w-12 h-12 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow flex-shrink-0 flex items-center justify-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className="w-6 h-6 text-gray-700"
+                    className="w-5 h-5 text-gray-700"
                   >
                     <path
                       strokeLinecap="round"
