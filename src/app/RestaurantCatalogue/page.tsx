@@ -11,6 +11,7 @@ import { useAuth } from "../../../interceptors/auth/authContext";
 import { searchApi } from "@/api/search";
 import SearchResults from "@/components/restaurant/SearchResults";
 import RestaurantCard from "@/components/restaurant/RestaurantCard";
+import FilterModal, { FilterState } from "@/components/restaurant/FilterModal";
 
 export default function RestaurantCatalogue() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function RestaurantCatalogue() {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [searchHovered, setSearchHovered] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurantSearchResults, setRestaurantSearchResults] = useState<
     Restaurant[]
@@ -30,6 +32,12 @@ export default function RestaurantCatalogue() {
   const [menuItemSearchResults, setMenuItemSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [filterExpanded, setFilterExpanded] = useState(false);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    dietaryRestrictions: [],
+    preferences: [],
+  });
 
   useEffect(() => {
     fetchRestaurants();
@@ -133,6 +141,13 @@ export default function RestaurantCatalogue() {
     setMenuItemSearchResults([]);
     setSearchExpanded(false);
     setSearchFocused(false);
+    setSearchHovered(false);
+  };
+
+  const handleApplyFilters = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    // You can add logic here to filter restaurants based on the selected filters
+    console.log("Filters applied:", newFilters);
   };
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
@@ -184,8 +199,12 @@ export default function RestaurantCatalogue() {
                 {/* Search Button/Bar */}
                 <div
                   className="group flex items-center"
-                  onMouseEnter={() => setSearchExpanded(true)}
+                  onMouseEnter={() => {
+                    setSearchExpanded(true);
+                    setSearchHovered(true);
+                  }}
                   onMouseLeave={() => {
+                    setSearchHovered(false);
                     if (!searchQuery && !searchFocused) setSearchExpanded(false);
                   }}
                 >
@@ -217,7 +236,13 @@ export default function RestaurantCatalogue() {
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           onFocus={() => setSearchFocused(true)}
-                          onBlur={() => setSearchFocused(false)}
+                          onBlur={() => {
+                            setSearchFocused(false);
+                            // Close search if not hovering and no query
+                            if (!searchHovered && !searchQuery) {
+                              setSearchExpanded(false);
+                            }
+                          }}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               handleSearch();
@@ -253,22 +278,37 @@ export default function RestaurantCatalogue() {
                 </div>
 
                 {/* Filter Button */}
-                <button className="w-16 h-16 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow flex-shrink-0 flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5 text-gray-700"
+                <div
+                  onMouseEnter={() => setFilterExpanded(true)}
+                  onMouseLeave={() => setFilterExpanded(false)}
+                >
+                  <button
+                    onClick={() => setFilterModalOpen(true)}
+                    className={`rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-16 overflow-hidden ${
+                      filterExpanded ? "w-32 px-4 gap-2" : "w-16"
+                    }`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-                    />
-                  </svg>
-                </button>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-5 h-5 text-gray-700 flex-shrink-0"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                      />
+                    </svg>
+                    {filterExpanded && (
+                      <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                        Filters
+                      </span>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -414,6 +454,13 @@ export default function RestaurantCatalogue() {
 
       {/* Mobile Cart */}
       {/* <MobileCart onCheckout={handleCheckout} /> */}
+
+      {/* Filter Modal */}
+      <FilterModal
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={handleApplyFilters}
+      />
     </div>
   );
 }
