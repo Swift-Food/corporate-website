@@ -168,9 +168,9 @@ export default function RestaurantCatalogue() {
       <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto">
         <div className="flex-1 relative">
           {/* Sticky Search/Filter Section */}
-          <div className="md:sticky top-16 md:top-20 z-40 -mx-4 px-4 py-6 mb-[-1px]">
+          <div className="md:sticky top-16 md:top-20 z-40 -mx-4 px-4 py-6 mb-[-1px] overflow-visible">
             {/* Desktop Layout */}
-            <div className="hidden md:flex items-center justify-center gap-4">
+            <div className="hidden md:flex items-center justify-center gap-4 relative">
               {/* Date/Time Inputs */}
               <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 h-16 max-w-2xl flex-1">
                 <div className="flex-1 border-r border-gray-200 pr-3">
@@ -205,7 +205,8 @@ export default function RestaurantCatalogue() {
                   }}
                   onMouseLeave={() => {
                     setSearchHovered(false);
-                    if (!searchQuery && !searchFocused) setSearchExpanded(false);
+                    if (!searchQuery && !searchFocused)
+                      setSearchExpanded(false);
                   }}
                 >
                   <div
@@ -283,9 +284,13 @@ export default function RestaurantCatalogue() {
                   onMouseLeave={() => setFilterExpanded(false)}
                 >
                   <button
-                    onClick={() => setFilterModalOpen(true)}
-                    className={`rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-16 overflow-hidden ${
-                      filterExpanded ? "w-32 px-4 gap-2" : "w-16"
+                    onClick={() => setFilterModalOpen(!filterModalOpen)}
+                    className={`rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-16 overflow-hidden ${
+                      filterExpanded || filterModalOpen
+                        ? "w-32 px-4 gap-2"
+                        : "w-16"
+                    } ${
+                      filterModalOpen ? "bg-primary text-white" : "bg-white"
                     }`}
                   >
                     <svg
@@ -294,7 +299,9 @@ export default function RestaurantCatalogue() {
                       viewBox="0 0 24 24"
                       strokeWidth={1.5}
                       stroke="currentColor"
-                      className="w-5 h-5 text-gray-700 flex-shrink-0"
+                      className={`w-5 h-5  flex-shrink-0 ${
+                        filterModalOpen ? "text-white" : "text-gray-700"
+                      }`}
                     >
                       <path
                         strokeLinecap="round"
@@ -302,14 +309,25 @@ export default function RestaurantCatalogue() {
                         d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
                       />
                     </svg>
-                    {filterExpanded && (
-                      <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    {(filterExpanded || filterModalOpen) && (
+                      <span
+                        className={`text-sm font-medium whitespace-nowrap ${
+                          filterModalOpen ? "text-white" : "text-gray-700"
+                        }`}
+                      >
                         Filters
                       </span>
                     )}
                   </button>
                 </div>
               </div>
+
+              {/* Filter Dropdown - Positioned relative to entire row */}
+              <FilterModal
+                isOpen={filterModalOpen}
+                onClose={() => setFilterModalOpen(false)}
+                onApply={handleApplyFilters}
+              />
             </div>
 
             {/* Mobile Layout */}
@@ -454,13 +472,6 @@ export default function RestaurantCatalogue() {
 
       {/* Mobile Cart */}
       {/* <MobileCart onCheckout={handleCheckout} /> */}
-
-      {/* Filter Modal */}
-      <FilterModal
-        isOpen={filterModalOpen}
-        onClose={() => setFilterModalOpen(false)}
-        onApply={handleApplyFilters}
-      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface FilterModalProps {
   isOpen: boolean;
@@ -16,10 +16,28 @@ export default function FilterModal({
   onClose,
   onApply,
 }: FilterModalProps) {
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [selectedRestrictions, setSelectedRestrictions] = useState<string[]>(
     []
   );
   const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, onClose]);
 
   const dietaryRestrictions = [
     "No specific preferences",
@@ -71,84 +89,86 @@ export default function FilterModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-base-content">Filters</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Dietary Restrictions */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-base-content mb-3">
-            Dietary Restrictions
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {dietaryRestrictions.map((item) => (
-              <button
-                key={item}
-                onClick={() => toggleRestriction(item)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedRestrictions.includes(item)
-                    ? "bg-pink-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Preferences */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-base-content mb-3">
-            Preferences
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {preferences.map((item) => (
-              <button
-                key={item}
-                onClick={() => togglePreference(item)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedPreferences.includes(item)
-                    ? "bg-pink-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Apply Button */}
+    <div
+      ref={dropdownRef}
+      className="absolute top-full left-0 right-0 mt-2 bg-white rounded-3xl shadow-2xl max-h-[80vh] overflow-y-auto p-6 z-50"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-base-content">Filters</h2>
         <button
-          onClick={handleApply}
-          className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 rounded-full text-lg transition-colors"
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600"
         >
-          APPLY
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-5 h-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
         </button>
       </div>
+
+      {/* Dietary Restrictions */}
+      <div className="mb-5">
+        <h3 className="text-base font-semibold text-base-content mb-2">
+          Dietary Restrictions
+        </h3>
+        <p className="text-sm text-gray-500 mb-2">No specific preferences</p>
+        <div className="flex flex-wrap gap-2">
+          {dietaryRestrictions.map((item) => (
+            <button
+              key={item}
+              onClick={() => toggleRestriction(item)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                selectedRestrictions.includes(item)
+                  ? "bg-pink-500 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Preferences */}
+      <div className="mb-5">
+        <h3 className="text-base font-semibold text-base-content mb-2">
+          Preferences
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {preferences.map((item) => (
+            <button
+              key={item}
+              onClick={() => togglePreference(item)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                selectedPreferences.includes(item)
+                  ? "bg-pink-500 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Apply Button */}
+      <button
+        onClick={handleApply}
+        className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-full text-base transition-colors"
+      >
+        APPLY
+      </button>
     </div>
   );
 }
