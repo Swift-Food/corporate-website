@@ -42,6 +42,10 @@ function DashboardContent() {
   const [selectedRejectSubOrder, setSelectedRejectSubOrder] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [rejectNotes, setRejectNotes] = useState('');
+  const [deliveryTimeWindow, setDeliveryTimeWindow] = useState('');
+  const [tempDeliveryWindow, setTempDeliveryWindow] = useState('');
+  const [isEditingDeliveryWindow, setIsEditingDeliveryWindow] = useState(false);
+  const [isSavingDeliveryWindow, setIsSavingDeliveryWindow] = useState(false);
 
   const predefinedReasons = [
     'Budget exceeded',
@@ -133,6 +137,9 @@ function DashboardContent() {
       const cutoffTime = response.data.orderCutoffTime || '11:00:00';
       setOrderCutoffTime(cutoffTime);
       setTempCutoffTime(cutoffTime);
+      if (response.data.defaultDeliveryTimeWindow) {
+        setDeliveryTimeWindow(response.data.defaultDeliveryTimeWindow);
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load organization settings');
     } finally {
@@ -165,14 +172,33 @@ function DashboardContent() {
                 name: ro.restaurantName || 'Unknown',
                 employeeCount: 0,
                 totalAmount: 0,
+                totalItems: 0,
               });
             }
             const rest = restaurantMap.get(ro.restaurantId);
+            
+            // Calculate subtotal for this restaurant order
+            const orderSubtotal = ro.menuItems?.reduce(
+              (sum: number, item: any) => sum + (Number(item.totalPrice) || 0),
+              0
+            ) || 0;
+            
+            // Calculate total items for this restaurant order
+            const itemCount = ro.menuItems?.reduce(
+              (sum: number, item: any) => sum + (item.quantity || 0),
+              0
+            ) || 0;
+            
             rest.employeeCount += 1;
-            rest.totalAmount += Number(ro.totalAmount || 0);
+            rest.totalAmount += orderSubtotal; // Use calculated subtotal instead of ro.totalAmount
+            rest.totalItems += itemCount;
           });
         });
-        console.log("the response coming", response.data)
+        
+        // Convert Map to Array for easier use
+        const restaurantSummary = Array.from(restaurantMap.values());
+        console.log("the restaurant summary is", JSON.stringify(restaurantSummary));
+
         
         setTodaysOrder({
           hasOrder: true,
@@ -221,6 +247,12 @@ function DashboardContent() {
   };
 
   const handleSaveCutoffTime = async () => {
+    console.log("🔵 handleSaveCutoffTime STARTED");
+    console.log("📊 State values:", {
+      tempCutoffTime,
+      organizationId,
+      isSavingCutoff
+    });
     if (!organizationId) return;
     
     // Validate time format
@@ -234,6 +266,7 @@ function DashboardContent() {
     setError('');
     try {
       // Replace with your actual API endpoint
+      console.log("tempcutoff", tempCutoffTime)
       await apiClient.put(`/organizations/${organizationId}`, {
         orderCutoffTime: tempCutoffTime,
       });
@@ -321,6 +354,38 @@ function DashboardContent() {
       setSelectedSubOrders(allIds);
     }
   };
+
+  const handleSaveDeliveryWindow = async () => {
+    if (!tempDeliveryWindow.match(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)) {
+      alert('Please enter a valid time in HH:MM:SS format');
+      return;
+    }
+  
+    setIsSavingDeliveryWindow(true);
+    try {
+      const response = await apiClient.put(`/organizations/${organizationId}`, {
+        deliveryTimeWindow: tempDeliveryWindow,
+      });
+  
+      if (response) {
+        setDeliveryTimeWindow(tempDeliveryWindow);
+        setIsEditingDeliveryWindow(false);
+      } else {
+        alert('Failed to update delivery window');
+      }
+    } catch (error) {
+      console.error('Error updating delivery window:', error);
+      alert('Error updating delivery window');
+    } finally {
+      setIsSavingDeliveryWindow(false);
+    }
+  };
+  
+  const handleCancelDeliveryWindowEdit = () => {
+    setTempDeliveryWindow(deliveryTimeWindow);
+    setIsEditingDeliveryWindow(false);
+  };
+
   const confirmReject = async () => {
     if (!rejectReason) {
       alert('Please select a reason');
@@ -1130,6 +1195,7 @@ function DashboardContent() {
                       
                       <div className="flex space-x-3">
                         <button
+                          type="button"
                           onClick={handleSaveCutoffTime}
                           disabled={isSavingCutoff}
                           className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1151,6 +1217,98 @@ function DashboardContent() {
                         <button
                           onClick={handleCancelEdit}
                           disabled={isSavingCutoff}
+                          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-100 mt-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-12 h-12 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-slate-900">Default Delivery Time Window</h3>
+                        <p className="text-sm text-slate-600 mt-1">
+                          Standard delivery window duration for orders
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!isEditingDeliveryWindow ? (
+                    <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-slate-200">
+                      <div className="flex items-center space-x-4">
+                        <div className="text-3xl font-bold text-emerald-600">
+                          {deliveryTimeWindow ? formatTimeDisplay(deliveryTimeWindow) : 'Not Set'}
+                        </div>
+                        {deliveryTimeWindow && (
+                          <div className="text-sm text-slate-500">
+                            ({deliveryTimeWindow})
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => {
+                          setTempDeliveryWindow(deliveryTimeWindow);
+                          setIsEditingDeliveryWindow(true);
+                        }}
+                        className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center space-x-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span>Edit</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg p-4 border border-slate-200 space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Delivery Window (24-hour format: HH:MM:SS)
+                        </label>
+                        <input
+                          type="text"
+                          value={tempDeliveryWindow}
+                          onChange={(e) => setTempDeliveryWindow(e.target.value)}
+                          placeholder="02:00:00"
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-slate-500 mt-2">
+                          Examples: 01:00:00 (1 hour), 02:00:00 (2 hours), 04:00:00 (4 hours)
+                        </p>
+                      </div>
+                      
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={handleSaveDeliveryWindow}
+                          disabled={isSavingDeliveryWindow}
+                          className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isSavingDeliveryWindow ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                              <span>Saving...</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span>Save Changes</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={handleCancelDeliveryWindowEdit}
+                          disabled={isSavingDeliveryWindow}
                           className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Cancel
@@ -1292,9 +1450,9 @@ function DashboardContent() {
             <div key={empOrder.employeeId}>
               <div 
                 className="p-4 hover:bg-slate-50 transition-colors cursor-pointer"
-                onClick={() => setExpandedEmployeeId(
-                  expandedEmployeeId === empOrder.employeeId ? null : empOrder.employeeId
-                )}
+                // onClick={() => setExpandedEmployeeId(
+                //   expandedEmployeeId === empOrder.employeeId ? null : empOrder.employeeId
+                // )}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -1335,7 +1493,8 @@ function DashboardContent() {
                     }`}>
                       {empOrder.status}
                     </span>
-                    <svg 
+                    { /*
+                      <svg 
                       className={`w-5 h-5 text-slate-400 transition-transform ${
                         expandedEmployeeId === empOrder.employeeId ? 'rotate-180' : ''
                       }`} 
@@ -1345,6 +1504,7 @@ function DashboardContent() {
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
+                    */}         
                   </div>
                 </div>
               </div>
