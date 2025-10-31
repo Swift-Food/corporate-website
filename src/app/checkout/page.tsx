@@ -23,6 +23,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("");
+  const [restaurantNames, setRestaurantNames] = useState<Record<string, string>>({});
 
   // Load delivery date and time from localStorage
   useEffect(() => {
@@ -31,7 +32,28 @@ export default function CheckoutPage() {
 
     if (savedDate) setDeliveryDate(savedDate);
     if (savedTime) setDeliveryTime(savedTime);
-  }, []);
+
+    // Load restaurant names from sessionStorage
+    const restaurantMap: Record<string, string> = {};
+    cartItems.forEach((cartItem) => {
+      const restaurantId = cartItem.item.restaurantId;
+      if (!restaurantMap[restaurantId]) {
+        const storedData = sessionStorage.getItem(`restaurant_${restaurantId}`);
+        if (storedData) {
+          try {
+            const restaurant = JSON.parse(storedData);
+            restaurantMap[restaurantId] = restaurant.restaurant_name || "Unknown Restaurant";
+          } catch (error) {
+            console.error("Error parsing restaurant data:", error);
+            restaurantMap[restaurantId] = "Unknown Restaurant";
+          }
+        } else {
+          restaurantMap[restaurantId] = "Unknown Restaurant";
+        }
+      }
+    });
+    setRestaurantNames(restaurantMap);
+  }, [cartItems]);
 
   // Helper function to create ISO date string from date and time
   const getRequestedDeliveryTime = (): string => {
@@ -56,7 +78,7 @@ export default function CheckoutPage() {
     if (!acc[restaurantId]) {
       acc[restaurantId] = {
         restaurantId,
-        restaurantName: cartItem.item.restaurant?.name || "Unknown Restaurant",
+        restaurantName: restaurantNames[restaurantId] || "Unknown Restaurant",
         items: [],
       };
     }
