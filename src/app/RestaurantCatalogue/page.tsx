@@ -6,17 +6,21 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import CartSidebar from "@/components/cart/CartSidebar";
 import MobileCart from "@/components/cart/MobileCart";
+import { organizationApi } from "@/api/organization";
+import { useAuth } from "../../../interceptors/auth/authContext";
 
 export default function RestaurantCatalogue() {
   const router = useRouter();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
   const [when, setWhen] = useState("");
-  const [time, setTime] = useState("");
+  const [time, setTime] = useState<string | null>("");
   const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const { corporateUser } = useAuth();
 
   useEffect(() => {
     fetchRestaurants();
+    fetchOrganizationDeliveryTime();
 
     // Detect if device is iOS or Android
     const userAgent = navigator.userAgent.toLowerCase();
@@ -25,9 +29,7 @@ export default function RestaurantCatalogue() {
 
     // Load saved date/time from localStorage
     const savedDate = localStorage.getItem("delivery_date");
-    const savedTime = localStorage.getItem("delivery_time");
     if (savedDate) setWhen(savedDate);
-    if (savedTime) setTime(savedTime);
   }, []);
 
   // Save date and time to localStorage whenever they change
@@ -52,6 +54,20 @@ export default function RestaurantCatalogue() {
       console.error("Error fetching restaurants:", error);
     } finally {
       setRestaurantsLoading(false);
+    }
+  };
+
+  const fetchOrganizationDeliveryTime = async () => {
+    const organizationData = await organizationApi.fetchOrganizationById(
+      corporateUser?.organizationId ?? ""
+    );
+
+    try {
+      const fetchedOrgTime = organizationData.defaultDeliveryTimeWindow ?? null;
+      setTime(fetchedOrgTime);
+    } catch (err) {
+      console.error("Failed to fetch organization delivery time window: ", err);
+      setTime(null);
     }
   };
 

@@ -16,7 +16,7 @@ import LoginModal from "../components/LoginModal";
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, getTotalPrice, clearCart } = useCart();
-  const { user, corporateUser, isAuthenticated } = useAuth();
+  const { corporateUser, isAuthenticated } = useAuth();
   const employeeId = corporateUser?.id; //user?.id || corporateUser?.id;
 
   const [specialInstructions, setSpecialInstructions] = useState("");
