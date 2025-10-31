@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { CorporateMenuItem, Addon } from "@/types/menuItem";
+import { CorporateMenuItem, Addon, AddonGroup } from "@/types/menuItem";
 import { SelectedAddon } from "@/context/CartContext";
 
 interface MenuItemModalProps {
@@ -13,15 +13,6 @@ interface MenuItemModalProps {
     quantity: number,
     selectedAddons: SelectedAddon[]
   ) => void;
-}
-
-interface AddonGroup {
-  groupTitle: string;
-  addons: Addon[];
-  isRequired: boolean;
-  selectionType: "single" | "multiple";
-  min?: number;
-  max?: number;
 }
 
 export default function MenuItemModal({
@@ -119,22 +110,18 @@ export default function MenuItemModal({
     return basePrice + addonCost;
   }, [displayPrice, itemQuantity, selectedOptions, addonGroups]);
 
-  const toggleOption = (
-    groupTitle: string,
-    addonName: string,
-    group: AddonGroup
-  ) => {
+  const toggleAddonOption = (addonName: string, group: AddonGroup) => {
+    console.log("Pressed");
+    const groupTitle = group.groupTitle;
+
     setSelectedOptions((prev) => {
-      const newSelections = { ...prev };
+      const newSelections = JSON.parse(JSON.stringify(prev));
 
       if (!newSelections[groupTitle]) {
         newSelections[groupTitle] = {};
       }
 
       const currentValue = prev[groupTitle]?.[addonName] || false;
-      const selectedCount = Object.values(prev[groupTitle] || {}).filter(
-        Boolean
-      ).length;
 
       // Check if this is single selection
       if (group.selectionType === "single") {
@@ -145,22 +132,10 @@ export default function MenuItemModal({
         newSelections[groupTitle][addonName] = true;
       } else {
         // Multiple selection with min/max constraints
-        if (currentValue) {
-          // Deselecting - check if we'll still have minimum
-          const newCount = selectedCount - 1;
-          if (group.min && newCount < group.min) {
-            // Don't allow deselection if it would go below minimum
-            return prev;
-          }
-          newSelections[groupTitle][addonName] = false;
-        } else {
-          // Selecting - check if we're at maximum
-          if (group.max && selectedCount >= group.max) {
-            // Don't allow selection if at maximum
-            return prev;
-          }
-          newSelections[groupTitle][addonName] = true;
-        }
+        console.log(newSelections[groupTitle][addonName]);
+        newSelections[groupTitle][addonName] =
+          !newSelections[groupTitle][addonName];
+        console.log(newSelections[groupTitle][addonName]);
       }
 
       return newSelections;
@@ -412,9 +387,7 @@ export default function MenuItemModal({
                       {group.addons.map((addon, addonIndex) => (
                         <button
                           key={addonIndex}
-                          onClick={() =>
-                            toggleOption(group.groupTitle, addon.name, group)
-                          }
+                          onClick={() => toggleAddonOption(addon.name, group)}
                           className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
                             selectedOptions[group.groupTitle]?.[addon.name]
                               ? "border-primary bg-primary/5"

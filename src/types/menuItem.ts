@@ -32,11 +32,12 @@ export enum MenuItemStyle {
 //   max?: number;
 //   options: AddonOption[];
 // }
-// interface AddonGroup {
-//   items: Addon[];
-//   isRequired: boolean;
-//   selectionType: "single" | "multiple";
-// }
+export interface AddonGroup {
+  groupTitle: string;
+  addons: Addon[];
+  isRequired: boolean;
+  selectionType: "single" | "multiple";
+}
 
 export interface Addon {
   name: string;
