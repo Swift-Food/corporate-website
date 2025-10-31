@@ -139,10 +139,10 @@ export default function RestaurantCatalogue() {
 
               {/* Date/Time Inputs */}
               <div
-                className={`flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1 transition-opacity duration-300 ${
+                className={`flex items-center gap-3 bg-white rounded-full shadow-lg px-8 py-3 max-w-2xl flex-1 transition-opacity ${
                   searchExpanded
-                    ? "opacity-0 pointer-events-none"
-                    : "opacity-100"
+                    ? "opacity-0 pointer-events-none duration-100"
+                    : "opacity-100 duration-1000"
                 }`}
               >
                 <div className="flex-1 border-r border-gray-200 pr-3">
@@ -172,7 +172,7 @@ export default function RestaurantCatalogue() {
                 <div
                   className={`absolute right-0 bg-white rounded-full shadow-lg px-4 h-12 flex items-center gap-3 transition-all duration-700 ease-in-out ${
                     searchExpanded
-                      ? "w-[calc(100vw-8rem)] max-w-[800px]"
+                      ? "w-[800px] max-w-[800px]"
                       : "w-12 pointer-events-none invisible"
                   }`}
                 >
