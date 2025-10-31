@@ -14,7 +14,7 @@
   --color-primary-content: #ffffff;
   
   /* Secondary colors */
-  --color-secondary: #ffb3e6; /* Light Pink */
+    --color-secondary: 	hsl(340, 100%, 88%);
   --color-secondary-content: #282828;
 
   --color-text-grey: #6A6A6A;

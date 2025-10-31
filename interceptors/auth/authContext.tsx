@@ -130,15 +130,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isAuthenticated: true,
         });
 
-        // Redirect based on role
-        if (
-          corporateUser.corporateRole === CorporateUserRole.MANAGER ||
-          corporateUser.corporateRole === CorporateUserRole.ADMIN
-        ) {
-          router.push("/dashboard");
+        // Check if there's a redirect URL stored (e.g., from checkout page)
+        const redirectUrl = localStorage.getItem("redirect_after_login");
+        if (redirectUrl) {
+          localStorage.removeItem("redirect_after_login");
+          router.push(redirectUrl);
         } else {
-          // Regular employees can't access manager dashboard
-          throw new Error("You do not have manager access");
+          // Default redirect to restaurant catalogue after successful login
+          router.push("/RestaurantCatalogue");
         }
       } catch (error) {
         console.error("Login failed:", error);
@@ -158,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading: false,
       isAuthenticated: false,
     });
-    router.push("/new-login");
+    router.push("/RestaurantCatalogue");
   }, [router]);
 
   const value: AuthContextType = {

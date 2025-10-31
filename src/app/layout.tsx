@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 
 import { AuthProvider } from "../../interceptors/auth/authContext";
-import { IBM_Plex_Mono } from "next/font/google";
+import { CartProvider } from "@/context/CartContext";
+import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import ConditionalNavbar from "./components/ConditionalNavbar";
 
-const ibmPlexMono = IBM_Plex_Mono({
+const openSans = Open_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-ibm-plex-mono",
+  variable: "--font-open-sans",
   display: "swap",
 });
 
@@ -70,12 +71,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${ibmPlexMono.className} ${ibmPlexMono.variable}`}>
+      <body className={`${openSans.className} ${openSans.variable}`}>
         <AuthProvider>
-          <div className="min-h-screen flex flex-col">
-            <ConditionalNavbar />
-            <main className="flex-1">{children}</main>
-          </div>
+          <CartProvider>
+            <div className="min-h-screen flex flex-col">
+              <ConditionalNavbar />
+              <main className="flex-1">{children}</main>
+            </div>
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>
