@@ -22,6 +22,7 @@ import { RejectModal } from '@/modals/RejectModal';
 import { corporateOrdersApi } from '@/api/corporateOrders';
 import { ApprovedOrdersTab } from './ApprovedOrdersTab';
 import { WalletTab } from './WalletTab';
+import { ContactTab } from './ContactTab';
 
 export default function DashboardPage() {
   return (
@@ -33,7 +34,7 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const { corporateUser, user, logout, organizationId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders' | 'approved-orders' | 'wallet'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders' | 'approved-orders' | 'wallet' | 'contact'>('overview');
   const [employees, setEmployees] = useState<CorporateUser[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<CorporateUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +52,7 @@ function DashboardContent() {
   const [selectedRejectSubOrder, setSelectedRejectSubOrder] = useState<any>(null);
   const [approvedOrders, setApprovedOrders] = useState<any[]>([]);
   const [autoApproveEmployees, setAutoApproveEmployees] = useState(false);
+  const [organizationName, setOrganizationName] = useState('');
 
   useEffect(() => {
     if (activeTab === 'employees' && organizationId && corporateUser?.id) {
@@ -135,6 +137,7 @@ function DashboardContent() {
         setDeliveryTimeWindow(response.data.defaultDeliveryTimeWindow);
       }
       setAutoApproveEmployees(response.data.autoApproveEmployees || false);
+      setOrganizationName(response.data.name || '');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load organization settings');
     } finally {
@@ -424,7 +427,7 @@ function DashboardContent() {
           {/* Tabs */}
           <div className="mt-6 border-b border-slate-200">
             <nav className="flex space-x-8">
-              {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders', 'wallet'] as const).map((tab) => (
+              {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders', 'wallet', 'contact'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -578,6 +581,14 @@ function DashboardContent() {
           <WalletTab
             organizationId={organizationId}
             managerId={corporateUser?.id}
+          />
+        )}
+
+        {activeTab === 'contact' && organizationId && corporateUser?.id && (
+          <ContactTab
+            organizationId={organizationId}
+            managerId={corporateUser?.id}
+            organizationName={organizationName}
           />
         )}
       </main>
