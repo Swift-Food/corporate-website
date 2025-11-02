@@ -289,7 +289,10 @@ function DashboardContent() {
     }
   };
 
-  const handleApproveOrder = async () => {
+  const handleApproveOrder = async (
+    paymentMethod: 'wallet' | 'stripe_direct',
+    paymentMethodId?: string
+  ) => {
     if (!corporateUser?.id || !todaysOrder?.orderId) return;
     
     const notes = prompt('Approve this order?\nOptional notes:');
@@ -298,6 +301,8 @@ function DashboardContent() {
     try {
       await apiClient.post(`corporate-orders/${todaysOrder.orderId}/approve`, {
         managerId: corporateUser.id,
+        paymentMethod,
+        paymentMethodId,
         notes: notes || undefined,
       });
       loadTodaysOrder();
@@ -538,6 +543,8 @@ function DashboardContent() {
                 
                 {todaysOrder?.hasOrder ? (
                   <TodaysOrder
+                    organizationId={organizationId || ''}
+                    managerId={corporateUser?.id || ''}
                     order={todaysOrder}
                     onApprove={handleApproveOrder}
                     onReject={handleRejectSubOrder}

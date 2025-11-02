@@ -1,16 +1,23 @@
 // components/dashboard/TodaysOrder.tsx
+import apiClient from '@/api/client';
+import { PaymentSelectionModal } from '@/modals/paymentSelectModal';
 import { useState } from 'react';
 
 interface TodaysOrderProps {
   order: any;
-  onApprove: () => void;
+  organizationId: string;
+  managerId: string;
+  onApprove: (paymentMethod: 'wallet' | 'stripe_direct', paymentMethodId?: string) => void;
   onReject: (subOrderId?: string, employeeName?: string) => void;
   onBulkReject: (ids: string[], names: string[]) => void;
 }
 
-export function TodaysOrder({ order, onApprove, onReject, onBulkReject }: TodaysOrderProps) {
+export function TodaysOrder({ order, onApprove, organizationId, managerId, onReject, onBulkReject }: TodaysOrderProps) {
   const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(null);
   const [selectedSubOrders, setSelectedSubOrders] = useState<Set<string>>(new Set());
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState('');
 
   const handleSelectAll = () => {
     if (selectedSubOrders.size === order.employeeOrders?.length) {
@@ -23,6 +30,25 @@ export function TodaysOrder({ order, onApprove, onReject, onBulkReject }: Todays
       );
       setSelectedSubOrders(allIds);
     }
+  };
+
+  const handleApproveClick = async () => {
+    const response = await apiClient.post(`/corporate-orders/validate-approval/${order.orderId}`, {
+      managerId: managerId
+    });
+
+    if (!response.data) {
+      const error = await response.data.error;
+      throw new Error(error.message || 'Cannot approve order at this time');
+    }
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentComplete = (
+    paymentMethod: 'wallet' | 'stripe_direct',
+    paymentMethodId?: string
+  ) => {
+    onApprove(paymentMethod, paymentMethodId);
   };
 
   const handleToggleSubOrder = (subOrderId: string) => {
@@ -41,42 +67,67 @@ export function TodaysOrder({ order, onApprove, onReject, onBulkReject }: Todays
     <div className="mt-6 space-y-6">
       {/* Order Summary Card */}
       <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-900">Today's Order</h3>
-          <div className="flex items-center space-x-3">
-            {/* <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              order.status === 'pending_approval' ? 'bg-amber-100 text-amber-700' :
-              order.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-              order.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-              'bg-slate-100 text-slate-700'
-            }`}>
-              {order.status.replace('_', ' ')}
-            </span> */}
-            
-            {order.status === 'pending_approval' && (
-              <>
+      <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-slate-900">Today's Order</h3>
+            <div className="flex items-center space-x-3">
+              {order.status === 'pending_approval' && (
+                <>
+                  <button
+                    onClick={() => onReject()}
+                    disabled={isValidating}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm flex items-center space-x-2 disabled:opacity-50"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>Reject All</span>
+                  </button>
+                  <button
+                    onClick={handleApproveClick}
+                    disabled={isValidating}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center space-x-2 disabled:opacity-50"
+                  >
+                    {isValidating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                        <span>Validating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Approve & Pay</span>
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Show validation error if any */}
+          {validationError && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-800">Cannot approve order</p>
+                  <p className="text-sm text-red-700 mt-1">{validationError}</p>
+                </div>
                 <button
-                  onClick={() => onReject()}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm flex items-center space-x-2"
+                  onClick={() => setValidationError('')}
+                  className="text-red-400 hover:text-red-600"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  <span>Reject All</span>
                 </button>
-                <button
-                  onClick={onApprove}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center space-x-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Approve Order</span>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
+              </div>
+            </div>
+          )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-slate-50 rounded-lg p-4">
@@ -262,6 +313,15 @@ export function TodaysOrder({ order, onApprove, onReject, onBulkReject }: Todays
           </div>
         )}
       </div>
+      <PaymentSelectionModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentComplete={handlePaymentComplete}
+        orderId={order.orderId}
+        organizationId={organizationId}
+        managerId={managerId}
+        totalAmount={order.totalAmount}
+      />
     </div>
   );
 }
