@@ -32,16 +32,37 @@ export function TodaysOrder({ order, onApprove, organizationId, managerId, onRej
     }
   };
 
-  const handleApproveClick = async () => {
-    const response = await apiClient.post(`/corporate-orders/validate-approval/${order.orderId}`, {
-      managerId: managerId
-    });
+  // src/app/dashboard/TodaysOrder.tsx
 
-    if (!response.data) {
-      const error = await response.data.error;
-      throw new Error(error.message || 'Cannot approve order at this time');
+  const handleApproveClick = async () => {
+    setIsValidating(true);
+    setValidationError('');
+
+    try {
+      // Validate order can be approved
+      const response = await apiClient.post(
+        `/corporate-orders/validate-approval/${order.orderId}`,
+        { managerId: managerId }
+      );
+
+      // Validation passed - now show payment modal
+      setShowPaymentModal(true);
+    } catch (err: any) {
+      // Extract error message
+      const errorMessage = 
+        err.response?.data?.message || 
+        err.response?.data?.error || 
+        err.message || 
+        'Cannot approve order at this time';
+      
+      setValidationError(errorMessage);
+
+      
+      // Also log to console for debugging
+      console.error('Order approval validation failed:', err);
+    } finally {
+      setIsValidating(false);
     }
-    setShowPaymentModal(true);
   };
 
   const handlePaymentComplete = (
