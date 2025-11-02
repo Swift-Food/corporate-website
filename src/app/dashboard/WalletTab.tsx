@@ -7,6 +7,7 @@ import { InitializeWalletModal } from '@/modals/initializeWalletModal';
 import { AddPaymentMethodModal } from '@/modals/addPaymentMethodModal';
 import { AddFundsModal } from '@/modals/addFundsModal';
 import { StripeProvider } from '../components/StripeProvider';
+import { WithdrawFundsModal } from '@/modals/withDrawFundsModal';
 
 interface WalletTabProps {
   organizationId: string;
@@ -20,6 +21,7 @@ export function WalletTab({ organizationId, managerId }: WalletTabProps) {
   const [showInitModal, setShowInitModal] = useState(false);
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [showAddFundsModal, setShowAddFundsModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   useEffect(() => {
     loadWalletStatus();
@@ -161,6 +163,16 @@ export function WalletTab({ organizationId, managerId }: WalletTabProps) {
               >
                 Add Funds
               </button>
+              
+              <button
+                onClick={() => setShowWithdrawModal(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={walletStatus.walletBalance <= 0}
+                title={walletStatus.walletBalance <= 0 ? 'No funds available' : 'Withdraw funds'}
+              >
+                Withdraw
+              </button>
+              
               <button
                 onClick={loadWalletStatus}
                 className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm"
@@ -281,6 +293,17 @@ export function WalletTab({ organizationId, managerId }: WalletTabProps) {
               billingAddress: walletStatus.billingAddress || '',
             }}
             isInitialized={walletStatus.isWalletInitialized}
+          />
+        )}
+
+        {showWithdrawModal && (
+          <WithdrawFundsModal
+            isOpen={showWithdrawModal}
+            onClose={() => setShowWithdrawModal(false)}
+            onSuccess={loadWalletStatus}
+            organizationId={organizationId}
+            managerId={managerId}
+            currentBalance={walletStatus.walletBalance}
           />
         )}
 

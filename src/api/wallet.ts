@@ -53,6 +53,16 @@ export interface WalletTransaction {
   createdAt: string;
 }
 
+export interface WithdrawalPreview {
+  currentBalance: number;
+  requestedAmount: number;
+  convenienceFee: number;
+  feePercentage: number;
+  netAmountToReceive: number;
+  newBalance: number;
+  message: string;
+}
+
 export const walletApi = {
   // Get wallet status and onboarding progress
   async getStatus(orgId: string): Promise<WalletStatus> {
@@ -156,6 +166,38 @@ export const walletApi = {
     const response = await apiClient.get('/corporate/organization/wallet/balance', {
       params: { managerId },
     });
+    return response.data;
+  },
+
+  async getWithdrawalPreview(orgId: string, amount: number): Promise<WithdrawalPreview> {
+    const response = await apiClient.get(`/corporate/organization/wallet/withdrawal-preview/${orgId}`, {
+      params: { amount },
+    });
+    return response.data;
+  },
+
+  // Withdraw funds
+  async withdrawFunds(orgId: string, managerId: string, amount: number) {
+    console.log('withdrawing funds', orgId, managerId, amount);
+    const response = await apiClient.post('/corporate/organization/wallet/withdraw', {
+      orgId,
+      managerId,
+      amount,
+    });
+    return response.data;
+  },
+
+  // Get withdrawal history
+  async getWithdrawals(orgId: string, page: number = 1, limit: number = 20) {
+    const response = await apiClient.get(`/corporate/organization/wallet/withdrawals/${orgId}`, {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+
+  // Get available withdrawal amount
+  async getAvailableWithdrawal(orgId: string) {
+    const response = await apiClient.get(`/corporate/organization/wallet/available-withdrawal/${orgId}`);
     return response.data;
   },
 };
