@@ -23,6 +23,7 @@ import { corporateOrdersApi } from '@/api/corporateOrders';
 import { ApprovedOrdersTab } from './ApprovedOrdersTab';
 import { WalletTab } from './WalletTab';
 import { ContactTab } from './ContactTab';
+import { MonthlyReport } from '../components/MonthlyReport';
 
 export default function DashboardPage() {
   return (
@@ -34,7 +35,7 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const { corporateUser, user, logout, organizationId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders' | 'approved-orders' | 'wallet' | 'contact'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders' | 'approved-orders' | 'wallet' | 'contact' | 'report'>('overview');
   const [employees, setEmployees] = useState<CorporateUser[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<CorporateUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -416,18 +417,13 @@ function DashboardContent() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={logout}
-              className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium"
-            >
-              Logout
-            </button>
+          
           </div>
           
           {/* Tabs */}
           <div className="mt-6 border-b border-slate-200">
             <nav className="flex space-x-8">
-              {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders', 'wallet', 'contact'] as const).map((tab) => (
+              {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders', 'wallet', 'contact', 'report'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -582,6 +578,10 @@ function DashboardContent() {
             organizationId={organizationId}
             managerId={corporateUser?.id}
           />
+        )}
+
+        {activeTab === 'report' && organizationId && (
+                  <MonthlyReport organizationId={organizationId} />
         )}
 
         {activeTab === 'contact' && organizationId && corporateUser?.id && (

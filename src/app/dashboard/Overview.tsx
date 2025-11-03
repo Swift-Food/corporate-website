@@ -1,5 +1,6 @@
 // components/dashboard/Overview.tsx
-import { CorporateUser } from '@/types/user';
+import { CorporateUser, CorporateUserRole } from '@/types/user';
+import { StatsOverview } from '../components/StatsOverview';
 
 interface OverviewProps {
   corporateUser: CorporateUser | null;
@@ -134,6 +135,10 @@ export function Overview({ corporateUser, user }: OverviewProps) {
           </div>
         </div>
       </div>
+
+      {corporateUser?.corporateRole === CorporateUserRole.MANAGER && corporateUser?.organizationId && (
+        <StatsOverview organizationId={corporateUser.organizationId} />
+      )}
     </div>
   );
 }
