@@ -30,7 +30,7 @@ export function Overview({ corporateUser, user }: OverviewProps) {
   return (
     <div className="space-y-6">
       {/* Budget Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -78,7 +78,7 @@ export function Overview({ corporateUser, user }: OverviewProps) {
             </span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Info Card */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">

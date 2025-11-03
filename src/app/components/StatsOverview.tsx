@@ -98,7 +98,7 @@ export function StatsOverview({ organizationId }: StatsOverviewProps) {
           value={`£${organization.walletBalance.toFixed(2)}`}
           icon={<Wallet className="w-6 h-6" />}
           color="amber"
-          subtitle={`£${organization.walletReserved.toFixed(2)} reserved`}
+          
         />
       </div>
 
