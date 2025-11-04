@@ -91,4 +91,24 @@ export const employeesApi = {
     );
     return response.data;
   },
+
+  async deactivateEmployee(employeeId: string): Promise<void> {
+    await apiClient.post(
+      `/corporate-users/${employeeId}/deactivate`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      }
+    );
+  },
+  
+  async reactivateEmployee(employeeId: string): Promise<void> {
+    await apiClient.post(
+      `/corporate-users/${employeeId}/reactivate`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      }
+    );
+  }
 };

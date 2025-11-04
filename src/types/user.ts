@@ -63,7 +63,7 @@ export interface CorporateUser {
   jobTitleName?: string;
   // Relations
   user?: User;
-  email?: string;
+  email: string;
   phoneNumber?: string;
 }
 

@@ -249,6 +249,16 @@ function DashboardContent() {
       setIsLoading(false);
     }
   };
+
+  const handleDeactivateEmployee = async (employeeId: string) => {
+    await employeesApi.deactivateEmployee(employeeId);
+    await loadEmployees(); // Refresh the list
+  };
+  
+  const handleReactivateEmployee = async (employeeId: string) => {
+    await employeesApi.reactivateEmployee(employeeId);
+    await loadEmployees(); // Refresh the list
+  };
   const handleToggleAutoApprove = async (enabled: boolean) => {
     if (!organizationId) return;
     
@@ -480,6 +490,8 @@ function DashboardContent() {
             error={error}
             onChangeRole={handleChangeRole} 
             onRefresh={loadEmployees}
+            onDeactivate={handleDeactivateEmployee}
+            onReactivate={handleReactivateEmployee}
           />
         )}
 

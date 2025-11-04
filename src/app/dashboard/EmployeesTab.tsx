@@ -1,6 +1,6 @@
 // components/dashboard/EmployeesTab.tsx
 
-import { CorporateUser } from '@/types/user';
+import { CorporateUser, CorporateUserStatus } from '@/types/user';
 import { useState } from 'react';
 import { ChangeRoleModal } from '@/modals/changeRoleModal';
 
@@ -12,6 +12,8 @@ interface EmployeesTabProps {
   error: string;
   onRefresh: () => void;
   onChangeRole: (employeeId: string, newRole: string) => Promise<void>;
+  onDeactivate: (employeeId: string) => Promise<void>;
+  onReactivate: (employeeId: string) => Promise<void>;
 }
 
 export function EmployeesTab({ 
@@ -21,11 +23,15 @@ export function EmployeesTab({
   isLoading, 
   error, 
   onRefresh,
-  onChangeRole 
+  onChangeRole,
+  onDeactivate,
+  onReactivate,
 }: EmployeesTabProps) {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<CorporateUser | null>(null);
   const [isChangingRole, setIsChangingRole] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDeactivating, setIsDeactivating] = useState<string | null>(null);
 
   const getRoleColor = (role: string) => {
     const colors = {
@@ -45,6 +51,19 @@ export function EmployeesTab({
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-700';
   };
+
+  const filteredEmployees = employees.filter(emp => 
+    emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  // Group filtered employees by job title
+  const filteredEmployeesByJobTitle = filteredEmployees.reduce((acc, emp) => {
+    const key = emp.jobTitleName || 'unassigned';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(emp);
+    return acc;
+  }, {} as Record<string, CorporateUser[]>);
 
   const handleOpenRoleModal = (employee: CorporateUser) => {
     setSelectedEmployee(employee);
@@ -70,14 +89,41 @@ export function EmployeesTab({
     }
   };
 
+  const handleDeactivate = async (employeeId: string) => {
+    if (!confirm('Are you sure you want to deactivate this employee?')) return;
+    
+    setIsDeactivating(employeeId);
+    try {
+      await onDeactivate(employeeId);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to deactivate employee');
+    } finally {
+      setIsDeactivating(null);
+    }
+  };
+  
+  const handleReactivate = async (employeeId: string) => {
+    setIsDeactivating(employeeId);
+    try {
+      await onReactivate(employeeId);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to reactivate employee');
+    } finally {
+      setIsDeactivating(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="p-6 border-b border-slate-200">
+      <div className="p-6 border-b border-slate-200">
+        <div className="flex flex-col space-y-4">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-xl font-semibold text-slate-900">Team Members</h2>
-              <p className="text-sm text-slate-500 mt-1">{employees.length} total employees</p>
+              <p className="text-sm text-slate-500 mt-1">
+                {filteredEmployees.length} of {employees.length} employees
+              </p>
             </div>
             <button 
               onClick={onRefresh}
@@ -86,7 +132,37 @@ export function EmployeesTab({
               Refresh
             </button>
           </div>
+          
+          {/* Search Bar */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <svg 
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
+      </div>
 
         {error && (
           <div className="m-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-start space-x-3">
@@ -109,13 +185,26 @@ export function EmployeesTab({
             </svg>
             <p className="text-slate-600 font-medium">No employees found</p>
           </div>
+        ) : filteredEmployees.length === 0 ? (
+          <div className="text-center py-16">
+            <svg className="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <p className="text-slate-600 font-medium">No employees match your search</p>
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="mt-4 text-blue-600 hover:text-blue-700 text-sm font-medium"
+            >
+              Clear search
+            </button>
+          </div>
         ) : (
           <div className="divide-y divide-slate-200">
-            {Object.entries(employeesByJobTitle).map(([titleId, emps]) => {
+            {Object.entries(filteredEmployeesByJobTitle).map(([titleId, emps]) => {
               const jobTitle = titleId === 'unassigned' 
                 ? null 
                 : jobTitles.find(t => t.id === titleId);
-              
+
               return (
                 <div key={titleId} className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -190,6 +279,7 @@ export function EmployeesTab({
                             </div>
                             
                             {/* Change Role Button */}
+                            {/* Change Role Button */}
                             <button
                               onClick={() => handleOpenRoleModal(emp)}
                               className="mt-3 w-full px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium flex items-center justify-center space-x-1"
@@ -199,6 +289,31 @@ export function EmployeesTab({
                               </svg>
                               <span>Change Role</span>
                             </button>
+
+                            {/* Deactivate/Reactivate Button */}
+                            {emp.status === CorporateUserStatus.INACTIVE ? (
+                              <button
+                                onClick={() => handleReactivate(emp.id)}
+                                disabled={isDeactivating === emp.id}
+                                className="mt-2 w-full px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors text-xs font-medium flex items-center justify-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>{isDeactivating === emp.id ? 'Reactivating...' : 'Reactivate'}</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleDeactivate(emp.id)}
+                                disabled={isDeactivating === emp.id}
+                                className="mt-2 w-full px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-xs font-medium flex items-center justify-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                </svg>
+                                <span>{isDeactivating === emp.id ? 'Deactivating...' : 'Deactivate'}</span>
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
