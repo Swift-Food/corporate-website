@@ -146,19 +146,19 @@ export default function MenuItemModal({
     return addonGroups.every((group) => {
       if (!group.isRequired) return true;
 
-      const selectedCount = Object.values(
-        selectedOptions[group.groupTitle] || {}
-      ).filter(Boolean).length;
+      // const selectedCount = Object.values(
+      //   selectedOptions[group.groupTitle] || {}
+      // ).filter(Boolean).length;
 
       // Check minimum requirement
-      if (group.min && selectedCount < group.min) {
-        return false;
-      }
+      // if (group.min && selectedCount < group.min) {
+      //   return false;
+      // }
 
       // For required groups without explicit min, at least one must be selected
-      if (!group.min && selectedCount === 0) {
-        return false;
-      }
+      // if (!group.min && selectedCount === 0) {
+      //   return false;
+      // }
 
       return true;
     });
@@ -196,22 +196,22 @@ export default function MenuItemModal({
   if (!isOpen) return null;
 
   const getSelectionText = (group: AddonGroup) => {
-    const selectedCount = Object.values(
-      selectedOptions[group.groupTitle] || {}
-    ).filter(Boolean).length;
+    // const selectedCount = Object.values(
+    //   selectedOptions[group.groupTitle] || {}
+    // ).filter(Boolean).length;
 
     if (group.selectionType === "single") {
       return "Select one";
     }
-    if (group.min && group.max) {
-      return `Select ${group.min}-${group.max} (${selectedCount} selected)`;
-    }
-    if (group.min) {
-      return `Select at least ${group.min} (${selectedCount} selected)`;
-    }
-    if (group.max) {
-      return `Select up to ${group.max} (${selectedCount} selected)`;
-    }
+    // if (group.min && group.max) {
+    //   return `Select ${group.min}-${group.max} (${selectedCount} selected)`;
+    // }
+    // if (group.min) {
+    //   return `Select at least ${group.min} (${selectedCount} selected)`;
+    // }
+    // if (group.max) {
+    //   return `Select up to ${group.max} (${selectedCount} selected)`;
+    // }
     return "Select any";
   };
 

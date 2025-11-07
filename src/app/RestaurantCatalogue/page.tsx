@@ -321,7 +321,6 @@ export default function RestaurantCatalogue() {
                   </button>
                 </div>
               </div>
-
             </div>
 
             {/* Mobile Layout */}

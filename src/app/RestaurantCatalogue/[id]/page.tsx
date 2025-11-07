@@ -37,8 +37,10 @@ export default function RestaurantDetailPage() {
     const fetchItems = async () => {
       setLoading(true);
       try {
-        const apiItems = await menuItemApi.fetchItemsFromRestaurant(restaurantId);
-        const items = transformMenuItems(apiItems)
+        const apiItems = await menuItemApi.fetchItemsFromRestaurant(
+          restaurantId
+        );
+        const items = transformMenuItems(apiItems);
         setMenuItems(items);
       } catch (error) {
         console.error("Error fetching menu items:", error);
@@ -207,7 +209,9 @@ export default function RestaurantDetailPage() {
               {orderedGroups.map((group) => (
                 <button
                   key={group}
-                  ref={(el) => (tabRefs.current[group] = el)}
+                  ref={(el) => {
+                    tabRefs.current[group] = el;
+                  }}
                   onClick={() => scrollToSection(group)}
                   className={`py-4 px-4 font-medium text-sm md:text-base whitespace-nowrap border-b-2 transition-colors ${
                     activeGroup === group
