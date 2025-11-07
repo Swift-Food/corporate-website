@@ -379,7 +379,7 @@ export default function RestaurantCatalogue() {
                         }
                       }}
                       placeholder="Search restaurants..."
-                      className="flex-1 text-sm text-gray-600 placeholder-gray-400 focus:outline-none bg-transparent ml-2"
+                      className="flex-1 text-base text-gray-600 placeholder-gray-400 focus:outline-none bg-transparent ml-2"
                     />
                     {searchQuery && (
                       <button
