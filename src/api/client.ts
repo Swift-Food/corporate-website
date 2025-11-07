@@ -1,10 +1,9 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
-const API_BASE_URL = "https://swiftfoods-32981ec7b5a4.herokuapp.com";
 
 // Create axios instance
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     "Content-Type": "application/json",
   },

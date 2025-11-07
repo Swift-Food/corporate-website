@@ -10,7 +10,7 @@ export const organizationApi = {
     organizationId: string
   ): Promise<OrganizationResponseDto> => {
     const response = await apiClient.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/organizations/${organizationId}`
+      `/organizations/${organizationId}`
     );
     return response.data;
   },
