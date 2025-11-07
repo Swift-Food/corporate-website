@@ -410,63 +410,67 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+            <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-base sm:text-lg flex-shrink-0">
                 {corporateUser?.firstName?.[0]}{corporateUser?.lastName?.[0]}
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">Manager Dashboard</h1>
-                <p className="text-sm text-slate-600">
-                  {corporateUser?.firstName} {corporateUser?.lastName} • 
-                  <span className={`ml-2 px-2 py-0.5 rounded text-xs ${getRoleColor(corporateUser?.corporateRole || '')}`}>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg sm:text-2xl font-bold text-slate-900 truncate">Manager Dashboard</h1>
+                <p className="text-xs sm:text-sm text-slate-600 truncate">
+                  <span className="hidden sm:inline">{corporateUser?.firstName} {corporateUser?.lastName} • </span>
+                  <span className={`px-2 py-0.5 rounded text-xs ${getRoleColor(corporateUser?.corporateRole || '')}`}>
                     {corporateUser?.corporateRole}
                   </span>
                 </p>
               </div>
             </div>
-          
           </div>
           
-          {/* Tabs */}
-          <div className="mt-6 border-b border-slate-200">
-            <nav className="flex space-x-8">
+          {/* Tabs - Horizontal scroll on mobile */}
+          <div className="mt-8 sm:mt-6 border-b border-slate-200 -mx-4 sm:-mx-6 px-4 sm:px-6">
+            <nav className="flex space-x-4 sm:space-x-8 overflow-x-auto scrollbar-hide">
               {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders', 'wallet', 'contact', 'report'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`pb-3 px-1 border-b-2 font-medium transition-colors ${
+                  className={`pb-3 px-1 border-b-2 font-medium transition-colors whitespace-nowrap text-sm sm:text-base flex-shrink-0 ${
                     activeTab === tab
                       ? 'border-blue-600 text-blue-600'
                       : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                   }`}
                 >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1).replace('-', ' ')}
+                  <span className="hidden sm:inline">
+                    {tab.charAt(0).toUpperCase() + tab.slice(1).replace('-', ' ')}
+                  </span>
+                  <span className="sm:hidden">
+                    {tab === 'job-titles' ? 'Jobs' : 
+                     tab === 'approved-orders' ? 'Approved' : 
+                     tab.charAt(0).toUpperCase() + tab.slice(1).split('-')[0]}
+                  </span>
+                  
                   {tab === 'employees' && employees.length > 0 && (
-                    <span className="ml-2 px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
+                    <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
                       {employees.length}
                     </span>
                   )}
                   
                   {tab === 'approvals' && pendingApprovals.length > 0 && (
-                    <span className="ml-2 px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs">
+                    <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs">
                       {pendingApprovals.length}
                     </span>
                   )}
                   {tab === 'approved-orders' && approvedOrders.length > 0 && (
-                    <span className="ml-2 px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full text-xs">
+                    <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full text-xs">
                       {approvedOrders.length}
                     </span>
                   )}
                   {tab === 'job-titles' && jobTitles.length > 0 && (
-                    <span className="ml-2 px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
+                    <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
                       {jobTitles.length}
                     </span>
-                  )}
-                  {tab === 'wallet' && organizationId && (
-                   <></>
                   )}
                 </button>
               ))}
@@ -476,7 +480,7 @@ function DashboardContent() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {activeTab === 'overview' && (
           <Overview corporateUser={corporateUser} user={user} />
         )}
@@ -522,16 +526,16 @@ function DashboardContent() {
         )}
 
         {activeTab === 'orders' && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex justify-between items-center">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200">
+            <div className="p-4 sm:p-6 border-b border-slate-200">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-900">Order Settings</h2>
-                  <p className="text-sm text-slate-500 mt-1">Configure organization-wide order preferences</p>
+                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Order Settings</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">Configure organization-wide order preferences</p>
                 </div>
                 <button 
                   onClick={loadOrganizationSettings}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm w-full sm:w-auto"
                 >
                   Refresh
                 </button>
@@ -539,9 +543,9 @@ function DashboardContent() {
             </div>
 
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-16">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
-                <p className="text-slate-500 mt-4">Loading order settings...</p>
+              <div className="flex flex-col items-center justify-center py-12 sm:py-16">
+                <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-4 border-blue-200 border-t-blue-600"></div>
+                <p className="text-slate-500 mt-4 text-sm sm:text-base">Loading order settings...</p>
               </div>
             ) : (
               <>
@@ -562,18 +566,17 @@ function DashboardContent() {
                     onBulkReject={handleBulkRejectSubOrders}
                   />
                 ) : !isLoading && (
-                  <div className="mt-6 text-center py-12 bg-slate-50 rounded-xl border border-slate-200 m-6">
-                    <svg className="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="mt-4 sm:mt-6 text-center py-8 sm:py-12 bg-slate-50 rounded-lg sm:rounded-xl border border-slate-200 mx-4 sm:mx-6 mb-4 sm:mb-0">
+                    <svg className="w-12 h-12 sm:w-16 sm:h-16 text-slate-300 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
-                    <p className="text-slate-600 font-medium">No orders placed today</p>
-                    <p className="text-slate-500 text-sm mt-1">Orders will appear here once employees start placing them</p>
+                    <p className="text-slate-600 font-medium text-sm sm:text-base">No orders placed today</p>
+                    <p className="text-slate-500 text-xs sm:text-sm mt-1 px-4">Orders will appear here once employees start placing them</p>
                   </div>
                 )}
               </>
             )}
           </div>
-
         )}
 
         {activeTab === 'approved-orders' && (
@@ -593,7 +596,7 @@ function DashboardContent() {
         )}
 
         {activeTab === 'report' && organizationId && (
-                  <MonthlyReport organizationId={organizationId} />
+          <MonthlyReport organizationId={organizationId} />
         )}
 
         {activeTab === 'contact' && organizationId && corporateUser?.id && (
