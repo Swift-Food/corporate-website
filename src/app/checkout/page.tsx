@@ -175,7 +175,9 @@ export default function CheckoutPage() {
           ? dietaryRestrictions.split(",").map((r) => r.trim())
           : undefined,
       };
-
+      if (!employeeId){
+        throw new Error()
+      }
       const response = await checkoutApi.createOrder(employeeId, orderData);
 
       console.log("Order created successfully:", response);
@@ -186,7 +188,7 @@ export default function CheckoutPage() {
 
       // Redirect to success page or orders page
       router.push("/order"); // You can create a success page later
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error creating order:", err);
       setError(
         err?.response?.data?.message ||
