@@ -79,7 +79,7 @@ export default function RegisterPage() {
       if (result.requiresVerification) {
         setStep('verify');
       } else {
-        router.push('/new-login?registered=true');
+        router.push('/RestaurantCatalogue');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
@@ -96,7 +96,7 @@ export default function RegisterPage() {
 
     try {
       await authApi.verifyCorporateEmail(formData.email, verificationCode);
-      router.push('/new-login?verified=true');
+      router.push('/RestaurantCatalogue');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Verification failed');
     } finally {

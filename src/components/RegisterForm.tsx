@@ -1,28 +1,31 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { authApi } from '../../interceptors/auth';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authApi } from "../../interceptors/auth";
 
 interface RegisterFormProps {
   onSuccess?: () => void;
   onSwitchToLogin?: () => void;
 }
 
-export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) {
+export default function RegisterForm({
+  onSuccess,
+  onSwitchToLogin,
+}: RegisterFormProps) {
   const router = useRouter();
-  const [step, setStep] = useState<'check' | 'register' | 'verify'>('check');
+  const [step, setStep] = useState<"check" | "register" | "verify">("check");
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    department: '',
+    email: "",
+    password: "",
+    confirmPassword: "",
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    department: "",
   });
-  const [verificationCode, setVerificationCode] = useState('');
-  const [error, setError] = useState('');
+  const [verificationCode, setVerificationCode] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [domainInfo, setDomainInfo] = useState<any>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -31,7 +34,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
   // Step 1: Check domain eligibility
   const handleCheckDomain = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
@@ -44,9 +47,9 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       }
 
       setDomainInfo(result);
-      setStep('register');
+      setStep("register");
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to check domain');
+      setError(err.response?.data?.message || "Failed to check domain");
     } finally {
       setIsLoading(false);
     }
@@ -55,15 +58,15 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
   // Step 2: Register
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError("Password must be at least 6 characters");
       return;
     }
 
@@ -80,16 +83,14 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       });
 
       if (result.requiresVerification) {
-        setStep('verify');
+        setStep("verify");
       } else {
         if (onSuccess) {
           onSuccess();
-        } else {
-          router.push('/new-login?registered=true');
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      setError(err.response?.data?.message || "Registration failed");
     } finally {
       setIsLoading(false);
     }
@@ -98,18 +99,16 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
   // Step 3: Verify email
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       await authApi.verifyCorporateEmail(formData.email, verificationCode);
       if (onSuccess) {
         onSuccess();
-      } else {
-        router.push('/new-login?verified=true');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Verification failed');
+      setError(err.response?.data?.message || "Verification failed");
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +116,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error) setError('');
+    if (error) setError("");
   };
 
   return (
@@ -125,14 +124,15 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       {/* Title */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-neutral mb-2">
-          {step === 'check' && 'Create Account'}
-          {step === 'register' && 'Complete Registration'}
-          {step === 'verify' && 'Verify Your Email'}
+          {step === "check" && "Create Account"}
+          {step === "register" && "Complete Registration"}
+          {step === "verify" && "Verify Your Email"}
         </h2>
         <p className="text-sm text-base-content/70">
-          {step === 'check' && 'Check your company email to get started'}
-          {step === 'register' && `Register with ${domainInfo?.organizationName}`}
-          {step === 'verify' && 'Enter the code we sent to your email'}
+          {step === "check" && "Check your company email to get started"}
+          {step === "register" &&
+            `Register with ${domainInfo?.organizationName}`}
+          {step === "verify" && "Enter the code we sent to your email"}
         </p>
       </div>
 
@@ -144,7 +144,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       )}
 
       {/* Step 1: Check Domain */}
-      {step === 'check' && (
+      {step === "check" && (
         <form onSubmit={handleCheckDomain} className="space-y-6">
           <div>
             <label
@@ -195,14 +195,14 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
                 Checking...
               </span>
             ) : (
-              'Continue'
+              "Continue"
             )}
           </button>
         </form>
       )}
 
       {/* Step 2: Register */}
-      {step === 'register' && (
+      {step === "register" && (
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -274,7 +274,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             <div className="relative">
               <input
                 name="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 required
                 value={formData.password}
                 onChange={handleChange}
@@ -334,7 +334,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
             <div className="relative">
               <input
                 name="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
+                type={showConfirmPassword ? "text" : "password"}
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
@@ -417,14 +417,14 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
                 Creating account...
               </span>
             ) : (
-              'Create Account'
+              "Create Account"
             )}
           </button>
         </form>
       )}
 
       {/* Step 3: Verify */}
-      {step === 'verify' && (
+      {step === "verify" && (
         <form onSubmit={handleVerify} className="space-y-6">
           <div>
             <p className="text-sm text-base-content/70 mb-6 text-center">
@@ -474,12 +474,12 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
                 Verifying...
               </span>
             ) : (
-              'Verify Email'
+              "Verify Email"
             )}
           </button>
           <button
             type="button"
-            onClick={() => setStep('register')}
+            onClick={() => setStep("register")}
             className="w-full text-sm text-base-content/70 hover:text-base-content"
           >
             Back to registration
@@ -490,7 +490,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       {/* Sign in link */}
       {onSwitchToLogin && (
         <p className="text-center mt-6 text-sm text-base-content/70">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <button
             type="button"
             onClick={onSwitchToLogin}
