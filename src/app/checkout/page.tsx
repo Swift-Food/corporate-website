@@ -16,7 +16,7 @@ import LoginModal from "../components/LoginModal";
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, getTotalPrice, clearCart } = useCart();
-  const { user, corporateUser, isAuthenticated } = useAuth();
+  const { corporateUser, isAuthenticated } = useAuth();
   const employeeId = corporateUser?.id; //user?.id || corporateUser?.id;
 
   const [specialInstructions, setSpecialInstructions] = useState("");
@@ -73,7 +73,7 @@ export default function CheckoutPage() {
   const getRequestedDeliveryTime = (): string => {
     if (deliveryDate && deliveryTime) {
       // Combine date and time into ISO format
-      const dateTimeString = `${deliveryDate}T${deliveryTime}:00`;
+      const dateTimeString = `${deliveryDate}T${deliveryTime}`;
       const date = new Date(dateTimeString);
 
       // Check if date is valid

@@ -1,3 +1,3 @@
 export interface OrganizationResponseDto {
-  defaultDeliveryTimeWindow: string;
+  defaultDeliveryTimeWindow?: string;
 }
