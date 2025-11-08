@@ -173,7 +173,7 @@ export default function RestaurantCatalogue() {
             {/* Desktop Layout */}
             <div className="flex items-center justify-center gap-4 relative w-full">
               {/* Date/Time Inputs */}
-              <div className="flex items-center gap-3 bg-white rounded-full px-8 h-16 max-w-2xl flex-1">
+              <div className="flex items-center gap-3 bg-white rounded-full px-8 h-16 max-w-2xl flex-1 border border-base-200">
                 <div className="flex-1 border-r border-gray-200 pr-3">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Date
@@ -214,7 +214,7 @@ export default function RestaurantCatalogue() {
                   }}
                 >
                   <div
-                    className={`flex items-center bg-white rounded-full transition-all duration-300 ease-in-out overflow-hidden h-16 ${
+                    className={`flex items-center bg-white rounded-full transition-all duration-300 ease-in-out overflow-hidden h-16 border border-base-200 ${
                       searchExpanded
                         ? "w-[400px] px-4 gap-3"
                         : "w-16 justify-center"
@@ -293,7 +293,7 @@ export default function RestaurantCatalogue() {
                         setFilterModalOpen(true);
                       }
                     }}
-                    className={`rounded-full transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-16 overflow-hidden ${
+                    className={`rounded-full border border-base-200 transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-16 overflow-hidden ${
                       filterExpanded || filterModalOpen
                         ? "w-40 px-4 gap-2 justify-between"
                         : "w-16 justify-center"
@@ -367,9 +367,9 @@ export default function RestaurantCatalogue() {
             />
           </div>
           {/* Mobile Layout - Date/Time (Not Sticky) */}
-          <div className="md:hidden mb-3 bg-gray-50 rounded-xl  border-1 border-base-200">
+          <div className="md:hidden mb-3 bg-white rounded-xl  border-1 border-base-200">
             <div className="flex items-center gap-2 px-2">
-              <div className="flex items-center gap-2 flex-1 bg-gray-50 px-4 py-1 border-r-1 border-gray-200">
+              <div className="flex items-center gap-2 flex-1 px-4 py-1 border-r-1 border-gray-200">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -388,7 +388,7 @@ export default function RestaurantCatalogue() {
                   {getNextWorkingDayFormatted("short")}
                 </span>
               </div>
-              <div className="flex items-center gap-2 flex-1 bg-gray-50 rounded-lg px-4 py-3">
+              <div className="flex items-center gap-2 flex-1 rounded-lg px-4 py-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
