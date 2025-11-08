@@ -177,12 +177,13 @@ export default function RestaurantCatalogue() {
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Date
                   </label>
-                  <input
+                  {/* <input
                     type="date"
                     value={when}
                     onChange={(e) => setWhen(e.target.value)}
                     className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
-                  />
+                  /> */}
+                  <p className="text-sm text-gray-600">Next Working Day</p>
                 </div>
                 <div className="flex-1">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
@@ -331,12 +332,13 @@ export default function RestaurantCatalogue() {
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Date
                 </label>
-                <input
+                {/* <input
                   type="date"
                   value={when}
                   onChange={(e) => setWhen(e.target.value)}
                   className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
-                />
+                /> */}
+                <p className="text-sm text-gray-600">Next Working Day</p>
               </div>
               <div className="flex-1">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
