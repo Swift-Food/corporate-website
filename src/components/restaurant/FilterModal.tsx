@@ -37,27 +37,27 @@ export default function FilterModal({
   }, [isOpen]);
 
   // Close dropdown when clicking outside (desktop only - mobile uses backdrop onClick)
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // Only handle for desktop (mobile uses backdrop onClick)
-      if (window.innerWidth >= 768) {
-        if (
-          desktopDropdownRef.current &&
-          !desktopDropdownRef.current.contains(event.target as Node)
-        ) {
-          onClose();
-        }
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (event: MouseEvent) => {
+  //     // Only handle for desktop (mobile uses backdrop onClick)
+  //     if (window.innerWidth >= 768) {
+  //       if (
+  //         desktopDropdownRef.current &&
+  //         !desktopDropdownRef.current.contains(event.target as Node)
+  //       ) {
+  //         onClose();
+  //       }
+  //     }
+  //   };
 
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+  //   if (isOpen) {
+  //     document.addEventListener("mousedown", handleClickOutside);
+  //   }
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen, onClose]);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, [isOpen, onClose]);
 
   const allergies = [
     "No specific preferences",
