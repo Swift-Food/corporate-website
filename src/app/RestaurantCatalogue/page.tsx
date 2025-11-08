@@ -367,48 +367,51 @@ export default function RestaurantCatalogue() {
             />
           </div>
           {/* Mobile Layout - Date/Time (Not Sticky) */}
-          <div className="md:hidden mb-3 bg-white rounded-xl  border-1 border-base-200">
-            <div className="flex items-center gap-2 px-2">
-              <div className="flex items-center gap-2 flex-1 px-4 py-1 border-r-1 border-gray-200">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5 text-gray-600"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-                  />
-                </svg>
-                <span className="text-base text-gray-800 font-medium">
-                  {getNextWorkingDayFormatted("short")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 flex-1 rounded-lg px-4 py-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-5 h-5 text-gray-600"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span className="text-base text-gray-800 font-medium">
-                  {time ? time : "Login To View"}
-                </span>
+          <section>
+            <label className="mb-4 font-bold">Delivery Details</label>
+            <div className="md:hidden mt-3 bg-white rounded-xl border-1 border-base-200">
+              <div className="flex items-center gap-2 px-2">
+                <div className="flex items-center gap-2 flex-1 px-4 py-1 border-r-1 border-gray-200">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5 text-gray-600"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                    />
+                  </svg>
+                  <span className="text-base text-gray-800 font-medium">
+                    {getNextWorkingDayFormatted("short")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-1 rounded-lg px-4 py-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5 text-gray-600"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span className="text-base text-gray-800 font-medium">
+                    {time ? time : "Login To View"}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          </section>
           {/* Mobile Search and Filter Row - STICKY */}
           <div className="md:hidden sticky top-16 z-40 -mx-4 px-4 py-3 mb-6">
             <div className="flex items-center gap-2 w-full">
