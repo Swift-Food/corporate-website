@@ -173,7 +173,7 @@ export default function RestaurantCatalogue() {
             {/* Desktop Layout */}
             <div className="flex items-center justify-center gap-4 relative w-full">
               {/* Date/Time Inputs */}
-              <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 h-16 max-w-2xl flex-1">
+              <div className="flex items-center gap-3 bg-white rounded-full px-8 h-16 max-w-2xl flex-1">
                 <div className="flex-1 border-r border-gray-200 pr-3">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Date
@@ -214,7 +214,7 @@ export default function RestaurantCatalogue() {
                   }}
                 >
                   <div
-                    className={`flex items-center bg-white rounded-full shadow-lg transition-all duration-300 ease-in-out overflow-hidden h-16 ${
+                    className={`flex items-center bg-white rounded-full transition-all duration-300 ease-in-out overflow-hidden h-16 ${
                       searchExpanded
                         ? "w-[400px] px-4 gap-3"
                         : "w-16 justify-center"
@@ -293,7 +293,7 @@ export default function RestaurantCatalogue() {
                         setFilterModalOpen(true);
                       }
                     }}
-                    className={`rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-16 overflow-hidden ${
+                    className={`rounded-full transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-16 overflow-hidden ${
                       filterExpanded || filterModalOpen
                         ? "w-40 px-4 gap-2 justify-between"
                         : "w-16 justify-center"
@@ -367,32 +367,45 @@ export default function RestaurantCatalogue() {
             />
           </div>
           {/* Mobile Layout - Date/Time (Not Sticky) */}
-          <div className="md:hidden mb-3 bg-white px-4 py-4 rounded-lg">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2 px-1">
-              Delivery Details
-            </h3>
-            <div className="flex items-center gap-3 px-4 h-12 w-full">
-              <div className="flex-1 border-r border-gray-200 pr-3">
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Date
-                </label>
-                {/* <input
-                  type="date"
-                  value={when}
-                  onChange={(e) => setWhen(e.target.value)}
-                  className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
-                /> */}
-                <p className="text-sm text-gray-600">
+          <div className="md:hidden mb-3 bg-gray-50 rounded-xl  border-1 border-base-200">
+            <div className="flex items-center gap-2 px-2">
+              <div className="flex items-center gap-2 flex-1 bg-gray-50 px-4 py-1 border-r-1 border-gray-200">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-gray-600"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                  />
+                </svg>
+                <span className="text-base text-gray-800 font-medium">
                   {getNextWorkingDayFormatted("short")}
-                </p>
+                </span>
               </div>
-              <div className="flex-1">
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Time
-                </label>
-                <p className="text-sm text-gray-600 placeholder-gray-400">
+              <div className="flex items-center gap-2 flex-1 bg-gray-50 rounded-lg px-4 py-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-gray-600"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span className="text-base text-gray-800 font-medium">
                   {time ? time : "Login To View"}
-                </p>
+                </span>
               </div>
             </div>
           </div>
@@ -401,7 +414,7 @@ export default function RestaurantCatalogue() {
             <div className="flex items-center gap-2 w-full">
               {/* Search Bar fills available width */}
               <div className="flex-1">
-                <div className="flex items-center bg-white rounded-full shadow-lg h-12 px-3 w-full">
+                <div className="flex items-center bg-white rounded-full h-12 px-3 w-full border-1 border-base-200">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -456,7 +469,7 @@ export default function RestaurantCatalogue() {
               {/* Filter Button - animated on mobile */}
               <button
                 onClick={() => setFilterModalOpen(!filterModalOpen)}
-                className={`rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-12 overflow-hidden ${
+                className={`rounded-full transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-12 overflow-hidden border-1 border-base-200 ${
                   filterModalOpen
                     ? "w-32 px-4 gap-2 bg-primary text-white"
                     : "w-12 bg-white"
