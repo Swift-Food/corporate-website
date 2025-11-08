@@ -288,11 +288,15 @@ export default function RestaurantCatalogue() {
                   onMouseLeave={() => setFilterExpanded(false)}
                 >
                   <button
-                    onClick={() => setFilterModalOpen(!filterModalOpen)}
-                    className={`rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-16 overflow-hidden ${
+                    onClick={() => {
+                      if (!filterModalOpen) {
+                        setFilterModalOpen(true);
+                      }
+                    }}
+                    className={`rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-16 overflow-hidden ${
                       filterExpanded || filterModalOpen
-                        ? "w-32 px-4 gap-2"
-                        : "w-16"
+                        ? "w-40 px-4 gap-2 justify-between"
+                        : "w-16 justify-center"
                     } ${
                       filterModalOpen ? "bg-primary text-white" : "bg-white"
                     }`}
@@ -300,7 +304,7 @@ export default function RestaurantCatalogue() {
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
-                      viewBox="0 0 24 24"
+                      diuwBox="0 0 24 24"
                       strokeWidth={1.5}
                       stroke="currentColor"
                       className={`w-5 h-5  flex-shrink-0 ${
@@ -314,13 +318,41 @@ export default function RestaurantCatalogue() {
                       />
                     </svg>
                     {(filterExpanded || filterModalOpen) && (
-                      <span
-                        className={`text-sm font-medium whitespace-nowrap ${
-                          filterModalOpen ? "text-white" : "text-gray-700"
-                        }`}
-                      >
-                        Filters
-                      </span>
+                      <>
+                        <span
+                          className={`text-sm font-medium whitespace-nowrap ${
+                            filterModalOpen ? "text-white" : "text-gray-700"
+                          }`}
+                        >
+                          Filters
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFilterModalOpen(false);
+                          }}
+                        >
+                          <div
+                            className={`rounded-full h-8 w-8 bg-white text-black flex justify-center items-center ${
+                              filterModalOpen ? "visible" : "invisible"
+                            }`}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <line x1="6" y1="6" x2="18" y2="18" />
+                              <line x1="6" y1="18" x2="18" y2="6" />
+                            </svg>
+                          </div>
+                        </button>
+                      </>
                     )}
                   </button>
                 </div>
