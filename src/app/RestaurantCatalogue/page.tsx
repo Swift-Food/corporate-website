@@ -12,6 +12,7 @@ import { searchApi } from "@/api/search";
 import SearchResults from "@/components/restaurant/SearchResults";
 import RestaurantCard from "@/components/restaurant/RestaurantCard";
 import FilterModal, { FilterState } from "@/components/restaurant/FilterModal";
+import { getNextWorkingDayFormatted } from "@/util/catalogue";
 
 export default function RestaurantCatalogue() {
   const router = useRouter();
@@ -183,7 +184,9 @@ export default function RestaurantCatalogue() {
                     onChange={(e) => setWhen(e.target.value)}
                     className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
                   /> */}
-                  <p className="text-sm text-gray-600">Next Working Day</p>
+                  <p className="text-sm text-gray-600">
+                    {getNextWorkingDayFormatted("short")}
+                  </p>
                 </div>
                 <div className="flex-1">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
@@ -338,7 +341,9 @@ export default function RestaurantCatalogue() {
                   onChange={(e) => setWhen(e.target.value)}
                   className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
                 /> */}
-                <p className="text-sm text-gray-600">Next Working Day</p>
+                <p className="text-sm text-gray-600">
+                  {getNextWorkingDayFormatted("short")}
+                </p>
               </div>
               <div className="flex-1">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
