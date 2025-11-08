@@ -24,6 +24,8 @@ import { ApprovedOrdersTab } from './ApprovedOrdersTab';
 import { WalletTab } from './WalletTab';
 import { ContactTab } from './ContactTab';
 import { MonthlyReport } from '../components/MonthlyReport';
+import { cateringOrdersApi } from '@/api/catering';
+import { CateringOrdersTab } from './CateringOrdersTab';
 
 export default function DashboardPage() {
   return (
@@ -34,8 +36,8 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-  const { corporateUser, user, logout, organizationId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders' | 'approved-orders' | 'wallet' | 'contact' | 'report'>('overview');
+  const { corporateUser, user, organizationId } = useAuth();
+  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders' | 'approved-orders' | 'catering-orders' | 'wallet' | 'contact' | 'report'>('overview');
   const [employees, setEmployees] = useState<CorporateUser[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<CorporateUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +56,8 @@ function DashboardContent() {
   const [approvedOrders, setApprovedOrders] = useState<any[]>([]);
   const [autoApproveEmployees, setAutoApproveEmployees] = useState(false);
   const [organizationName, setOrganizationName] = useState('');
+  const [cateringOrders, setCateringOrders] = useState<any[]>([]);
+  const [cateringSummary, setCateringSummary] = useState<any>(null);
 
   useEffect(() => {
     if (activeTab === 'employees' && organizationId && corporateUser?.id) {
@@ -68,6 +72,8 @@ function DashboardContent() {
       loadTodaysOrder();
     }else if (activeTab === 'approved-orders' && organizationId && corporateUser?.id) {
       loadApprovedOrders();
+    } else if (activeTab === 'catering-orders' && organizationId && corporateUser?.id) {
+      loadCateringOrders();
     }
   }, [activeTab, organizationId, corporateUser?.id]);
 
@@ -245,6 +251,26 @@ function DashboardContent() {
       setApprovedOrders(data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load approved orders');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadCateringOrders = async () => {
+    if (!corporateUser?.id) return;
+    
+    setIsLoading(true);
+    setError('');
+    try {
+      const [ordersData, summaryData] = await Promise.all([
+        cateringOrdersApi.getOrganizationOrders(corporateUser.id),
+        cateringOrdersApi.getSummary(corporateUser.id),
+      ]);
+      console.log("orders data", ordersData)
+      setCateringOrders(ordersData);
+      setCateringSummary(summaryData);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load catering orders');
     } finally {
       setIsLoading(false);
     }
@@ -432,7 +458,7 @@ function DashboardContent() {
           {/* Tabs - Horizontal scroll on mobile */}
           <div className="mt-8 sm:mt-6 border-b border-slate-200 -mx-4 sm:-mx-6 px-4 sm:px-6">
             <nav className="flex space-x-4 sm:space-x-8 overflow-x-auto scrollbar-hide">
-              {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders', 'wallet', 'contact', 'report'] as const).map((tab) => (
+              {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders', 'catering-orders', 'wallet', 'contact', 'report'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -470,6 +496,11 @@ function DashboardContent() {
                   {tab === 'job-titles' && jobTitles.length > 0 && (
                     <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
                       {jobTitles.length}
+                    </span>
+                  )}
+                  {tab === 'catering-orders' && cateringOrders.length > 0 && (
+                    <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full text-xs">
+                      {cateringOrders.length}
                     </span>
                   )}
                 </button>
@@ -604,6 +635,16 @@ function DashboardContent() {
             organizationId={organizationId}
             managerId={corporateUser?.id}
             organizationName={organizationName}
+          />
+        )}
+        {activeTab === 'catering-orders' && corporateUser?.id && organizationId && (
+          <CateringOrdersTab
+            managerId={corporateUser.id}
+            organizationId={organizationId}
+            isLoading={isLoading}
+            orders={cateringOrders}
+            summary={cateringSummary}
+            onRefresh={loadCateringOrders}
           />
         )}
       </main>
