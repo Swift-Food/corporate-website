@@ -11,12 +11,14 @@ import { useAuth } from "../../../interceptors/auth/authContext";
 import { searchApi } from "@/api/search";
 import SearchResults from "@/components/restaurant/SearchResults";
 import RestaurantCard from "@/components/restaurant/RestaurantCard";
-import FilterModal, { FilterState } from "@/components/restaurant/FilterModal";
+import FilterModal from "@/components/restaurant/FilterModal";
 import { getNextWorkingDayFormatted } from "@/util/catalogue";
+import { FilterProvider, useFilters } from "@/contexts/FilterContext";
 
-export default function RestaurantCatalogue() {
+function RestaurantCatalogueContent() {
   const router = useRouter();
   const { corporateUser } = useAuth();
+  const { filters } = useFilters();
 
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
@@ -35,10 +37,6 @@ export default function RestaurantCatalogue() {
   const [hasSearched, setHasSearched] = useState(false);
   const [filterExpanded, setFilterExpanded] = useState(false);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
-    dietaryRestrictions: [],
-    allergens: [],
-  });
   const closeButtonClickedRef = useRef(false);
 
   useEffect(() => {
@@ -70,6 +68,14 @@ export default function RestaurantCatalogue() {
       localStorage.setItem("delivery_time", time);
     }
   }, [time]);
+
+  // Re-run search when filters change (only if there's an active search)
+  useEffect(() => {
+    if (hasSearched && searchQuery.trim()) {
+      handleSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
 
   const fetchRestaurants = async () => {
     setRestaurantsLoading(true);
@@ -145,12 +151,6 @@ export default function RestaurantCatalogue() {
     setSearchExpanded(false);
     setSearchFocused(false);
     setSearchHovered(false);
-  };
-
-  const handleApplyFilters = (newFilters: FilterState) => {
-    setFilters(newFilters);
-    // You can add logic here to filter restaurants based on the selected filters
-    console.log("Filters applied:", newFilters);
   };
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
@@ -369,7 +369,6 @@ export default function RestaurantCatalogue() {
             <FilterModal
               isOpen={filterModalOpen}
               onClose={() => setFilterModalOpen(false)}
-              onApply={handleApplyFilters}
             />
           </div>
           {/* Mobile Layout - Date/Time (Not Sticky) */}
@@ -514,7 +513,6 @@ export default function RestaurantCatalogue() {
             <FilterModal
               isOpen={filterModalOpen}
               onClose={() => setFilterModalOpen(false)}
-              onApply={handleApplyFilters}
             />
           </div>
 
@@ -563,5 +561,13 @@ export default function RestaurantCatalogue() {
       {/* Mobile Cart */}
       {/* <MobileCart onCheckout={handleCheckout} /> */}
     </div>
+  );
+}
+
+export default function RestaurantCatalogue() {
+  return (
+    <FilterProvider>
+      <RestaurantCatalogueContent />
+    </FilterProvider>
   );
 }

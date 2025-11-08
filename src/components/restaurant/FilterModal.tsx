@@ -1,27 +1,32 @@
 import { useState, useRef, useEffect } from "react";
 import { DietaryFilter } from "../../types/menuItem";
+import { useFilters } from "../../contexts/FilterContext";
 
 interface FilterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onApply: (filters: FilterState) => void;
-}
-
-export interface FilterState {
-  dietaryRestrictions: DietaryFilter[];
-  allergens: string[];
 }
 
 export default function FilterModal({
   isOpen,
   onClose,
-  onApply,
 }: FilterModalProps) {
   const mobileModalRef = useRef<HTMLDivElement>(null);
   const desktopDropdownRef = useRef<HTMLDivElement>(null);
-  const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
+  const { filters, setFilters } = useFilters();
+
+  // Local state for temporary selections (before Apply)
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>(filters.allergens);
   const [selectedDietaryRestrictions, setSelectedDietaryRestrictions] =
-    useState<DietaryFilter[]>([]);
+    useState<DietaryFilter[]>(filters.dietaryRestrictions);
+
+  // Sync local state with context when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedAllergens(filters.allergens);
+      setSelectedDietaryRestrictions(filters.dietaryRestrictions);
+    }
+  }, [isOpen, filters]);
 
   // Prevent body scroll on mobile when modal is open
   useEffect(() => {
@@ -35,6 +40,12 @@ export default function FilterModal({
       document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  const handleNoSaveClose = () => {
+    setSelectedAllergens([]);
+    setSelectedDietaryRestrictions([]);
+    onClose();
+  };
 
   // Close dropdown when clicking outside (desktop only - mobile uses backdrop onClick)
   // useEffect(() => {
@@ -116,7 +127,7 @@ export default function FilterModal({
   };
 
   const handleApply = () => {
-    onApply({
+    setFilters({
       dietaryRestrictions: selectedDietaryRestrictions,
       allergens: selectedAllergens,
     });
@@ -146,7 +157,7 @@ export default function FilterModal({
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-base-content">Filters</h2>
             <button
-              onClick={onClose}
+              onClick={handleNoSaveClose}
               className="text-gray-400 hover:text-gray-600"
             >
               <svg
