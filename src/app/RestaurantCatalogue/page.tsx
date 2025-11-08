@@ -326,6 +326,13 @@ export default function RestaurantCatalogue() {
                 </div>
               </div>
             </div>
+
+            {/* Filter Modal for Desktop */}
+            <FilterModal
+              isOpen={filterModalOpen}
+              onClose={() => setFilterModalOpen(false)}
+              onApply={handleApplyFilters}
+            />
           </div>
           {/* Mobile Layout - Date/Time (Not Sticky) */}
           <div className="md:hidden mb-3 bg-white px-4 py-4 rounded-lg">
@@ -446,14 +453,14 @@ export default function RestaurantCatalogue() {
                 )}
               </button>
             </div>
-          </div>
 
-          {/* Filter Modal - Works for both Desktop and Mobile */}
-          <FilterModal
-            isOpen={filterModalOpen}
-            onClose={() => setFilterModalOpen(false)}
-            onApply={handleApplyFilters}
-          />
+            {/* Filter Modal for Mobile */}
+            <FilterModal
+              isOpen={filterModalOpen}
+              onClose={() => setFilterModalOpen(false)}
+              onApply={handleApplyFilters}
+            />
+          </div>
 
           {/* Restaurant Grid / Search Results */}
           {hasSearched ? (
