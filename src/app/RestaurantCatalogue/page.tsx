@@ -165,12 +165,12 @@ export default function RestaurantCatalogue() {
 
   return (
     <div className="w-full bg-base-100">
-      <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto">
+      <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto max-w-[1500px]">
         <div className="flex-1">
-          {/* Sticky Search/Filter Section */}
-          <div className="md:sticky top-16 md:top-20 z-40 -mx-4 px-4 py-6 mb-[-1px] overflow-visible relative">
+          {/* Desktop Sticky Search/Filter Section */}
+          <div className="hidden md:block md:sticky top-16 md:top-20 z-40 md:-mx-4 md:px-4 md:py-6 mb-[-1px] overflow-visible relative">
             {/* Desktop Layout */}
-            <div className="hidden md:flex items-center justify-center gap-4 relative w-full">
+            <div className="flex items-center justify-center gap-4 relative w-full">
               {/* Date/Time Inputs */}
               <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-8 h-16 max-w-2xl flex-1">
                 <div className="flex-1 border-r border-gray-200 pr-3">
@@ -322,131 +322,130 @@ export default function RestaurantCatalogue() {
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Mobile Layout */}
-            <div className="flex flex-col gap-3 md:hidden w-full">
-              {/* Date/Time Inputs - full width */}
-              <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-4 h-16 w-full">
-                <div className="flex-1 border-r border-gray-200 pr-3">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={when}
-                    onChange={(e) => setWhen(e.target.value)}
-                    className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Time
-                  </label>
-                  <p className="text-sm text-gray-600 placeholder-gray-400">
-                    {time ? time : "Login To View"}
-                  </p>
-                </div>
+          {/* Mobile Layout - Date/Time (Not Sticky) */}
+          <div className="md:hidden mb-3">
+            <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-4 h-12 w-full">
+              <div className="flex-1 border-r border-gray-200 pr-3">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={when}
+                  onChange={(e) => setWhen(e.target.value)}
+                  className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
+                />
               </div>
+              <div className="flex-1">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Time
+                </label>
+                <p className="text-sm text-gray-600 placeholder-gray-400">
+                  {time ? time : "Login To View"}
+                </p>
+              </div>
+            </div>
+          </div>
 
-              {/* Search and Filter Row */}
-              <div className="flex items-center gap-2 w-full">
-                {/* Search Bar fills available width */}
-                <div className="flex-1">
-                  <div className="flex items-center bg-white rounded-full shadow-lg h-12 px-3 w-full">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5 text-gray-400 flex-shrink-0"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                      />
-                    </svg>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onFocus={() => setSearchFocused(true)}
-                      onBlur={() => setSearchFocused(false)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleSearch();
-                        }
-                      }}
-                      placeholder="Search restaurants..."
-                      className="flex-1 text-base text-gray-600 placeholder-gray-400 focus:outline-none bg-transparent ml-2"
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={clearSearch}
-                        className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="w-5 h-5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {/* Filter Button - animated on mobile */}
-                <button
-                  onClick={() => setFilterModalOpen(!filterModalOpen)}
-                  className={`rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-12 overflow-hidden
-    ${
-      filterModalOpen
-        ? "w-32 px-4 gap-2 bg-primary text-white"
-        : "w-12 bg-white"
-    }
-  `}
-                >
+          {/* Mobile Search and Filter Row - STICKY */}
+          <div className="md:hidden sticky top-16 z-40 -mx-4 px-4 py-3 mb-6">
+            <div className="flex items-center gap-2 w-full">
+              {/* Search Bar fills available width */}
+              <div className="flex-1">
+                <div className="flex items-center bg-white rounded-full shadow-lg h-12 px-3 w-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className={`w-5 h-5 flex-shrink-0 ${
-                      filterModalOpen ? "text-white" : "text-gray-700"
-                    }`}
+                    className="w-5 h-5 text-gray-400 flex-shrink-0"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
                     />
                   </svg>
-                  {filterModalOpen && (
-                    <span className="text-sm font-medium whitespace-nowrap text-white">
-                      Filters
-                    </span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearch();
+                      }
+                    }}
+                    placeholder="Search restaurants..."
+                    className="flex-1 text-base text-gray-600 placeholder-gray-400 focus:outline-none bg-transparent ml-2"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={clearSearch}
+                      className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-5 h-5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
                   )}
-                </button>
+                </div>
               </div>
+              {/* Filter Button - animated on mobile */}
+              <button
+                onClick={() => setFilterModalOpen(!filterModalOpen)}
+                className={`rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-12 overflow-hidden ${
+                  filterModalOpen
+                    ? "w-32 px-4 gap-2 bg-primary text-white"
+                    : "w-12 bg-white"
+                }`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className={`w-5 h-5 flex-shrink-0 ${
+                    filterModalOpen ? "text-white" : "text-gray-700"
+                  }`}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                  />
+                </svg>
+                {filterModalOpen && (
+                  <span className="text-sm font-medium whitespace-nowrap text-white">
+                    Filters
+                  </span>
+                )}
+              </button>
             </div>
-
-            {/* Filter Modal - Works for both Desktop and Mobile */}
-            <FilterModal
-              isOpen={filterModalOpen}
-              onClose={() => setFilterModalOpen(false)}
-              onApply={handleApplyFilters}
-            />
           </div>
+
+          {/* Filter Modal - Works for both Desktop and Mobile */}
+          <FilterModal
+            isOpen={filterModalOpen}
+            onClose={() => setFilterModalOpen(false)}
+            onApply={handleApplyFilters}
+          />
 
           {/* Restaurant Grid / Search Results */}
           {hasSearched ? (
