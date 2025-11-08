@@ -58,7 +58,7 @@ export default function FilterModal({
     };
   }, [isOpen, onClose]);
 
-  const dietaryRestrictions = [
+  const allergies = [
     "No specific preferences",
     "Celery",
     "Cereals containing gluten",
@@ -148,13 +148,13 @@ export default function FilterModal({
           {/* Dietary Restrictions */}
           <div className="mb-5">
             <h3 className="text-base font-semibold text-base-content mb-2">
-              Dietary Restrictions
+              Allergies
             </h3>
             <p className="text-sm text-gray-500 mb-2">
               No specific preferences
             </p>
             <div className="flex flex-wrap gap-2">
-              {dietaryRestrictions.map((item) => (
+              {allergies.map((item) => (
                 <button
                   key={item}
                   onClick={() => toggleRestriction(item)}
@@ -238,7 +238,7 @@ export default function FilterModal({
           </h3>
           <p className="text-sm text-gray-500 mb-2">No specific preferences</p>
           <div className="flex flex-wrap gap-2">
-            {dietaryRestrictions.map((item) => (
+            {allergies.map((item) => (
               <button
                 key={item}
                 onClick={() => toggleRestriction(item)}

@@ -304,7 +304,7 @@ export default function RestaurantCatalogue() {
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
-                      diuwBox="0 0 24 24"
+                      viewBox="0 0 24 24"
                       strokeWidth={1.5}
                       stroke="currentColor"
                       className={`w-5 h-5  flex-shrink-0 ${
@@ -367,9 +367,11 @@ export default function RestaurantCatalogue() {
             />
           </div>
           {/* Mobile Layout - Date/Time (Not Sticky) */}
-          <section>
-            <label className="mb-4 font-bold">Delivery Details</label>
-            <div className="md:hidden mt-3 bg-white rounded-xl border-1 border-base-200">
+          <section className="md:hidden">
+            <label className="mb-4 font-bold text-base-content">
+              Delivery Details
+            </label>
+            <div className="mt-3 bg-white rounded-xl border-1 border-base-200">
               <div className="flex items-center gap-2 px-2">
                 <div className="flex items-center gap-2 flex-1 px-4 py-1 border-r-1 border-gray-200">
                   <svg
@@ -386,7 +388,7 @@ export default function RestaurantCatalogue() {
                       d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
                     />
                   </svg>
-                  <span className="text-base text-gray-800 font-medium">
+                  <span className="text-base text-base-content font-medium">
                     {getNextWorkingDayFormatted("short")}
                   </span>
                 </div>

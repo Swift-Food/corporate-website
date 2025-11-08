@@ -12,6 +12,16 @@ export enum MenuItemStyle {
   HORIZONTAL = "HORIZONTAL",
 }
 
+export enum DietaryFilter {
+  VEGETARIAN = "vegetarian",
+  NONVEGETARIAN = "nonvegetarian",
+  NO_GLUTEN = "no_gluten",
+  NO_NUT = "no_nut",
+  NO_DAIRY = "no_dairy",
+  HALAL = "halal",
+  PESCATERIAN = "pescatarian",
+}
+
 // export interface AddonOption {
 //   id?: string;
 //   name: string;
