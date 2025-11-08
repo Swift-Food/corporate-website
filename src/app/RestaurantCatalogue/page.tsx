@@ -327,10 +327,12 @@ export default function RestaurantCatalogue() {
               </div>
             </div>
           </div>
-
           {/* Mobile Layout - Date/Time (Not Sticky) */}
-          <div className="md:hidden mb-3">
-            <div className="flex items-center gap-3 bg-white rounded-full shadow-lg px-4 h-12 w-full">
+          <div className="md:hidden mb-3 bg-white px-4 py-4 rounded-lg">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2 px-1">
+              Delivery Details
+            </h3>
+            <div className="flex items-center gap-3 px-4 h-12 w-full">
               <div className="flex-1 border-r border-gray-200 pr-3">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Date
@@ -355,7 +357,6 @@ export default function RestaurantCatalogue() {
               </div>
             </div>
           </div>
-
           {/* Mobile Search and Filter Row - STICKY */}
           <div className="md:hidden sticky top-16 z-40 -mx-4 px-4 py-3 mb-6">
             <div className="flex items-center gap-2 w-full">
