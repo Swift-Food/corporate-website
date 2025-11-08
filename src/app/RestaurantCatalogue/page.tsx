@@ -37,7 +37,7 @@ export default function RestaurantCatalogue() {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     dietaryRestrictions: [],
-    preferences: [],
+    allergens: [],
   });
 
   useEffect(() => {
@@ -123,6 +123,7 @@ export default function RestaurantCatalogue() {
       const response = await searchApi.searchMenuItems(searchQuery, {
         page: 1,
         limit: 50,
+        dietaryFilters: filters.dietaryRestrictions,
       });
 
       setMenuItemSearchResults(response.menuItems || []);

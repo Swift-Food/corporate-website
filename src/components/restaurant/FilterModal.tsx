@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { DietaryFilter } from "../../types/menuItem";
 
 interface FilterModalProps {
   isOpen: boolean;
@@ -7,8 +8,8 @@ interface FilterModalProps {
 }
 
 export interface FilterState {
-  dietaryRestrictions: string[];
-  preferences: string[];
+  dietaryRestrictions: DietaryFilter[];
+  allergens: string[];
 }
 
 export default function FilterModal({
@@ -17,10 +18,9 @@ export default function FilterModal({
   onApply,
 }: FilterModalProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [selectedRestrictions, setSelectedRestrictions] = useState<string[]>(
-    []
-  );
-  const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
+  const [selectedDietaryRestrictions, setSelectedDietaryRestrictions] =
+    useState<DietaryFilter[]>([]);
 
   // Prevent body scroll on mobile when modal is open
   useEffect(() => {
@@ -77,28 +77,47 @@ export default function FilterModal({
     "Other (please specify)",
   ];
 
-  const preferences = ["Halal", "Kosher", "Vegan", "Vegetarian"];
+  // Dietary filters based on enum
+  const dietaryFilterOptions: DietaryFilter[] = [
+    DietaryFilter.HALAL,
+    DietaryFilter.VEGETARIAN,
+    DietaryFilter.NONVEGETARIAN,
+    DietaryFilter.PESCATERIAN,
+    DietaryFilter.NO_GLUTEN,
+    DietaryFilter.NO_NUT,
+    DietaryFilter.NO_DAIRY,
+  ];
+
+  const DIETARY_LABELS: Record<DietaryFilter, string> = {
+    [DietaryFilter.HALAL]: "Halal",
+    [DietaryFilter.VEGETARIAN]: "Vegetarian",
+    [DietaryFilter.NONVEGETARIAN]: "Non-vegetarian",
+    [DietaryFilter.PESCATERIAN]: "Pescatarian",
+    [DietaryFilter.NO_GLUTEN]: "No gluten",
+    [DietaryFilter.NO_NUT]: "No nuts",
+    [DietaryFilter.NO_DAIRY]: "No dairy",
+  };
 
   const toggleRestriction = (item: string) => {
     if (item === "No specific preferences") {
-      setSelectedRestrictions([]);
+      setSelectedAllergens([]);
     } else {
-      setSelectedRestrictions((prev) =>
+      setSelectedAllergens((prev) =>
         prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
       );
     }
   };
 
-  const togglePreference = (item: string) => {
-    setSelectedPreferences((prev) =>
+  const toggleDietary = (item: DietaryFilter) => {
+    setSelectedDietaryRestrictions((prev) =>
       prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
     );
   };
 
   const handleApply = () => {
     onApply({
-      dietaryRestrictions: selectedRestrictions,
-      preferences: selectedPreferences,
+      dietaryRestrictions: selectedDietaryRestrictions,
+      allergens: selectedAllergens,
     });
     onClose();
   };
@@ -159,7 +178,7 @@ export default function FilterModal({
                   key={item}
                   onClick={() => toggleRestriction(item)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    selectedRestrictions.includes(item)
+                    selectedAllergens.includes(item)
                       ? "bg-pink-500 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
@@ -170,23 +189,23 @@ export default function FilterModal({
             </div>
           </div>
 
-          {/* Preferences */}
+          {/* Dietary Restrictions */}
           <div className="mb-5">
             <h3 className="text-base font-semibold text-base-content mb-2">
-              Preferences
+              Dietary Restrictions
             </h3>
             <div className="flex flex-wrap gap-2">
-              {preferences.map((item) => (
+              {dietaryFilterOptions.map((item) => (
                 <button
                   key={item}
-                  onClick={() => togglePreference(item)}
+                  onClick={() => toggleDietary(item)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    selectedPreferences.includes(item)
+                    selectedDietaryRestrictions.includes(item)
                       ? "bg-pink-500 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  {item}
+                  {DIETARY_LABELS[item]}
                 </button>
               ))}
             </div>
@@ -234,7 +253,7 @@ export default function FilterModal({
         {/* Dietary Restrictions */}
         <div className="mb-5">
           <h3 className="text-base font-semibold text-base-content mb-2">
-            Dietary Restrictions
+            Allergies
           </h3>
           <p className="text-sm text-gray-500 mb-2">No specific preferences</p>
           <div className="flex flex-wrap gap-2">
@@ -243,7 +262,7 @@ export default function FilterModal({
                 key={item}
                 onClick={() => toggleRestriction(item)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  selectedRestrictions.includes(item)
+                  selectedAllergens.includes(item)
                     ? "bg-pink-500 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
@@ -254,23 +273,23 @@ export default function FilterModal({
           </div>
         </div>
 
-        {/* Preferences */}
+        {/* Dietary Restrictions */}
         <div className="mb-5">
           <h3 className="text-base font-semibold text-base-content mb-2">
-            Preferences
+            Dietary Restrictions
           </h3>
           <div className="flex flex-wrap gap-2">
-            {preferences.map((item) => (
+            {dietaryFilterOptions.map((item) => (
               <button
                 key={item}
-                onClick={() => togglePreference(item)}
+                onClick={() => toggleDietary(item)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  selectedPreferences.includes(item)
+                  selectedDietaryRestrictions.includes(item)
                     ? "bg-pink-500 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                {item}
+                {DIETARY_LABELS[item]}
               </button>
             ))}
           </div>
