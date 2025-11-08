@@ -17,6 +17,8 @@ export const searchApi = {
       params.append("minRating", filters.minRating.toString());
     if (filters?.maxPrice)
       params.append("maxPrice", filters.maxPrice.toString());
+    if (filters?.dietaryFilters)
+      params.append("dietaryFilters", filters.dietaryFilters.join(","));
 
     const response = await apiClient.get(
       `${
