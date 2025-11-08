@@ -2,7 +2,7 @@
 
 import { restaurantApi } from "@/api/restaurant";
 import { Restaurant } from "@/types/restaurant";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import CartSidebar from "@/components/cart/CartSidebar";
 import MobileCart from "@/components/cart/MobileCart";
@@ -39,6 +39,7 @@ export default function RestaurantCatalogue() {
     dietaryRestrictions: [],
     allergens: [],
   });
+  const closeButtonClickedRef = useRef(false);
 
   useEffect(() => {
     fetchRestaurants();
@@ -290,6 +291,11 @@ export default function RestaurantCatalogue() {
                 >
                   <button
                     onClick={() => {
+                      // Don't open if close button was just clicked
+                      if (closeButtonClickedRef.current) {
+                        closeButtonClickedRef.current = false;
+                        return;
+                      }
                       if (!filterModalOpen) {
                         setFilterModalOpen(true);
                       }
@@ -327,32 +333,31 @@ export default function RestaurantCatalogue() {
                         >
                           Filters
                         </span>
-                        <button
-                          onClick={(e) => {
+                        <div
+                          onMouseDown={(e) => {
                             e.stopPropagation();
+                            e.preventDefault();
+                            closeButtonClickedRef.current = true;
                             setFilterModalOpen(false);
                           }}
+                          className={`filter-close-btn rounded-full h-8 w-8 bg-white text-black flex justify-center items-center cursor-pointer ${
+                            filterModalOpen ? "visible" : "invisible"
+                          }`}
                         >
-                          <div
-                            className={`rounded-full h-8 w-8 bg-white text-black flex justify-center items-center ${
-                              filterModalOpen ? "visible" : "invisible"
-                            }`}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            >
-                              <line x1="6" y1="6" x2="18" y2="18" />
-                              <line x1="6" y1="18" x2="18" y2="6" />
-                            </svg>
-                          </div>
-                        </button>
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                            <line x1="6" y1="18" x2="18" y2="6" />
+                          </svg>
+                        </div>
                       </>
                     )}
                   </button>

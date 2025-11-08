@@ -17,7 +17,8 @@ export default function FilterModal({
   onClose,
   onApply,
 }: FilterModalProps) {
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileModalRef = useRef<HTMLDivElement>(null);
+  const desktopDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [selectedDietaryRestrictions, setSelectedDietaryRestrictions] =
     useState<DietaryFilter[]>([]);
@@ -41,8 +42,8 @@ export default function FilterModal({
       // Only handle for desktop (mobile uses backdrop onClick)
       if (window.innerWidth >= 768) {
         if (
-          dropdownRef.current &&
-          !dropdownRef.current.contains(event.target as Node)
+          desktopDropdownRef.current &&
+          !desktopDropdownRef.current.contains(event.target as Node)
         ) {
           onClose();
         }
@@ -137,8 +138,9 @@ export default function FilterModal({
         }}
       >
         <div
-          ref={dropdownRef}
+          ref={mobileModalRef}
           className="bg-white rounded-3xl shadow-2xl max-h-[85vh] overflow-y-auto p-6 w-full max-w-md"
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
@@ -223,7 +225,7 @@ export default function FilterModal({
 
       {/* Desktop Dropdown (absolute positioning) */}
       <div
-        ref={dropdownRef}
+        ref={desktopDropdownRef}
         className="hidden md:block absolute top-full left-0 right-0 mt-2 bg-white rounded-3xl shadow-2xl max-h-[80vh] overflow-y-auto p-6 z-50 max-w-4xl mx-auto"
       >
         {/* Header */}
