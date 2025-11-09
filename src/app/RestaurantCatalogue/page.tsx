@@ -127,27 +127,42 @@ function RestaurantCatalogueContent() {
     setHasSearched(true);
 
     try {
-      // Search restaurants
-      const restaurantMatches = restaurants.filter((restaurant) =>
-        restaurant.restaurant_name
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
-      );
-      setRestaurantSearchResults(restaurantMatches);
-
-      // Search menu items
-      // Transform dietary filters to uppercase for API
-      const dietaryFiltersUppercase = filters.dietaryRestrictions.map(
-        (filter) => filter.toUpperCase()
-      );
-
+      // Search menu items first
       const response = await searchApi.searchMenuItems(searchQuery, {
         page: 1,
         limit: 50,
         dietaryFilters: filters.dietaryRestrictions,
       });
 
-      setMenuItemSearchResults(response.menuItems || []);
+      const menuItems = response.menuItems || [];
+      setMenuItemSearchResults(menuItems);
+
+      // Get unique restaurant IDs from menu items
+      const restaurantIdsWithMatchingItems = new Set(
+        menuItems.map((item: any) => item.restaurantId)
+      );
+
+      // Filter restaurants based on:
+      // 1. Name match (if searching by name)
+      // 2. Has matching menu items (especially important when filters are active)
+      const restaurantMatches = restaurants.filter((restaurant) => {
+        const nameMatches = restaurant.restaurant_name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
+
+        // If filters are active, only show restaurants with matching menu items
+        const hasActiveFilters = !hasNoFilters;
+        if (hasActiveFilters) {
+          return restaurantIdsWithMatchingItems.has(restaurant.id);
+        }
+
+        // If no filters, show restaurants that match by name OR have matching menu items
+        return (
+          nameMatches || restaurantIdsWithMatchingItems.has(restaurant.id)
+        );
+      });
+
+      setRestaurantSearchResults(restaurantMatches);
     } catch (error) {
       console.error("Error searching:", error);
       setRestaurantSearchResults([]);
