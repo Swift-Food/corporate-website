@@ -146,22 +146,37 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                                   pescatarian: "Pescatarian.png",
                                   vegan: "Vegan.png",
                                 };
+                                const labelMap: Record<string, string> = {
+                                  vegetarian: "Vegetarian",
+                                  halal: "Halal",
+                                  no_gluten: "No Gluten",
+                                  no_nut: "No Nuts",
+                                  no_dairy: "No Dairy",
+                                  pescatarian: "Pescatarian",
+                                  vegan: "Vegan",
+                                  nonvegetarian: "Non-Vegetarian",
+                                };
                                 const iconFile = iconMap[filter.toLowerCase()];
+                                const label = labelMap[filter.toLowerCase()] || filter;
 
                                 if (!iconFile) return null;
 
                                 return (
                                   <div
                                     key={filter}
-                                    className="relative w-6 h-6"
-                                    title={filter}
+                                    className="relative w-6 h-6 group cursor-help"
                                   >
                                     <Image
                                       src={`/icons/Mini_Allergens_Icons/Icon only/${iconFile}`}
-                                      alt={filter}
+                                      alt={label}
                                       fill
                                       className="object-contain"
                                     />
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                      {label}
+                                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
                                   </div>
                                 );
                               })}
