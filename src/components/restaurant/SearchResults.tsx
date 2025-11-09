@@ -40,8 +40,31 @@ export default function SearchResults({
     );
   }
 
-  const hasRestaurantResults = restaurantResults.length > 0;
   const hasMenuItemResults = menuItemResults.length > 0;
+
+  // Group menu items by restaurant
+  const menuItemsByRestaurant: Record<string, MenuItem[]> = {};
+  menuItemResults.forEach((item) => {
+    const restaurantId = item.restaurantId;
+    if (!menuItemsByRestaurant[restaurantId]) {
+      menuItemsByRestaurant[restaurantId] = [];
+    }
+    menuItemsByRestaurant[restaurantId].push(item);
+  });
+
+  // Get unique restaurant IDs from menu items
+  const restaurantIdsWithItems = new Set(
+    menuItemResults.map((item) => item.restaurantId)
+  );
+
+  // Combine explicitly matched restaurants with restaurants that have matching menu items
+  const allMatchingRestaurants = restaurants.filter(
+    (restaurant) =>
+      restaurantResults.some((r) => r.id === restaurant.id) ||
+      restaurantIdsWithItems.has(restaurant.id)
+  );
+
+  const hasRestaurantResults = allMatchingRestaurants.length > 0;
 
   if (!hasRestaurantResults && !hasMenuItemResults) {
     return (
@@ -60,26 +83,16 @@ export default function SearchResults({
     }
   };
 
-  // Group menu items by restaurant
-  const menuItemsByRestaurant: Record<string, MenuItem[]> = {};
-  menuItemResults.forEach((item) => {
-    const restaurantId = item.restaurantId;
-    if (!menuItemsByRestaurant[restaurantId]) {
-      menuItemsByRestaurant[restaurantId] = [];
-    }
-    menuItemsByRestaurant[restaurantId].push(item);
-  });
-
   return (
     <div className="space-y-8">
       {/* Restaurant Results */}
       {hasRestaurantResults && (
         <div>
           <h3 className="text-xl md:text-2xl font-semibold mb-4 text-base-content">
-            Restaurants ({restaurantResults.length})
+            Restaurants ({allMatchingRestaurants.length})
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
-            {restaurantResults.map((restaurant) => (
+            {allMatchingRestaurants.map((restaurant) => (
               <RestaurantCard
                 key={restaurant.id}
                 restaurant={restaurant}
