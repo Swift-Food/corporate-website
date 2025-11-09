@@ -199,8 +199,14 @@ export function CateringOrdersTab({
                     
                     <div className="space-y-1 text-sm text-slate-600">
                       <p><strong>Customer:</strong> {order.customerName}</p>
-                      <p><strong>Event Date:</strong> {new Date(order.eventDate).toLocaleDateString()} at {order.eventTime}</p>
-                      <p><strong>Delivery:</strong> {order.deliveryAddress}</p>
+                      <p>
+                        <strong>Delivery Date & Time:</strong> {new Date(order.eventDate).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        })} at {order.eventTime}
+                      </p>
+                      <p><strong>Delivery Address:</strong> {order.deliveryAddress}</p>
                       {order.corporateUser && (
                         <p><strong>Ordered by:</strong> {order.corporateUser.firstName} {order.corporateUser.lastName}</p>
                       )}
