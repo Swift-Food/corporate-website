@@ -553,6 +553,7 @@ function RestaurantCatalogueContent() {
               isLoading={isSearching}
               searchQuery={searchQuery}
               onRestaurantClick={handleRestaurantClick}
+              restaurants={restaurants}
             />
           ) : (
             <>

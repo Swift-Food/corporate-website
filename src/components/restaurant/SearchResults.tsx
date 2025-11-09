@@ -1,5 +1,7 @@
 import { Restaurant } from "@/types/restaurant";
 import RestaurantCard from "./RestaurantCard";
+import { useState } from "react";
+import { restaurantApi } from "@/api/restaurant";
 
 interface MenuItem {
   id: string;
@@ -19,6 +21,7 @@ interface SearchResultsProps {
   menuItemResults: MenuItem[];
   isLoading: boolean;
   searchQuery: string;
+  restaurants: Restaurant[];
   onRestaurantClick: (restaurant: Restaurant) => void;
 }
 
@@ -28,12 +31,12 @@ export default function SearchResults({
   isLoading,
   searchQuery,
   onRestaurantClick,
+  restaurants,
 }: SearchResultsProps) {
+  console.log(restaurants);
   if (isLoading) {
     return (
-      <div className="text-center py-12 text-base-content/60">
-        Searching...
-      </div>
+      <div className="text-center py-12 text-base-content/60">Searching...</div>
     );
   }
 
@@ -48,6 +51,14 @@ export default function SearchResults({
       </div>
     );
   }
+
+  const getRestaurantNameFromId = (id: string) => {
+    for (const [_, restaurant] of restaurants.entries()) {
+      if (restaurant.id === id) {
+        return restaurant.restaurant_name;
+      }
+    }
+  };
 
   // Group menu items by restaurant
   const menuItemsByRestaurant: Record<string, MenuItem[]> = {};
@@ -89,7 +100,8 @@ export default function SearchResults({
             {Object.entries(menuItemsByRestaurant).map(
               ([restaurantId, items]) => {
                 const restaurantName =
-                  items[0]?.restaurant?.restaurant_name || "Unknown Restaurant";
+                  getRestaurantNameFromId(items[0].restaurantId) ||
+                  "Unknown Restaurant";
 
                 return (
                   <div key={restaurantId} className="space-y-3">
