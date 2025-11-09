@@ -18,6 +18,9 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
     const [modalItem, setModalItem] = useState<CorporateMenuItem | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Tooltip state for dietary filters
+    const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+
     // Create a map of item quantities from cart (only for items without addons)
     const itemQuantities = useMemo(() => {
       const map: Record<string, { quantity: number; cartIndex: number }> = {};
@@ -110,6 +113,7 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                 key={item.id}
                 className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer h-[140px] md:h-[200px]"
                 onClick={() => {
+                  setActiveTooltip(null);
                   setModalItem(item);
                   setIsModalOpen(true);
                 }}
@@ -158,13 +162,21 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                                 };
                                 const iconFile = iconMap[filter.toLowerCase()];
                                 const label = labelMap[filter.toLowerCase()] || filter;
+                                const tooltipKey = `${item.id}-${filter}`;
+                                const isTooltipActive = activeTooltip === tooltipKey;
 
                                 if (!iconFile) return null;
 
                                 return (
                                   <div
                                     key={filter}
-                                    className="relative w-6 h-6 group cursor-help"
+                                    className="relative w-6 h-6 group cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveTooltip(
+                                        isTooltipActive ? null : tooltipKey
+                                      );
+                                    }}
                                   >
                                     <Image
                                       src={`/icons/Mini_Allergens_Icons/Icon only/${iconFile}`}
@@ -173,7 +185,13 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                                       className="object-contain"
                                     />
                                     {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                    <div
+                                      className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity z-10 ${
+                                        isTooltipActive
+                                          ? "opacity-100"
+                                          : "opacity-0 group-hover:opacity-100 pointer-events-none"
+                                      }`}
+                                    >
                                       {label}
                                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                                     </div>

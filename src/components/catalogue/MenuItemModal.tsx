@@ -28,6 +28,7 @@ export default function MenuItemModal({
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, Record<string, boolean>>
   >({});
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
   const price = parseFloat(item.price?.toString() || "0");
   const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
@@ -84,12 +85,14 @@ export default function MenuItemModal({
         setItemQuantity(1);
         setItemQuantityInput("1");
         setSelectedOptions(initialSelectedOptions);
+        setActiveTooltip(null);
       });
     }
 
     // Clear ref when modal closes
     if (!isOpen) {
       prevItemIdRef.current = null;
+      setActiveTooltip(null);
     }
   }, [item.id, isOpen, initialSelectedOptions]);
 
@@ -288,13 +291,21 @@ export default function MenuItemModal({
                     };
                     const iconFile = iconMap[filter.toLowerCase()];
                     const label = labelMap[filter.toLowerCase()] || filter;
+                    const tooltipKey = `modal-${filter}`;
+                    const isTooltipActive = activeTooltip === tooltipKey;
 
                     if (!iconFile) return null;
 
                     return (
                       <div
                         key={filter}
-                        className="relative w-8 h-8 group cursor-help"
+                        className="relative w-8 h-8 group cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveTooltip(
+                            isTooltipActive ? null : tooltipKey
+                          );
+                        }}
                       >
                         <Image
                           src={`/icons/Mini_Allergens_Icons/Icon only/${iconFile}`}
@@ -303,7 +314,13 @@ export default function MenuItemModal({
                           className="object-contain"
                         />
                         {/* Tooltip */}
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        <div
+                          className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity z-10 ${
+                            isTooltipActive
+                              ? "opacity-100"
+                              : "opacity-0 group-hover:opacity-100 pointer-events-none"
+                          }`}
+                        >
                           {label}
                           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                         </div>
