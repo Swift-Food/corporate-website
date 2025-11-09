@@ -326,7 +326,7 @@ function RestaurantDetailContent() {
                 }}
                 className={`rounded-full border border-base-200 transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-12 overflow-hidden ${
                   filterModalOpen || filterExpanded
-                    ? "w-32 px-4 gap-2 justify-between"
+                    ? "w-36 px-4 gap-2 justify-between"
                     : "w-12 justify-center"
                 } ${filterModalOpen ? "bg-primary text-white" : "bg-white"}`}
               >
