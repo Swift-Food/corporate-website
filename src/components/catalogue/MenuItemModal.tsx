@@ -9,18 +9,28 @@ interface MenuItemModalProps {
   item: CorporateMenuItem;
   isOpen: boolean;
   onClose: () => void;
+  quantity?: number;
   onAddItem: (
     item: CorporateMenuItem,
     quantity: number,
     selectedAddons: SelectedAddon[]
   ) => void;
+  onUpdateQuantity?: (itemId: string, cartIndex: number, quantity: number) => void;
+  isEditMode?: boolean;
+  onRemoveItem?: (itemId: string, cartIndex: number) => void;
+  cartIndex?: number;
 }
 
 export default function MenuItemModal({
   item,
   isOpen,
   onClose,
+  quantity = 0,
   onAddItem,
+  onUpdateQuantity,
+  isEditMode = false,
+  onRemoveItem,
+  cartIndex = -1,
 }: MenuItemModalProps) {
   // Reset quantity when modal opens/closes using isOpen as a key driver
   const [itemQuantity, setItemQuantity] = useState(1);
@@ -29,6 +39,8 @@ export default function MenuItemModal({
     Record<string, Record<string, boolean>>
   >({});
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+  const [hasModifiedQuantity, setHasModifiedQuantity] = useState(false);
+  const [initialModalQuantity, setInitialModalQuantity] = useState(0);
 
   const price = parseFloat(item.price?.toString() || "0");
   const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
@@ -82,8 +94,12 @@ export default function MenuItemModal({
       prevItemIdRef.current = item.id || null;
       // Schedule state updates to next tick to avoid synchronous setState warning
       Promise.resolve().then(() => {
-        setItemQuantity(1);
-        setItemQuantityInput("1");
+        // Initialize quantity from prop or default to 1
+        const initialQty = quantity > 0 ? quantity : 1;
+        setItemQuantity(initialQty);
+        setItemQuantityInput(initialQty.toString());
+        setInitialModalQuantity(initialQty);
+        setHasModifiedQuantity(false);
         setSelectedOptions(initialSelectedOptions);
         setActiveTooltip(null);
       });
@@ -94,7 +110,7 @@ export default function MenuItemModal({
       prevItemIdRef.current = null;
       setActiveTooltip(null);
     }
-  }, [item.id, isOpen, initialSelectedOptions]);
+  }, [item.id, isOpen, quantity, initialSelectedOptions]);
 
   // Calculate total price using useMemo
   const totalPrice = useMemo(() => {
@@ -390,6 +406,9 @@ export default function MenuItemModal({
                       const newQty = Math.max(1, itemQuantity - 1);
                       setItemQuantity(newQty);
                       setItemQuantityInput(newQty.toString());
+                      if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                        setHasModifiedQuantity(newQty !== initialModalQuantity);
+                      }
                     }}
                     className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
                   >
@@ -406,6 +425,9 @@ export default function MenuItemModal({
                         if (val !== "" && !isNaN(parseInt(val))) {
                           const newQty = Math.max(1, parseInt(val));
                           setItemQuantity(newQty);
+                          if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                            setHasModifiedQuantity(newQty !== initialModalQuantity);
+                          }
                         }
                       }
                     }}
@@ -416,6 +438,9 @@ export default function MenuItemModal({
                       ) {
                         setItemQuantity(1);
                         setItemQuantityInput("1");
+                        if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                          setHasModifiedQuantity(1 !== initialModalQuantity);
+                        }
                       }
                     }}
                     className="w-20 text-center font-bold text-lg text-base-content bg-base-100 border border-base-300 rounded px-2 py-1"
@@ -425,6 +450,9 @@ export default function MenuItemModal({
                       const newQty = itemQuantity + 1;
                       setItemQuantity(newQty);
                       setItemQuantityInput(newQty.toString());
+                      if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                        setHasModifiedQuantity(newQty !== initialModalQuantity);
+                      }
                     }}
                     className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
                   >
@@ -526,13 +554,62 @@ export default function MenuItemModal({
               </div>
             </div>
 
-            {/* Add to Cart Button */}
-            <button
-              onClick={handleAddToCart}
-              className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-            >
-              Add to Cart
-            </button>
+            {/* Action Buttons */}
+            {isEditMode ? (
+              <div className="space-y-2">
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => {
+                    if (onRemoveItem && cartIndex >= 0) {
+                      onRemoveItem(item.id, cartIndex);
+                      onClose();
+                    }
+                  }}
+                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Remove from Cart
+                </button>
+              </div>
+            ) : quantity > 0 && (!item.addons || item.addons.length === 0) ? (
+              <div className="space-y-2">
+                {hasModifiedQuantity && (
+                  <button
+                    onClick={() => {
+                      if (onUpdateQuantity && cartIndex >= 0) {
+                        onUpdateQuantity(item.id, cartIndex, itemQuantity);
+                        onClose();
+                      }
+                    }}
+                    className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                  >
+                    Update Quantity
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    if (onUpdateQuantity && cartIndex >= 0) {
+                      onUpdateQuantity(item.id, cartIndex, 0);
+                      onClose();
+                    }
+                  }}
+                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Remove from Cart
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+              >
+                Add to Cart
+              </button>
+            )}
           </div>
         </div>
       </div>

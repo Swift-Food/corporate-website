@@ -389,11 +389,17 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
           <MenuItemModal
             item={modalItem}
             isOpen={isModalOpen}
+            quantity={itemQuantities[modalItem.id]?.quantity || 0}
+            cartIndex={itemQuantities[modalItem.id]?.cartIndex ?? -1}
             onClose={() => {
               setIsModalOpen(false);
               setModalItem(null);
             }}
             onAddItem={handleAddItemWithModal}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={(itemId, cartIndex) => {
+              updateCartQuantity(cartIndex, 0);
+            }}
           />
         )}
       </div>
