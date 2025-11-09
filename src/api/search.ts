@@ -25,6 +25,7 @@ export const searchApi = {
         process.env.NEXT_PUBLIC_API_URL
       }/search?corporate=true&${params.toString()}`
     );
+    console.log("Search response: ", response);
     return response.data;
   },
 };

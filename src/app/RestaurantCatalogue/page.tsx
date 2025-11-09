@@ -71,9 +71,8 @@ function RestaurantCatalogueContent() {
 
   // Re-run search when filters change (only if there's an active search)
   useEffect(() => {
-    if (hasSearched && searchQuery.trim()) {
-      handleSearch();
-    }
+    console.log("Filters has changed: ", filters);
+    handleSearch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
@@ -107,12 +106,14 @@ function RestaurantCatalogueContent() {
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    if (!searchQuery.trim()) {
+    if (!searchQuery.trim() && !filters) {
       setHasSearched(false);
       setRestaurantSearchResults([]);
       setMenuItemSearchResults([]);
       return;
     }
+
+    console.log("Searching");
 
     setIsSearching(true);
     setHasSearched(true);
