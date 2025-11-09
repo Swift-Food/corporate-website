@@ -19,6 +19,7 @@ interface MenuItemModalProps {
   isEditMode?: boolean;
   onRemoveItem?: (itemId: string, cartIndex: number) => void;
   cartIndex?: number;
+  existingSelectedAddons?: SelectedAddon[];
 }
 
 export default function MenuItemModal({
@@ -31,6 +32,7 @@ export default function MenuItemModal({
   isEditMode = false,
   onRemoveItem,
   cartIndex = -1,
+  existingSelectedAddons = [],
 }: MenuItemModalProps) {
   // Reset quantity when modal opens/closes using isOpen as a key driver
   const [itemQuantity, setItemQuantity] = useState(1);
@@ -82,8 +84,24 @@ export default function MenuItemModal({
         initialSelections[group.groupTitle][addon.name] = false;
       });
     });
+
+    // If in edit mode, pre-populate with existing selections
+    if (isEditMode && existingSelectedAddons && existingSelectedAddons.length > 0) {
+      existingSelectedAddons.forEach((selectedAddon) => {
+        const groupTitle = selectedAddon.addonName; // addonName is the group title
+        const addonName = selectedAddon.optionName; // optionName is the actual addon name
+
+        if (
+          initialSelections[groupTitle] &&
+          initialSelections[groupTitle][addonName] !== undefined
+        ) {
+          initialSelections[groupTitle][addonName] = true;
+        }
+      });
+    }
+
     return initialSelections;
-  }, [addonGroups]);
+  }, [addonGroups, isEditMode, existingSelectedAddons]);
 
   // Reset state when item changes (which typically happens when modal opens with new item)
   const prevItemIdRef = useRef<string | null>(null);
@@ -237,7 +255,7 @@ export default function MenuItemModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[999] flex items-center justify-center p-4"
       onClick={onClose}
     >
       {/* Backdrop */}

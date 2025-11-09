@@ -2,6 +2,7 @@
 
 import { useCart } from "@/context/CartContext";
 import { useState } from "react";
+import MenuItemModal from "@/components/catalogue/MenuItemModal";
 
 interface MobileCartProps {
   onCheckout?: () => void;
@@ -12,9 +13,11 @@ export default function MobileCart({
   onCheckout,
   checkoutButtonText = "Proceed to Checkout",
 }: MobileCartProps) {
-  const { cartItems, removeFromCart, updateCartQuantity, getTotalPrice } =
+  const { cartItems, removeFromCart, updateCartQuantity, getTotalPrice, addToCart } =
     useCart();
   const [showModal, setShowModal] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <>
@@ -122,12 +125,23 @@ export default function MobileCart({
                                 +
                               </button>
                             </div>
-                            <button
-                              onClick={() => removeFromCart(index)}
-                              className="text-error hover:opacity-80 text-sm"
-                            >
-                              Remove
-                            </button>
+                            <div className="flex flex-col gap-1">
+                              <button
+                                onClick={() => {
+                                  setEditingIndex(index);
+                                  setIsModalOpen(true);
+                                }}
+                                className="text-primary hover:opacity-80 text-xs"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => removeFromCart(index)}
+                                className="text-error hover:opacity-80 text-xs"
+                              >
+                                Remove
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -163,6 +177,41 @@ export default function MobileCart({
             )}
           </div>
         </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingIndex !== null && cartItems[editingIndex] && (
+        <MenuItemModal
+          item={cartItems[editingIndex].item}
+          isOpen={isModalOpen}
+          quantity={cartItems[editingIndex].quantity}
+          cartIndex={editingIndex}
+          existingSelectedAddons={cartItems[editingIndex].selectedAddons}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingIndex(null);
+          }}
+          onAddItem={(item, quantity, selectedAddons) => {
+            // Remove the old item first, then add the updated one
+            removeFromCart(editingIndex);
+            addToCart(item, quantity, selectedAddons);
+            setIsModalOpen(false);
+            setEditingIndex(null);
+          }}
+          onUpdateQuantity={(itemId, cartIndex, newQuantity) => {
+            updateCartQuantity(cartIndex, newQuantity);
+            if (newQuantity === 0) {
+              setIsModalOpen(false);
+              setEditingIndex(null);
+            }
+          }}
+          onRemoveItem={(itemId, cartIndex) => {
+            removeFromCart(cartIndex);
+            setIsModalOpen(false);
+            setEditingIndex(null);
+          }}
+          isEditMode={true}
+        />
       )}
     </>
   );
