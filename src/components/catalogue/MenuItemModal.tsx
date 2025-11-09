@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import Image from "next/image";
 import { CorporateMenuItem, Addon, AddonGroup } from "@/types/menuItem";
 import { SelectedAddon } from "@/context/CartContext";
 
@@ -255,6 +256,46 @@ export default function MenuItemModal({
                 <p className="text-base-content/70 text-sm leading-relaxed">
                   {item.description}
                 </p>
+              </div>
+            )}
+
+            {/* Dietary Filters */}
+            {item.dietaryFilters && item.dietaryFilters.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-sm text-base-content mb-2">
+                  Dietary Information
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {item.dietaryFilters.map((filter) => {
+                    const iconMap: Record<string, string> = {
+                      vegetarian: "Vegetarian.png",
+                      halal: "Halal.png",
+                      no_gluten: "No Gluten.png",
+                      no_nut: "No Nuts.png",
+                      no_dairy: "No Dairy.png",
+                      pescatarian: "Pescatarian.png",
+                      vegan: "Vegan.png",
+                    };
+                    const iconFile = iconMap[filter.toLowerCase()];
+
+                    if (!iconFile) return null;
+
+                    return (
+                      <div
+                        key={filter}
+                        className="relative w-8 h-8"
+                        title={filter}
+                      >
+                        <Image
+                          src={`/icons/Mini_Allergens_Icons/Icon only/${iconFile}`}
+                          alt={filter}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 

@@ -132,10 +132,10 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                           </p>
                         )}
 
-                        {/* Dietary Filters */}
+                        {/* Dietary Filters - Hidden on mobile */}
                         {item.dietaryFilters &&
                           item.dietaryFilters.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mb-2 items-center">
+                            <div className="hidden md:flex flex-wrap gap-1 mb-2 items-center">
                               {item.dietaryFilters.slice(0, 5).map((filter) => {
                                 const iconMap: Record<string, string> = {
                                   vegetarian: "Vegetarian.png",
@@ -153,7 +153,7 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                                 return (
                                   <div
                                     key={filter}
-                                    className="relative w-5 h-5 md:w-6 md:h-6"
+                                    className="relative w-6 h-6"
                                     title={filter}
                                   >
                                     <Image
@@ -166,7 +166,7 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                                 );
                               })}
                               {item.dietaryFilters.length > 5 && (
-                                <span className="text-[10px] md:text-xs text-gray-500">
+                                <span className="text-xs text-gray-500">
                                   +{item.dietaryFilters.length - 5}
                                 </span>
                               )}
