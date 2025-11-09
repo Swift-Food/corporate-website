@@ -124,6 +124,7 @@ export interface ApiMenuItem {
   isDiscount: boolean;
 
   allergens: Allergen[];
+  dietaryRestrictions?: string[];
 
   addons?: Addon[] | null;
 
@@ -163,6 +164,7 @@ export interface CorporateMenuItem {
   isDiscount: boolean;
 
   allergens: Allergen[];
+  dietaryRestrictions?: string[];
 
   addons?: Addon[] | null;
 

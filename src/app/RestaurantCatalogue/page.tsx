@@ -135,10 +135,15 @@ function RestaurantCatalogueContent() {
       setRestaurantSearchResults(restaurantMatches);
 
       // Search menu items
+      // Transform dietary filters to uppercase for API
+      const dietaryFiltersUppercase = filters.dietaryRestrictions.map((filter) =>
+        filter.toUpperCase()
+      );
+
       const response = await searchApi.searchMenuItems(searchQuery, {
         page: 1,
         limit: 50,
-        dietaryFilters: filters.dietaryRestrictions,
+        dietaryFilters: dietaryFiltersUppercase,
       });
 
       setMenuItemSearchResults(response.menuItems || []);

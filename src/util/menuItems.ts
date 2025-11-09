@@ -40,6 +40,7 @@ export const transformMenuItems = (apiData: ApiMenuItem[]): CorporateMenuItem[] 
       isDiscount: item.isDiscount,
 
       allergens: item.allergens,
+      dietaryRestrictions: item.dietaryRestrictions,
 
       addons: item.addons,
 

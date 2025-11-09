@@ -79,9 +79,7 @@ function RestaurantDetailContent() {
     const matchesAllergens =
       !filters.allergens ||
       filters.allergens.length === 0 ||
-      !filters.allergens.some((allergen) =>
-        item.allergens?.includes(allergen)
-      );
+      !filters.allergens.some((allergen) => item.allergens?.includes(allergen));
 
     return matchesSearch && matchesDietary && matchesAllergens;
   });
@@ -403,7 +401,7 @@ function RestaurantDetailContent() {
       </div>
 
       {/* Main Content Container */}
-      <div className="flex gap-6 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
+      <div className="flex gap-6 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 mx-auto">
         {/* Menu Items */}
         <div className="flex-1">
           {loading ? (
@@ -435,7 +433,7 @@ function RestaurantDetailContent() {
         <CartSidebar
           topOffset="top-54"
           maxHeightOffset="12rem"
-          widthPercentage={35}
+          widthPercentage={25}
           onCheckout={handleCheckout}
         />
       </div>

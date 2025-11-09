@@ -84,218 +84,250 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
           {groupTitle}
         </h2>
 
-        <div className="space-y-4">
-          {groupedMenuItems[groupTitle]?.map((item) => (
-            <div
-              key={item.id}
-              className="bg-base-100 border border-base-300 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-            >
-              <div className="flex flex-col sm:flex-row gap-4 p-4">
-                {item.image && (
-                  <div className="relative w-full sm:w-48 h-48 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                    {item.isDiscount && item.discountPrice !== item.price && (
-                      <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded text-xs font-semibold">
-                        SALE
-                      </div>
-                    )}
-                    {item.popular && (
-                      <div className="absolute top-2 left-2 bg-primary text-white px-2 py-1 rounded text-xs font-semibold">
-                        POPULAR
-                      </div>
-                    )}
-                  </div>
-                )}
+        <div className="grid grid-cols-1 2xl:grid-cols-2 3xl:grid-cols-3 gap-4 md:gap-6">
+          {groupedMenuItems[groupTitle]?.map((item) => {
+            const itemInCart = itemQuantities[item.id];
+            const quantity = itemInCart?.quantity || 0;
+            const cartIndex = itemInCart?.cartIndex ?? -1;
+            const quantityInput = quantityInputs[item.id] || "0";
 
-                <div className="flex-1 flex flex-col justify-between min-w-0">
-                  <div>
-                    <h3 className="text-lg md:text-xl font-bold text-base-content mb-2">
-                      {item.name}
-                    </h3>
-                    {item.description && (
-                      <p className="text-sm text-base-content/70 mb-3 line-clamp-2">
-                        {item.description}
-                      </p>
-                    )}
-                    <button className="text-sm text-base-content/50 hover:text-base-content underline mb-3">
-                      More info
-                    </button>
+            const handleAddOrModal = () => {
+              // Check if mobile (width < 768px which is md breakpoint)
+              const isMobile = window.innerWidth < 768;
 
-                    <div className="flex items-center gap-4 text-xs text-base-content/60">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                          />
-                        </svg>
-                        <span>Individual Portions</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                          />
-                        </svg>
-                        <span>Eco-friendly packaging</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              if (isMobile || hasAddons(item)) {
+                // On mobile or if item has addons, open modal
+                setModalItem(item);
+                setIsModalOpen(true);
+              } else {
+                // On md and larger with no addons, directly add to cart
+                addToCart(item, 1);
+              }
+            };
 
-                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3">
-                  <div className="text-right">
-                    {item.isDiscount && item.discountPrice ? (
-                      <div className="space-y-1">
-                        <div className="text-2xl font-bold text-base-content">
-                          £{item.discountPrice}
+            return (
+              <div
+                key={item.id}
+                className="bg-white rounded-lg border border-gray-200 transition-shadow overflow-hidden cursor-pointer h-[140px] md:h-[200px]"
+                onClick={() => {
+                  setModalItem(item);
+                  setIsModalOpen(true);
+                }}
+              >
+                <div className="flex flex-row h-full">
+                  {/* Left Side - Content */}
+                  <div className="flex-1 px-4 py-2 sm:p-6">
+                    <div className="flex flex-col h-full justify-between">
+                      <div>
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-bold text-md md:text-xl text-gray-900 flex-1 line-clamp-1">
+                            {item.name}
+                          </h3>
                         </div>
-                        <div className="text-sm text-base-content/50 line-through">
-                          £{item.price}
+
+                        {/* Description - 2 lines */}
+                        {item.description && (
+                          <p className="text-gray-600 text-xs md:text-sm mb-3 line-clamp-2">
+                            {item.description}
+                          </p>
+                        )}
+
+                        {/* Dietary Restrictions */}
+                        {item.dietaryRestrictions &&
+                          item.dietaryRestrictions.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {item.dietaryRestrictions.slice(0, 3).map((restriction) => (
+                                <span
+                                  key={restriction}
+                                  className="text-[10px] md:text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium"
+                                >
+                                  {restriction}
+                                </span>
+                              ))}
+                              {item.dietaryRestrictions.length > 3 && (
+                                <span className="text-[10px] md:text-xs text-gray-500">
+                                  +{item.dietaryRestrictions.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          )}
+                      </div>
+
+                      {/* Price and Add to Order / Quantity */}
+                      <div className="flex items-end justify-between gap-4">
+                        <div className="flex-1">
+                          {item.isDiscount && item.discountPrice && item.discountPrice !== item.price ? (
+                            <div className="flex flex-row items-center justify-start gap-3">
+                              <p className="text-gray-500 text-[11px] md:text-sm line-through">
+                                £{item.price.toFixed(2)}
+                              </p>
+                              <p className="text-primary font-bold text-sm md:text-2xl">
+                                £{item.discountPrice.toFixed(2)}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-primary font-bold text-md md:text-lg">
+                              £{item.price.toFixed(2)}
+                            </p>
+                          )}
                         </div>
-                      </div>
-                    ) : (
-                      <div className="text-2xl font-bold text-base-content">
-                        £{item.price}
-                      </div>
-                    )}
-                  </div>
 
-                  {/* Quantity controls or add button */}
-                  {(() => {
-                    const itemInCart = itemQuantities[item.id];
-                    const quantity = itemInCart?.quantity || 0;
-                    const cartIndex = itemInCart?.cartIndex ?? -1;
-                    const quantityInput = quantityInputs[item.id] || "0";
+                        {/* Add to order button / quantity controls */}
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-shrink-0"
+                        >
+                          {quantity > 0 ? (
+                            <>
+                              {/* On md and smaller: show simple add button that opens modal */}
+                              <button
+                                onClick={() => {
+                                  setModalItem(item);
+                                  setIsModalOpen(true);
+                                }}
+                                className="lg:hidden w-8 h-8 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
+                                aria-label="Add to Order"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-3 w-3"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M12 4v16m8-8H4"
+                                  />
+                                </svg>
+                              </button>
 
-                    // If item is in cart (quantity > 0) and no addons, show quantity controls
-                    if (!hasAddons(item) && quantity > 0) {
-                      return (
-                        <div className="bg-base-200 p-2 rounded-lg border border-[#F0ECE3] flex items-center justify-between min-w-[140px]">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const newQty = Math.max(0, quantity - 1);
-                                handleUpdateQuantity(
-                                  item.id,
-                                  cartIndex,
-                                  newQty
-                                );
-                              }}
-                              className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                            >
-                              −
-                            </button>
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              value={quantityInput}
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                const val = e.target.value;
-                                if (val === "" || /^\d+$/.test(val)) {
-                                  setQuantityInputs((prev) => ({
-                                    ...prev,
-                                    [item.id]: val,
-                                  }));
-                                  if (val !== "" && !isNaN(parseInt(val))) {
-                                    const newQty = Math.max(0, parseInt(val));
+                              {/* On lg and larger: show quantity controls */}
+                              <div className="hidden lg:flex bg-[#F5F1E8] p-2 rounded-lg border border-[#F0ECE3] items-center gap-2 max-w-[180px]">
+                                <button
+                                  onClick={() => {
+                                    const newQty = Math.max(0, quantity - 1);
                                     handleUpdateQuantity(
                                       item.id,
                                       cartIndex,
                                       newQty
                                     );
-                                  }
-                                }
-                              }}
-                              onBlur={(e) => {
-                                if (
-                                  e.target.value === "" ||
-                                  parseInt(e.target.value) < 1
-                                ) {
-                                  handleUpdateQuantity(item.id, cartIndex, 0);
-                                  setQuantityInputs((prev) => ({
-                                    ...prev,
-                                    [item.id]: "0",
-                                  }));
-                                }
-                              }}
-                              className="w-12 text-center font-medium text-xs md:text-sm text-base-content bg-base-100 border border-base-300 rounded px-1 py-1"
-                            />
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const newQty = quantity + 1;
-                                handleUpdateQuantity(
-                                  item.id,
-                                  cartIndex,
-                                  newQty
-                                );
-                              }}
-                              className="w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    }
+                                  }}
+                                  className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
+                                >
+                                  −
+                                </button>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={quantityInput}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === "" || /^\d+$/.test(val)) {
+                                      setQuantityInputs((prev) => ({
+                                        ...prev,
+                                        [item.id]: val,
+                                      }));
+                                      if (val !== "" && !isNaN(parseInt(val))) {
+                                        const newQty = Math.max(
+                                          0,
+                                          parseInt(val)
+                                        );
+                                        handleUpdateQuantity(
+                                          item.id,
+                                          cartIndex,
+                                          newQty
+                                        );
+                                      }
+                                    }
+                                  }}
+                                  onBlur={(e) => {
+                                    if (
+                                      e.target.value === "" ||
+                                      parseInt(e.target.value) < 1
+                                    ) {
+                                      handleUpdateQuantity(item.id, cartIndex, 0);
+                                      setQuantityInputs((prev) => ({
+                                        ...prev,
+                                        [item.id]: "0",
+                                      }));
+                                    }
+                                  }}
+                                  className="w-12 text-center font-medium text-xs md:text-sm text-gray-900 bg-white border border-gray-300 rounded px-1 py-1 flex-shrink-0"
+                                />
 
-                    // Otherwise, show + button (for initial add or if item has addons)
-                    return (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAdd(item);
-                        }}
-                        className="bg-base-200 w-7 h-7 md:w-8 md:h-8 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-sm"
-                        disabled={!item.isAvailable}
-                      >
-                        +
-                      </button>
-                    );
-                  })()}
+                                <button
+                                  onClick={() => {
+                                    const newQty = quantity + 1;
+                                    handleUpdateQuantity(
+                                      item.id,
+                                      cartIndex,
+                                      newQty
+                                    );
+                                  }}
+                                  className="w-7 h-7 md:w-8 md:h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center text-sm flex-shrink-0"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <button
+                              onClick={handleAddOrModal}
+                              className="w-8 h-8 md:w-10 md:h-10 bg-primary hover:opacity-90 text-white rounded-full font-medium transition-all flex items-center justify-center"
+                              aria-label="Add to Order"
+                              disabled={!item.isAvailable}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-3 w-3 md:h-5 md:w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M12 4v16m8-8H4"
+                                />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Side - Image */}
+                  {item.image && (
+                    <div className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0 relative">
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                      />
+                      {item.isDiscount &&
+                        item.discountPrice &&
+                        item.discountPrice !== item.price && (
+                          <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded text-xs font-semibold">
+                            SALE
+                          </div>
+                        )}
+                      {item.popular && (
+                        <div className="absolute top-2 left-2 bg-primary text-white px-2 py-1 rounded text-xs font-semibold">
+                          POPULAR
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {(item.allergens?.length > 0 || !item.isAvailable) && (
-                <div className="px-4 pb-4 space-y-2">
-                  {item.allergens && item.allergens.length > 0 && (
-                    <p className="text-xs text-base-content/60">
-                      Allergens: {item.allergens.join(", ")}
-                    </p>
-                  )}
-                  {!item.isAvailable && (
-                    <span className="text-xs text-red-500 font-semibold">
-                      Currently Unavailable
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Modal for items with addons */}
