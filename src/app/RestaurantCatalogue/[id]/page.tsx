@@ -75,7 +75,15 @@ function RestaurantDetailContent() {
         item.dietaryRestrictions?.includes(restriction)
       );
 
-    return matchesSearch && matchesDietary;
+    // Allergen filter - exclude items that contain selected allergens
+    const matchesAllergens =
+      !filters.allergens ||
+      filters.allergens.length === 0 ||
+      !filters.allergens.some((allergen) =>
+        item.allergens?.includes(allergen)
+      );
+
+    return matchesSearch && matchesDietary && matchesAllergens;
   });
 
   // Group menu items by groupTitle

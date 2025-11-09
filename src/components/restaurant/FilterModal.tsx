@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { DietaryFilter } from "../../types/menuItem";
+import { DietaryFilter, Allergens } from "../../types/menuItem";
 import { useFilters } from "../../contexts/FilterContext";
 
 interface FilterModalProps {
@@ -70,24 +70,66 @@ export default function FilterModal({
   //   };
   // }, [isOpen, onClose]);
 
-  const allergies = [
-    "No specific preferences",
-    "Celery",
-    "Cereals containing gluten",
-    "Crustaceans",
-    "Eggs",
-    "Fish",
-    "Lupin",
-    "Mustard",
-    "Nuts",
-    "Peanuts",
-    "Sesame seeds",
-    "Milk",
-    "Soya",
-    "Sulphur dioxide",
-    "Molluscs",
-    "Other (please specify)",
+  // Official Big 14 Allergens
+  const allergenOptions: Allergens[] = [
+    Allergens.CELERY,
+    Allergens.CEREALS_CONTAINING_GLUTEN,
+    Allergens.CRUSTACEANS,
+    Allergens.EGGS,
+    Allergens.FISH,
+    Allergens.LUPIN,
+    Allergens.MILK,
+    Allergens.MOLLUSCS,
+    Allergens.MUSTARD,
+    Allergens.PEANUTS,
+    Allergens.SESAME_SEEDS,
+    Allergens.SOYBEANS,
+    Allergens.SULPHUR_DIOXIDE,
+    Allergens.TREE_NUTS,
   ];
+
+  const ALLERGEN_LABELS: Record<Allergens, string> = {
+    // Official (Big 14 Allergens)
+    [Allergens.CELERY]: "Celery",
+    [Allergens.CEREALS_CONTAINING_GLUTEN]: "Cereals containing gluten",
+    [Allergens.CRUSTACEANS]: "Crustaceans",
+    [Allergens.EGGS]: "Eggs",
+    [Allergens.FISH]: "Fish",
+    [Allergens.LUPIN]: "Lupin",
+    [Allergens.MILK]: "Milk",
+    [Allergens.MOLLUSCS]: "Molluscs",
+    [Allergens.MUSTARD]: "Mustard",
+    [Allergens.PEANUTS]: "Peanuts",
+    [Allergens.SESAME_SEEDS]: "Sesame seeds",
+    [Allergens.SOYBEANS]: "Soybeans",
+    [Allergens.SULPHUR_DIOXIDE]: "Sulphur dioxide",
+    [Allergens.TREE_NUTS]: "Tree nuts",
+    // Common Sensitivities / Additions
+    [Allergens.WHEAT]: "Wheat",
+    [Allergens.BARLEY]: "Barley",
+    [Allergens.RYE]: "Rye",
+    [Allergens.OATS]: "Oats",
+    [Allergens.CORN]: "Corn",
+    [Allergens.GELATIN]: "Gelatin",
+    [Allergens.GARLIC]: "Garlic",
+    [Allergens.ONION]: "Onion",
+    [Allergens.ALCOHOL]: "Alcohol",
+    [Allergens.PORK]: "Pork",
+    [Allergens.BEEF]: "Beef",
+    [Allergens.CHICKEN]: "Chicken",
+    [Allergens.LAMB]: "Lamb",
+    [Allergens.LEGUMES]: "Legumes",
+    [Allergens.CAFFEINE]: "Caffeine",
+    [Allergens.COCOA]: "Cocoa",
+    [Allergens.COLORANTS]: "Colorants",
+    [Allergens.PRESERVATIVES]: "Preservatives",
+    // Legacy
+    [Allergens.GLUTEN]: "Gluten",
+    [Allergens.MEAT]: "Meat",
+    [Allergens.NUTS]: "Nuts",
+    [Allergens.MOLUSCS]: "Moluscs (legacy)",
+    [Allergens.SOYA]: "Soya",
+  };
 
   // Dietary filters based on enum
   const dietaryFilterOptions: DietaryFilter[] = [
@@ -110,14 +152,14 @@ export default function FilterModal({
     [DietaryFilter.NO_DAIRY]: "No dairy",
   };
 
-  const toggleRestriction = (item: string) => {
-    if (item === "No specific preferences") {
-      setSelectedAllergens([]);
-    } else {
-      setSelectedAllergens((prev) =>
-        prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
-      );
-    }
+  const toggleAllergen = (item: Allergens) => {
+    setSelectedAllergens((prev) =>
+      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
+    );
+  };
+
+  const clearAllergens = () => {
+    setSelectedAllergens([]);
   };
 
   const toggleDietary = (item: DietaryFilter) => {
@@ -177,26 +219,36 @@ export default function FilterModal({
             </button>
           </div>
 
-          {/* Dietary Restrictions */}
+          {/* Allergens */}
           <div className="mb-5">
-            <h3 className="text-base font-semibold text-base-content mb-2">
-              Allergies
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-semibold text-base-content">
+                Allergens
+              </h3>
+              {selectedAllergens.length > 0 && (
+                <button
+                  onClick={clearAllergens}
+                  className="text-xs text-pink-500 hover:text-pink-600 font-medium"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
             <p className="text-sm text-gray-500 mb-2">
-              No specific preferences
+              Select allergens to exclude from results
             </p>
             <div className="flex flex-wrap gap-2">
-              {allergies.map((item) => (
+              {allergenOptions.map((item) => (
                 <button
                   key={item}
-                  onClick={() => toggleRestriction(item)}
+                  onClick={() => toggleAllergen(item)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     selectedAllergens.includes(item)
                       ? "bg-pink-500 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  {item}
+                  {ALLERGEN_LABELS[item]}
                 </button>
               ))}
             </div>
@@ -263,24 +315,36 @@ export default function FilterModal({
           </button>
         </div>
 
-        {/* Dietary Restrictions */}
+        {/* Allergens */}
         <div className="mb-5">
-          <h3 className="text-base font-semibold text-base-content mb-2">
-            Allergies
-          </h3>
-          <p className="text-sm text-gray-500 mb-2">No specific preferences</p>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-base font-semibold text-base-content">
+              Allergens
+            </h3>
+            {selectedAllergens.length > 0 && (
+              <button
+                onClick={clearAllergens}
+                className="text-xs text-pink-500 hover:text-pink-600 font-medium"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 mb-2">
+            Select allergens to exclude from results
+          </p>
           <div className="flex flex-wrap gap-2">
-            {allergies.map((item) => (
+            {allergenOptions.map((item) => (
               <button
                 key={item}
-                onClick={() => toggleRestriction(item)}
+                onClick={() => toggleAllergen(item)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                   selectedAllergens.includes(item)
                     ? "bg-pink-500 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                {item}
+                {ALLERGEN_LABELS[item]}
               </button>
             ))}
           </div>
