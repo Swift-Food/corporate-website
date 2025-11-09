@@ -132,21 +132,42 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
                           </p>
                         )}
 
-                        {/* Dietary Restrictions */}
-                        {item.dietaryRestrictions &&
-                          item.dietaryRestrictions.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {item.dietaryRestrictions.slice(0, 3).map((restriction) => (
-                                <span
-                                  key={restriction}
-                                  className="text-[10px] md:text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium"
-                                >
-                                  {restriction}
-                                </span>
-                              ))}
-                              {item.dietaryRestrictions.length > 3 && (
+                        {/* Dietary Filters */}
+                        {item.dietaryFilters &&
+                          item.dietaryFilters.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2 items-center">
+                              {item.dietaryFilters.slice(0, 5).map((filter) => {
+                                const iconMap: Record<string, string> = {
+                                  vegetarian: "Vegetarian.png",
+                                  halal: "Halal.png",
+                                  no_gluten: "No Gluten.png",
+                                  no_nut: "No Nuts.png",
+                                  no_dairy: "No Dairy.png",
+                                  pescatarian: "Pescatarian.png",
+                                  vegan: "Vegan.png",
+                                };
+                                const iconFile = iconMap[filter.toLowerCase()];
+
+                                if (!iconFile) return null;
+
+                                return (
+                                  <div
+                                    key={filter}
+                                    className="relative w-5 h-5 md:w-6 md:h-6"
+                                    title={filter}
+                                  >
+                                    <Image
+                                      src={`/icons/Mini_Allergens_Icons/Icon only/${iconFile}`}
+                                      alt={filter}
+                                      fill
+                                      className="object-contain"
+                                    />
+                                  </div>
+                                );
+                              })}
+                              {item.dietaryFilters.length > 5 && (
                                 <span className="text-[10px] md:text-xs text-gray-500">
-                                  +{item.dietaryRestrictions.length - 3} more
+                                  +{item.dietaryFilters.length - 5}
                                 </span>
                               )}
                             </div>

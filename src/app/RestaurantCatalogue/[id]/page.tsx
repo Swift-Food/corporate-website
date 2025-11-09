@@ -72,7 +72,7 @@ function RestaurantDetailContent() {
       !filters.dietaryRestrictions ||
       filters.dietaryRestrictions.length === 0 ||
       filters.dietaryRestrictions.some((restriction) =>
-        item.dietaryRestrictions?.includes(restriction)
+        item.dietaryFilters?.includes(restriction)
       );
 
     // Allergen filter - exclude items that contain selected allergens
