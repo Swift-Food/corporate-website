@@ -69,9 +69,11 @@ function RestaurantCatalogueContent() {
     }
   }, [time]);
 
-  // Re-run search when filters change (only if there's an active search)
+  // Re-run search when filters change
   useEffect(() => {
     console.log("Filters has changed: ", filters);
+    // Always run handleSearch when filters change
+    // It will clear results if both search and filters are empty
     handleSearch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
@@ -106,7 +108,12 @@ function RestaurantCatalogueContent() {
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    if (!searchQuery.trim() && !filters) {
+    // Check if there's no search query and no active filters
+    const hasNoFilters =
+      (!filters.dietaryRestrictions || filters.dietaryRestrictions.length === 0) &&
+      (!filters.allergens || filters.allergens.length === 0);
+
+    if (!searchQuery.trim() && hasNoFilters) {
       setHasSearched(false);
       setRestaurantSearchResults([]);
       setMenuItemSearchResults([]);
