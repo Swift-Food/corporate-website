@@ -258,7 +258,7 @@ function RestaurantDetailContent() {
       )}
 
       {/* Search and Filter Bar - Sticky */}
-      <div className="sticky top-[136px] md:top-[144px] z-30 bg-base-100 border-b border-base-300 shadow-sm">
+      <div className="sticky top-[136px] md:top-[144px] z-30">
         <div className="px-4 md:px-8 py-3">
           <div className="flex items-center gap-2 w-full max-w-7xl mx-auto">
             {/* Search Bar fills available width */}
@@ -425,7 +425,7 @@ function RestaurantDetailContent() {
 
         {/* Cart Sidebar - Desktop */}
         <CartSidebar
-          topOffset="top-40"
+          topOffset="top-54"
           maxHeightOffset="12rem"
           widthPercentage={35}
           onCheckout={handleCheckout}
