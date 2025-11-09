@@ -432,7 +432,7 @@ function RestaurantDetailContent() {
         {/* Cart Sidebar - Desktop */}
         <CartSidebar
           topOffset="top-54"
-          maxHeightOffset="12rem"
+          maxHeightOffset="14rem"
           widthPercentage={25}
           onCheckout={handleCheckout}
         />

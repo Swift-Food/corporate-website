@@ -33,7 +33,7 @@ export default function CartSidebar({
         minWidth: "280px",
       }}
     >
-      <div className="bg-base-100 rounded-xl p-6 border border-base-300 flex flex-col h-full">
+      <div className="bg-base-100 rounded-xl p-6 border border-base-300 flex flex-col max-h-full">
         <h3 className="text-xl font-bold text-base-content mb-6">Your Order</h3>
 
         {cartItems.length === 0 ? (
