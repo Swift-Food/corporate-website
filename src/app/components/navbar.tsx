@@ -115,7 +115,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 left-0 right-0 flex flex-col z-50 relative">
+      <nav className="sticky top-0 left-0 right-0 flex flex-col z-50">
         <div className="flex items-center justify-between px-16 py-4 max-lg:px-4 bg-base-200 gap-5 flex-nowrap">
           <div className="invisible max-xl:hidden whitespace-nowrap">
             <NavbarAction

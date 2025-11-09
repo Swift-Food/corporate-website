@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { CorporateMenuItem, Addon, AddonGroup } from "@/types/menuItem";
 import { SelectedAddon } from "@/context/CartContext";
@@ -15,7 +16,11 @@ interface MenuItemModalProps {
     quantity: number,
     selectedAddons: SelectedAddon[]
   ) => void;
-  onUpdateQuantity?: (itemId: string, cartIndex: number, quantity: number) => void;
+  onUpdateQuantity?: (
+    itemId: string,
+    cartIndex: number,
+    quantity: number
+  ) => void;
   isEditMode?: boolean;
   onRemoveItem?: (itemId: string, cartIndex: number) => void;
   cartIndex?: number;
@@ -86,7 +91,11 @@ export default function MenuItemModal({
     });
 
     // If in edit mode, pre-populate with existing selections
-    if (isEditMode && existingSelectedAddons && existingSelectedAddons.length > 0) {
+    if (
+      isEditMode &&
+      existingSelectedAddons &&
+      existingSelectedAddons.length > 0
+    ) {
       existingSelectedAddons.forEach((selectedAddon) => {
         const groupTitle = selectedAddon.addonName; // addonName is the group title
         const addonName = selectedAddon.optionName; // optionName is the actual addon name
@@ -253,9 +262,14 @@ export default function MenuItemModal({
     return "Select any";
   };
 
-  return (
+  if (!isOpen) return null;
+
+  // Only render on client side
+  if (typeof window === "undefined") return null;
+
+  const modalContent = (
     <div
-      className="fixed inset-0 z-[999] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       onClick={onClose}
     >
       {/* Backdrop */}
@@ -336,9 +350,7 @@ export default function MenuItemModal({
                         className="relative w-8 h-8 group cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setActiveTooltip(
-                            isTooltipActive ? null : tooltipKey
-                          );
+                          setActiveTooltip(isTooltipActive ? null : tooltipKey);
                         }}
                       >
                         <Image
@@ -424,7 +436,10 @@ export default function MenuItemModal({
                       const newQty = Math.max(1, itemQuantity - 1);
                       setItemQuantity(newQty);
                       setItemQuantityInput(newQty.toString());
-                      if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                      if (
+                        quantity > 0 &&
+                        (!item.addons || item.addons.length === 0)
+                      ) {
                         setHasModifiedQuantity(newQty !== initialModalQuantity);
                       }
                     }}
@@ -443,8 +458,13 @@ export default function MenuItemModal({
                         if (val !== "" && !isNaN(parseInt(val))) {
                           const newQty = Math.max(1, parseInt(val));
                           setItemQuantity(newQty);
-                          if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
-                            setHasModifiedQuantity(newQty !== initialModalQuantity);
+                          if (
+                            quantity > 0 &&
+                            (!item.addons || item.addons.length === 0)
+                          ) {
+                            setHasModifiedQuantity(
+                              newQty !== initialModalQuantity
+                            );
                           }
                         }
                       }
@@ -456,7 +476,10 @@ export default function MenuItemModal({
                       ) {
                         setItemQuantity(1);
                         setItemQuantityInput("1");
-                        if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                        if (
+                          quantity > 0 &&
+                          (!item.addons || item.addons.length === 0)
+                        ) {
                           setHasModifiedQuantity(1 !== initialModalQuantity);
                         }
                       }
@@ -468,7 +491,10 @@ export default function MenuItemModal({
                       const newQty = itemQuantity + 1;
                       setItemQuantity(newQty);
                       setItemQuantityInput(newQty.toString());
-                      if (quantity > 0 && (!item.addons || item.addons.length === 0)) {
+                      if (
+                        quantity > 0 &&
+                        (!item.addons || item.addons.length === 0)
+                      ) {
                         setHasModifiedQuantity(newQty !== initialModalQuantity);
                       }
                     }}
@@ -633,4 +659,6 @@ export default function MenuItemModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
