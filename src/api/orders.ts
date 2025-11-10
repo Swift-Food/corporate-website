@@ -14,6 +14,7 @@ export const ordersApi = {
     employeeId: string,
     orderData: CreateEmployeeOrderDto
   ): Promise<OrderResponse> => {
+    console.log("ORder data: ", orderData);
     const response = await apiClient.post(
       `/corporate-orders/my-order/${employeeId}`,
       orderData

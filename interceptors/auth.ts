@@ -1,4 +1,4 @@
-import apiClient from '@/api/client';
+import apiClient from "@/api/client";
 import {
   LoginDto,
   LoginResponse,
@@ -10,7 +10,7 @@ import {
   VerifyCorporateEmailResponse,
   CorporateUser,
   UserRole,
-} from '../src/types/user'
+} from "../src/types/user";
 
 export const authApi = {
   /**
@@ -19,10 +19,12 @@ export const authApi = {
   login: async (email: string, password: string): Promise<LoginResponse> => {
     const payload: LoginDto = {
       email,
-      password
+      password,
     };
-    console.log("payload", payload)
-    const response = await apiClient.post<LoginResponse>('/auth/corporate-login', payload);
+    const response = await apiClient.post<LoginResponse>(
+      "/auth/corporate-login",
+      payload
+    );
     return response.data;
   },
 
@@ -32,7 +34,7 @@ export const authApi = {
   checkCorporateDomain: async (email: string): Promise<CheckDomainResponse> => {
     const payload: CheckDomainDto = { email };
     const response = await apiClient.post<CheckDomainResponse>(
-      '/auth/check-corporate-domain',
+      "/auth/check-corporate-domain",
       payload
     );
     return response.data;
@@ -45,7 +47,7 @@ export const authApi = {
     data: RegisterCorporateUserDto
   ): Promise<RegisterCorporateResponse> => {
     const response = await apiClient.post<RegisterCorporateResponse>(
-      '/auth/register-corporate',
+      "/auth/register-corporate",
       data
     );
     return response.data;
@@ -60,7 +62,7 @@ export const authApi = {
   ): Promise<VerifyCorporateEmailResponse> => {
     const payload: VerifyCorporateEmailDto = { email, code };
     const response = await apiClient.post<VerifyCorporateEmailResponse>(
-      '/auth/verify-corporate-email',
+      "/auth/verify-corporate-email",
       payload
     );
     return response.data;
@@ -81,17 +83,17 @@ export const authApi = {
    */
   decodeToken: (token: string) => {
     try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
       const jsonPayload = decodeURIComponent(
         atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
       );
       return JSON.parse(jsonPayload);
     } catch (error) {
-      console.error('Failed to decode token:', error);
+      console.error("Failed to decode token:", error);
       return null;
     }
   },

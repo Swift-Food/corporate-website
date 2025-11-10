@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
 // import { Menu } from "@deemlol/next-icons";
-import { ShoppingCart, User, ShieldUser, Utensils } from "lucide-react";
+import { ShoppingCart, User, Utensils } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
@@ -56,13 +56,22 @@ function NavbarAction({
       {isManager && (
         <button
           onClick={handleManagerClick}
-          className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all cursor-pointer"
+          className={`px-2 py-1 md:px-3 md:py-1.5 ${
+            isOnDashboard ? "bg-transparent" : "bg-white"
+          } rounded flex items-center justify-center transition-all cursor-pointer`}
           aria-label={isOnDashboard ? "Go to Order" : "Manager Dashboard"}
         >
           {isOnDashboard ? (
             <Utensils className="w-5 h-5 md:w-6 md:h-6" />
           ) : (
-            <ShieldUser className="w-5 h-5 md:w-6 md:h-6" />
+            <>
+              <span className="text-black font-semibold text-xs md:text-sm md:hidden">
+                MGR
+              </span>
+              <span className="text-black font-semibold text-sm hidden md:inline">
+                MANAGER
+              </span>
+            </>
           )}
         </button>
       )}

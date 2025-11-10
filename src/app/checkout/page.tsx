@@ -7,21 +7,24 @@ import {
   CreateEmployeeOrderDto,
   RestaurantOrder,
   MenuItem,
+  OrderResponse,
 } from "@/types/order";
+import { MenuItemStyle, MenuItemStatus } from "@/types/menuItem";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
 import LoginModal from "../components/LoginModal";
 import { getNextWorkingDayISO } from "@/util/catalogue";
+import { FilterProvider, useFilters } from "@/contexts/FilterContext";
 
-export default function CheckoutPage() {
+function CheckoutPageNoFilterContext() {
   const router = useRouter();
   const { cartItems, getTotalPrice, clearCart } = useCart();
   const { corporateUser, isAuthenticated } = useAuth();
+  const { filters } = useFilters();
   const employeeId = corporateUser?.id; //user?.id || corporateUser?.id;
 
   const [specialInstructions, setSpecialInstructions] = useState("");
-  const [dietaryRestrictions, setDietaryRestrictions] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -31,6 +34,12 @@ export default function CheckoutPage() {
   >({});
   const [loadingRestaurants, setLoadingRestaurants] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [existingOrder, setExistingOrder] = useState<OrderResponse | null>(
+    null
+  );
+  const [isWithinBudget, setIsWithinBudget] = useState(true);
+  const [orderAction, setOrderAction] = useState<"replace" | "add">("replace");
+  const [isCheckingOrder, setIsCheckingOrder] = useState(true);
 
   // Load delivery date and time from localStorage
   useEffect(() => {
@@ -40,6 +49,41 @@ export default function CheckoutPage() {
     if (savedDate) setDeliveryDate(savedDate);
     if (savedTime) setDeliveryTime(savedTime);
   }, []);
+
+  // Fetch existing active order
+  useEffect(() => {
+    const fetchExistingOrder = async () => {
+      if (!employeeId || !isAuthenticated) {
+        setIsCheckingOrder(false);
+        return;
+      }
+
+      try {
+        const order = await ordersApi.getMyOrder(employeeId);
+        setExistingOrder(order);
+
+        // Check budget if order exists
+        if (order && corporateUser) {
+          const newCartTotal = getTotalPrice();
+          const existingOrderTotal = parseFloat(order.totalAmount.toString());
+          const combinedTotal = newCartTotal + existingOrderTotal;
+          const dailyBudgetRemaining = corporateUser.dailyBudgetRemaining;
+          const withinBudget = combinedTotal <= dailyBudgetRemaining;
+
+          setIsWithinBudget(withinBudget);
+          // Default to "add" if within budget, otherwise "replace"
+          setOrderAction(withinBudget ? "add" : "replace");
+        }
+      } catch (error) {
+        console.error("Error fetching existing order:", error);
+        // Not a critical error - user might not have an existing order
+      } finally {
+        setIsCheckingOrder(false);
+      }
+    };
+
+    fetchExistingOrder();
+  }, [employeeId, isAuthenticated, corporateUser, getTotalPrice]);
 
   // Fetch restaurant data from API
   useEffect(() => {
@@ -103,6 +147,87 @@ export default function CheckoutPage() {
     return acc;
   }, {} as Record<string, { restaurantId: string; restaurantName: string; items: typeof cartItems }>);
 
+  // Helper function to get items based on selected action
+  const getItemsForOrder = () => {
+    let itemsToOrder = [...cartItems];
+
+    // If user chose to add to existing order, merge the items
+    if (orderAction === "add" && existingOrder) {
+      // Convert existing order items back to cart item format
+      existingOrder.restaurantOrders?.forEach((restOrder) => {
+        restOrder.menuItems.forEach((menuItem) => {
+          itemsToOrder.push({
+            item: {
+              id: menuItem.menuItemId,
+              name: menuItem.name,
+              price: menuItem.unitPrice,
+              restaurantId: restOrder.restaurantId,
+              cateringQuantityUnit: menuItem.cateringQuantityUnit || 0,
+              feedsPerUnit: menuItem.feedsPerUnit || 0,
+              isDiscount: false,
+              allergens: [],
+              style: MenuItemStyle.CARD,
+              itemDisplayOrder: 0,
+              prepTime: 0,
+              averageRating: 0,
+              popular: false,
+              isAvailable: true,
+              status: "ACTIVE" as MenuItemStatus,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            quantity: menuItem.quantity,
+            selectedAddons: menuItem.selectedAddons?.map((addon) => ({
+              addonName: addon.groupTitle || "",
+              optionName: addon.name,
+              price: addon.price,
+              quantity: addon.quantity,
+            })),
+          });
+        });
+      });
+    }
+
+    return itemsToOrder;
+  };
+
+  // Helper function to calculate total price based on selected action
+  const getSelectedTotal = () => {
+    const itemsToCalculate = getItemsForOrder();
+
+    return itemsToCalculate.reduce((total, cartItem) => {
+      const price = parseFloat(cartItem.item.price?.toString() || "0");
+      const discountPrice = parseFloat(
+        cartItem.item.discountPrice?.toString() || "0"
+      );
+      const itemPrice =
+        cartItem.item.isDiscount && discountPrice > 0 ? discountPrice : price;
+
+      const addonPrice = (cartItem.selectedAddons || []).reduce(
+        (sum, addon) => sum + (addon.price || 0),
+        0
+      );
+
+      return total + (itemPrice + addonPrice) * cartItem.quantity;
+    }, 0);
+  };
+
+  // Helper function to group items by restaurant for display
+  const getGroupedItems = (items: typeof cartItems) => {
+    return items.reduce((acc, cartItem) => {
+      const restaurantId = cartItem.item.restaurantId;
+      if (!acc[restaurantId]) {
+        acc[restaurantId] = {
+          restaurantId,
+          restaurantName: restaurantNames[restaurantId] || "Unknown Restaurant",
+          items: [],
+        };
+      }
+      acc[restaurantId].items.push(cartItem);
+      return acc;
+    }, {} as Record<string, { restaurantId: string; restaurantName: string; items: typeof items }>);
+  };
+
   const handleSubmitOrder = async () => {
     if (cartItems.length === 0) {
       setError("Your cart is empty");
@@ -121,9 +246,15 @@ export default function CheckoutPage() {
     setError(null);
 
     try {
+      // Get items based on selected action
+      const itemsToOrder = getItemsForOrder();
+
+      // Group items by restaurant
+      const groupedItems = getGroupedItems(itemsToOrder);
+
       // Transform cart items into the backend DTO format
       const restaurantOrders: RestaurantOrder[] = Object.values(
-        groupedByRestaurant
+        groupedItems
       ).map((group) => {
         const menuItems: MenuItem[] = group.items.map((cartItem) => {
           const price = parseFloat(cartItem.item.price?.toString() || "0");
@@ -174,9 +305,10 @@ export default function CheckoutPage() {
         deliveryAddressId: "default-address-id", // TODO: Get from user context
         requestedDeliveryTime: getRequestedDeliveryTime(),
         specialInstructions: specialInstructions || undefined,
-        dietaryRestrictions: dietaryRestrictions
-          ? dietaryRestrictions.split(",").map((r) => r.trim())
-          : undefined,
+        dietaryRestrictions: [
+          ...filters.dietaryRestrictions,
+          ...filters.allergens,
+        ].filter(Boolean),
       };
       if (!employeeId) {
         throw new Error();
@@ -188,6 +320,10 @@ export default function CheckoutPage() {
       // Clear cart and mark order as submitted
       clearCart();
       localStorage.setItem("corporate_order_submitted", "true");
+
+      // Reset order action state
+      setOrderAction(null);
+      setExistingOrder(null);
 
       // Redirect to order details page
       router.push(`/order/${response.id}`);
@@ -223,7 +359,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (loadingRestaurants) {
+  if (loadingRestaurants || isCheckingOrder) {
     return (
       <div className="min-h-screen bg-base-100 flex items-center justify-center">
         <div className="text-center">
@@ -242,12 +378,266 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Section - Order Details Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Special Instructions */}
+            {/* Selection UI if existing order exists */}
+            {existingOrder && (
+              <div className="bg-base-100 rounded-xl p-6 border border-base-300">
+                <h2 className="text-2xl font-bold text-base-content mb-4">
+                  Choose Your Order Option
+                </h2>
+
+                {!isWithinBudget && (
+                  <div className="bg-error/10 border border-error rounded-lg p-4 mb-6">
+                    <p className="text-error font-semibold mb-2">
+                      Budget Limit Reached
+                    </p>
+                    <p className="text-error/80 text-sm">
+                      Adding to your existing order would exceed your daily
+                      budget limit. You can only replace your existing order.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {/* Replace Option */}
+                  <div
+                    onClick={() => setOrderAction("replace")}
+                    className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                      orderAction === "replace"
+                        ? "border-primary bg-primary/5"
+                        : "border-base-300 hover:border-base-400"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        checked={orderAction === "replace"}
+                        onChange={() => setOrderAction("replace")}
+                        className="radio radio-primary mt-1"
+                      />
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-base-content mb-1">
+                          Replace Existing Order
+                        </h3>
+                        <p className="text-sm text-base-content/60 mb-3">
+                          Your existing order will be replaced with the new
+                          items in your cart.
+                        </p>
+                        <p className="text-base font-semibold text-primary">
+                          Total: £
+                          {
+                            // Calculate total for new cart items only
+                            cartItems
+                              .reduce((total, cartItem) => {
+                                const price = parseFloat(
+                                  cartItem.item.price?.toString() || "0"
+                                );
+                                const discountPrice = parseFloat(
+                                  cartItem.item.discountPrice?.toString() || "0"
+                                );
+                                const itemPrice =
+                                  cartItem.item.isDiscount && discountPrice > 0
+                                    ? discountPrice
+                                    : price;
+                                const addonPrice = (
+                                  cartItem.selectedAddons || []
+                                ).reduce(
+                                  (sum, addon) => sum + (addon.price || 0),
+                                  0
+                                );
+                                return (
+                                  total +
+                                  (itemPrice + addonPrice) * cartItem.quantity
+                                );
+                              }, 0)
+                              .toFixed(2)
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Add Option - Only show if within budget */}
+                  {isWithinBudget && (
+                    <div
+                      onClick={() => setOrderAction("add")}
+                      className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                        orderAction === "add"
+                          ? "border-primary bg-primary/5"
+                          : "border-base-300 hover:border-base-400"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          checked={orderAction === "add"}
+                          onChange={() => setOrderAction("add")}
+                          className="radio radio-primary mt-1"
+                        />
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-base-content mb-1">
+                            Add to Existing Order
+                          </h3>
+                          <p className="text-sm text-base-content/60 mb-3">
+                            Combine your existing order with the new items in
+                            your cart.
+                          </p>
+                          <p className="text-base font-semibold text-primary">
+                            Total: £
+                            {
+                              // Calculate combined total when add is selected
+                              (() => {
+                                const newCartTotal = cartItems.reduce(
+                                  (total, cartItem) => {
+                                    const price = parseFloat(
+                                      cartItem.item.price?.toString() || "0"
+                                    );
+                                    const discountPrice = parseFloat(
+                                      cartItem.item.discountPrice?.toString() ||
+                                        "0"
+                                    );
+                                    const itemPrice =
+                                      cartItem.item.isDiscount &&
+                                      discountPrice > 0
+                                        ? discountPrice
+                                        : price;
+                                    const addonPrice = (
+                                      cartItem.selectedAddons || []
+                                    ).reduce(
+                                      (sum, addon) => sum + (addon.price || 0),
+                                      0
+                                    );
+                                    return (
+                                      total +
+                                      (itemPrice + addonPrice) *
+                                        cartItem.quantity
+                                    );
+                                  },
+                                  0
+                                );
+
+                                const existingTotal = parseFloat(
+                                  existingOrder.totalAmount.toString()
+                                );
+                                return (newCartTotal + existingTotal).toFixed(
+                                  2
+                                );
+                              })()
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Cart Items by Restaurant */}
             <div className="bg-base-100 rounded-xl p-6 border border-base-300">
               <h2 className="text-2xl font-bold text-base-content mb-4">
-                Order Details
+                {existingOrder
+                  ? orderAction === "replace"
+                    ? "New Order (Replacing Existing)"
+                    : "Combined Order (Existing + New)"
+                  : "Your Order"}
               </h2>
 
+              <div className="space-y-6">
+                {Object.values(getGroupedItems(getItemsForOrder())).map(
+                  (group) => (
+                    <div
+                      key={group.restaurantId}
+                      className="border-b border-base-300 pb-6 last:border-b-0 last:pb-0"
+                    >
+                      <h3 className="text-xl font-bold text-base-content mb-4">
+                        {group.restaurantName}
+                      </h3>
+
+                      <div className="space-y-4">
+                        {group.items.map(
+                          ({ item, quantity, selectedAddons }, index) => {
+                            const price = parseFloat(
+                              item.price?.toString() || "0"
+                            );
+                            const discountPrice = parseFloat(
+                              item.discountPrice?.toString() || "0"
+                            );
+                            const itemPrice =
+                              item.isDiscount && discountPrice > 0
+                                ? discountPrice
+                                : price;
+
+                            const addonPrice = (selectedAddons || []).reduce(
+                              (sum, addon) => sum + (addon.price || 0),
+                              0
+                            );
+
+                            const subtotal =
+                              (itemPrice + addonPrice) * quantity;
+
+                            return (
+                              <div
+                                key={`${group.restaurantId}-${index}`}
+                                className="flex gap-4 p-4 bg-base-200 rounded-lg"
+                              >
+                                {item.image && (
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="w-20 h-20 object-cover rounded-lg"
+                                  />
+                                )}
+                                <div className="flex-1">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h4 className="font-semibold text-base text-base-content">
+                                        {item.name}
+                                      </h4>
+                                      {selectedAddons &&
+                                        selectedAddons.length > 0 && (
+                                          <div className="text-sm text-base-content/60 mt-1">
+                                            {selectedAddons.map(
+                                              (addon, addonIndex) => (
+                                                <div key={addonIndex}>
+                                                  + {addon.optionName}
+                                                  {addon.price > 0 &&
+                                                    ` (£${addon.price.toFixed(
+                                                      2
+                                                    )})`}
+                                                </div>
+                                              )
+                                            )}
+                                          </div>
+                                        )}
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-lg font-bold text-primary">
+                                        £{subtotal.toFixed(2)}
+                                      </p>
+                                      <p className="text-sm text-base-content/60">
+                                        Qty: {quantity}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Section - Order Summary */}
+          <div className="lg:col-span-1">
+            <div className="bg-base-100 rounded-xl p-6 border border-base-300 sticky top-8">
+              <h2 className="text-2xl font-bold text-base-content mb-6">
+                Order Summary
+              </h2>
               <div className="space-y-4">
                 <div>
                   <label
@@ -266,127 +656,57 @@ export default function CheckoutPage() {
                   />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="dietaryRestrictions"
-                    className="block text-sm font-medium text-base-content mb-2"
-                  >
-                    Dietary Restrictions
-                  </label>
-                  <input
-                    id="dietaryRestrictions"
-                    type="text"
-                    className="w-full px-4 py-3 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-base-100 text-base-content"
-                    placeholder="Enter dietary restrictions separated by commas (e.g., vegetarian, gluten-free)"
-                    value={dietaryRestrictions}
-                    onChange={(e) => setDietaryRestrictions(e.target.value)}
-                  />
-                  <p className="text-xs text-base-content/60 mt-1">
-                    Separate multiple restrictions with commas
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Cart Items by Restaurant */}
-            <div className="bg-base-100 rounded-xl p-6 border border-base-300">
-              <h2 className="text-2xl font-bold text-base-content mb-4">
-                Your Order
-              </h2>
-
-              <div className="space-y-6">
-                {Object.values(groupedByRestaurant).map((group) => (
-                  <div
-                    key={group.restaurantId}
-                    className="border-b border-base-300 pb-6 last:border-b-0 last:pb-0"
-                  >
-                    <h3 className="text-xl font-bold text-base-content mb-4">
-                      {group.restaurantName}
-                    </h3>
-
-                    <div className="space-y-4">
-                      {group.items.map(
-                        ({ item, quantity, selectedAddons }, index) => {
-                          const price = parseFloat(
-                            item.price?.toString() || "0"
-                          );
-                          const discountPrice = parseFloat(
-                            item.discountPrice?.toString() || "0"
-                          );
-                          const itemPrice =
-                            item.isDiscount && discountPrice > 0
-                              ? discountPrice
-                              : price;
-
-                          const addonPrice = (selectedAddons || []).reduce(
-                            (sum, addon) => sum + (addon.price || 0),
-                            0
-                          );
-
-                          const subtotal = (itemPrice + addonPrice) * quantity;
-
-                          return (
-                            <div
-                              key={`${group.restaurantId}-${index}`}
-                              className="flex gap-4 p-4 bg-base-200 rounded-lg"
-                            >
-                              {item.image && (
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="w-20 h-20 object-cover rounded-lg"
-                                />
-                              )}
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <h4 className="font-semibold text-base text-base-content">
-                                      {item.name}
-                                    </h4>
-                                    {selectedAddons &&
-                                      selectedAddons.length > 0 && (
-                                        <div className="text-sm text-base-content/60 mt-1">
-                                          {selectedAddons.map(
-                                            (addon, addonIndex) => (
-                                              <div key={addonIndex}>
-                                                + {addon.optionName}
-                                                {addon.price > 0 &&
-                                                  ` (£${addon.price.toFixed(
-                                                    2
-                                                  )})`}
-                                              </div>
-                                            )
-                                          )}
-                                        </div>
-                                      )}
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="text-lg font-bold text-primary">
-                                      £{subtotal.toFixed(2)}
-                                    </p>
-                                    <p className="text-sm text-base-content/60">
-                                      Qty: {quantity}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        }
+                {/* {(filters.dietaryRestrictions.length > 0 ||
+                  filters.allergens.length > 0) && (
+                  <div>
+                    <label className="block text-sm font-medium text-base-content mb-2">
+                      Active Dietary Filters
+                    </label>
+                    <div className="p-4 bg-base-200 rounded-lg">
+                      {filters.dietaryRestrictions.length > 0 && (
+                        <div className="mb-2">
+                          <p className="text-xs font-semibold text-base-content/60 mb-1">
+                            Dietary Restrictions:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {filters.dietaryRestrictions.map(
+                              (filter, index) => (
+                                <span
+                                  key={index}
+                                  className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                                >
+                                  {filter}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {filters.allergens.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-base-content/60 mb-1">
+                            Allergens to Avoid:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {filters.allergens.map((allergen, index) => (
+                              <span
+                                key={index}
+                                className="px-3 py-1 bg-error/10 text-error rounded-full text-sm"
+                              >
+                                {allergen}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
+                    <p className="text-xs text-base-content/60 mt-2">
+                      These filters were set in the restaurant catalogue and
+                      will be applied to your order.
+                    </p>
                   </div>
-                ))}
+                )} */}
               </div>
-            </div>
-          </div>
-
-          {/* Right Section - Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-base-100 rounded-xl p-6 border border-base-300 sticky top-8">
-              <h2 className="text-2xl font-bold text-base-content mb-6">
-                Order Summary
-              </h2>
 
               {/* Delivery Date and Time */}
               {deliveryDate && deliveryTime && (
@@ -416,10 +736,43 @@ export default function CheckoutPage() {
                 </div>
               )}
 
+              {/* Budget Information */}
+              {/* {existingOrder && (
+                <div className="mb-6 p-4 bg-info/10 border border-info rounded-lg">
+                  <h3 className="text-sm font-semibold text-info mb-2">
+                    Budget Information
+                  </h3>
+                  <div className="space-y-1 text-xs text-base-content/80">
+                    <div className="flex justify-between">
+                      <span>Current Selection:</span>
+                      <span className="font-semibold">
+                        {orderAction === "replace" ? "Replace Order" : "Add to Order"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Existing Order:</span>
+                      <span className="font-semibold">
+                        £{parseFloat(existingOrder.totalAmount.toString()).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>New Cart:</span>
+                      <span className="font-semibold">£{getTotalPrice().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-info/20 pt-1 mt-1">
+                      <span>Daily Budget Remaining:</span>
+                      <span className="font-semibold">
+                        £{corporateUser?.dailyBudgetRemaining.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )} */}
+
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-base-content">
                   <span>Subtotal</span>
-                  <span>£{getTotalPrice().toFixed(2)}</span>
+                  <span>£{getSelectedTotal().toFixed(2)}</span>
                 </div>
                 {/* <div className="flex justify-between text-base-content">
                   <span>Delivery Fee</span>
@@ -427,7 +780,7 @@ export default function CheckoutPage() {
                 </div> */}
                 <div className="border-t border-base-300 pt-3 flex justify-between text-xl font-bold text-base-content">
                   <span>Total</span>
-                  <span>£{getTotalPrice().toFixed(2)}</span>
+                  <span>£{getSelectedTotal().toFixed(2)}</span>
                 </div>
               </div>
 
@@ -442,7 +795,13 @@ export default function CheckoutPage() {
                 disabled={isSubmitting}
                 className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Placing Order..." : "Place Order"}
+                {isSubmitting
+                  ? "Placing Order..."
+                  : existingOrder
+                  ? orderAction === "replace"
+                    ? "Replace & Place Order"
+                    : "Add & Place Order"
+                  : "Place Order"}
               </button>
 
               <button
@@ -462,5 +821,13 @@ export default function CheckoutPage() {
         onClose={() => setShowLoginModal(false)}
       />
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <FilterProvider>
+      <CheckoutPageNoFilterContext />
+    </FilterProvider>
   );
 }
