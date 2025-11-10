@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { CreateEmployeeOrderDto, OrderResponse } from '@/types/order';
+import { CreateEmployeeOrderDto, OrderResponse, OrderHistoryResponse } from '@/types/order';
 
 export const ordersApi = {
   /**
@@ -109,6 +109,24 @@ export const ordersApi = {
     const response = await apiClient.post(
       `/corporate-orders/sub-orders/bulk-reject`,
       { subOrderIds, managerId, reason }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get employee's order history
+   * GET /corporate-orders/my-orders/history/:employeeId?page=1&limit=10
+   */
+  getMyOrderHistory: async (
+    employeeId: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<OrderHistoryResponse> => {
+    const response = await apiClient.get(
+      `/corporate-orders/my-orders/history/${employeeId}`,
+      {
+        params: { page, limit }
+      }
     );
     return response.data;
   },
