@@ -9,7 +9,7 @@ import { OrganizationResponseDto } from "@/types/organization";
 import { OrderResponse } from "@/types/order";
 
 export default function ProfilePage() {
-  const { user, corporateUser, isAuthenticated, isLoading } = useAuth();
+  const { user, corporateUser, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
   const [organization, setOrganization] =
     useState<OrganizationResponseDto | null>(null);
@@ -91,11 +91,33 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-base-100 to-base-200 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-base-content mb-2">Profile</h1>
-          <p className="text-base-content/70">
-            Manage your account information and view your orders
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-base-content mb-2">Profile</h1>
+            <p className="text-base-content/70">
+              Manage your account information and view your orders
+            </p>
+          </div>
+          <button
+            className="btn btn-outline btn-error"
+            onClick={logout}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            Logout
+          </button>
         </div>
 
         {error && (
