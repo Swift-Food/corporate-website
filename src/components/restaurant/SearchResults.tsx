@@ -195,7 +195,7 @@ export default function SearchResults({
           <h3 className="text-xl md:text-2xl font-semibold mb-4 text-base-content">
             Restaurants ({allMatchingRestaurants.length})
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-1">
             {allMatchingRestaurants.map((restaurant) => (
               <RestaurantCard
                 key={restaurant.id}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
-import { checkoutApi } from "@/api/checkout";
+import { ordersApi } from "@/api/orders";
 import { restaurantApi } from "@/api/restaurant";
 import {
   CreateEmployeeOrderDto,
@@ -178,7 +178,7 @@ export default function CheckoutPage() {
       if (!employeeId){
         throw new Error()
       }
-      const response = await checkoutApi.createOrder(employeeId, orderData);
+      const response = await ordersApi.createOrder(employeeId, orderData);
 
       console.log("Order created successfully:", response);
 

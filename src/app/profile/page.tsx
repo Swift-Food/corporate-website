@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../../interceptors/auth/authContext";
 import { useRouter } from "next/navigation";
 import { organizationApi } from "@/api/organization";
-import { corporateOrdersApi } from "@/api/corporateOrders";
+import { ordersApi } from "@/api/orders";
 import { OrganizationResponseDto } from "@/types/organization";
 import { OrderResponse } from "@/types/order";
 
@@ -13,7 +13,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [organization, setOrganization] =
     useState<OrganizationResponseDto | null>(null);
-  const [activeOrders, setActiveOrders] = useState<OrderResponse[]>([]);
+  const [todayOrder, setTodayOrder] = useState<OrderResponse | null>(null);
   const [loadingOrg, setLoadingOrg] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [error, setError] = useState("");
@@ -58,12 +58,10 @@ export default function ProfilePage() {
 
     setLoadingOrders(true);
     try {
-      const data = await corporateOrdersApi.getEmployeeActiveOrders(
-        corporateUser.id
-      );
-      setActiveOrders(data);
+      const data = await ordersApi.getMyOrder(corporateUser.id);
+      setTodayOrder(data);
     } catch (err: any) {
-      console.error("Failed to load active orders:", err);
+      console.error("Failed to load today's order:", err);
       // Don't set error for orders as it's not critical
     } finally {
       setLoadingOrders(false);
@@ -203,15 +201,15 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Active Orders Section */}
+        {/* Today's Order Section */}
         <div className="card bg-base-100 rounded-xl mb-6 px-4 py-4 border border-base-200">
           <div className="card-body">
-            <h2 className="card-title text-2xl mb-4">Active Orders</h2>
+            <h2 className="card-title text-2xl mb-4">Today&apos;s Order</h2>
             {loadingOrders ? (
               <div className="flex justify-center py-8">
                 <div className="loading loading-spinner loading-lg text-primary"></div>
               </div>
-            ) : activeOrders.length === 0 ? (
+            ) : !todayOrder ? (
               <div className="text-center py-8">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -227,78 +225,71 @@ export default function ProfilePage() {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <p className="text-base-content/70 text-lg">No active orders</p>
+                <p className="text-base-content/70 text-lg">No order for today</p>
                 <p className="text-base-content/50 text-sm mt-2">
-                  Your active orders will appear here
+                  You haven&apos;t placed an order today yet
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {activeOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="border border-base-300 rounded-lg p-4 hover:border-primary/50 transition-colors"
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <p className="font-semibold text-lg">
-                          Order #{order.id.slice(0, 8)}
-                        </p>
-                        <p className="text-sm text-base-content/70">
-                          {new Date(order.createdAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="badge badge-primary badge-lg">
-                          {order.status}
-                        </div>
-                        <p className="text-lg font-bold mt-1">
-                          ${order.totalAmount.toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Restaurant Orders */}
-                    <div className="space-y-3">
-                      {order.restaurantOrders.map((restOrder, idx) => (
-                        <div key={idx} className="bg-base-200 rounded-lg p-3">
-                          <p className="font-semibold mb-2">
-                            {restOrder.restaurantName}
-                          </p>
-                          <div className="space-y-1">
-                            {restOrder.menuItems.map((item, itemIdx) => (
-                              <div
-                                key={itemIdx}
-                                className="flex justify-between text-sm"
-                              >
-                                <span className="text-base-content/80">
-                                  {item.quantity}x {item.name}
-                                </span>
-                                <span className="font-semibold">
-                                  ${item.totalPrice.toFixed(2)}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                          {restOrder.specialInstructions && (
-                            <p className="text-xs text-base-content/60 mt-2 italic">
-                              Note: {restOrder.specialInstructions}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+              <div className="border border-base-300 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="font-semibold text-lg">
+                      Order #{todayOrder.id.slice(0, 8)}
+                    </p>
+                    <p className="text-sm text-base-content/70">
+                      {new Date(todayOrder.createdAt).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                    </p>
                   </div>
-                ))}
+                  <div className="text-right">
+                    <div className="badge badge-primary badge-lg">
+                      {todayOrder.status}
+                    </div>
+                    <p className="text-lg font-bold mt-1">
+                      ${todayOrder.totalAmount.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Restaurant Orders */}
+                <div className="space-y-3">
+                  {todayOrder.restaurantOrders.map((restOrder, idx) => (
+                    <div key={idx} className="bg-base-200 rounded-lg p-3">
+                      <p className="font-semibold mb-2">
+                        {restOrder.restaurantName}
+                      </p>
+                      <div className="space-y-1">
+                        {restOrder.menuItems.map((item, itemIdx) => (
+                          <div
+                            key={itemIdx}
+                            className="flex justify-between text-sm"
+                          >
+                            <span className="text-base-content/80">
+                              {item.quantity}x {item.name}
+                            </span>
+                            <span className="font-semibold">
+                              ${item.totalPrice.toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      {restOrder.specialInstructions && (
+                        <p className="text-xs text-base-content/60 mt-2 italic">
+                          Note: {restOrder.specialInstructions}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

@@ -12,7 +12,7 @@ export default function RestaurantCard({
   return (
     <div
       onClick={() => onClick(restaurant)}
-      className="rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 border-2 border-base-300 cursor-pointer"
+      className="rounded-lg overflow-hidden transition-transform duration-300 border-2 border-gray-200 cursor-pointer"
     >
       <div className="relative w-full aspect-[16/9] overflow-hidden">
         <img

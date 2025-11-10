@@ -19,7 +19,7 @@ import { JobTitlesTab } from './JobTitlesTab';
 import { OrderSettings } from './OrderSettings';
 import { TodaysOrder } from './TodaysOrder';
 import { RejectModal } from '@/modals/RejectModal';
-import { corporateOrdersApi } from '@/api/corporateOrders';
+import { ordersApi } from '@/api/orders';
 import { ApprovedOrdersTab } from './ApprovedOrdersTab';
 import { WalletTab } from './WalletTab';
 import { ContactTab } from './ContactTab';
@@ -246,7 +246,7 @@ function DashboardContent() {
     setIsLoading(true);
     setError('');
     try {
-      const data = await corporateOrdersApi.getApprovedOrders(corporateUser.id);
+      const data = await ordersApi.getApprovedOrders(corporateUser.id);
       setApprovedOrders(data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load approved orders');
