@@ -93,6 +93,7 @@ function NavbarAction({
         aria-label="Profile"
       > */}
       <button
+        onClick={() => router.push("/checkout")}
         className="w-10 h-10 rounded-full text-black flex items-center justify-center transition-all cursor-pointer"
         aria-label="Profile"
       >
