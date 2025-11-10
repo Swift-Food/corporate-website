@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useCart } from "../../context/CartContext";
 // import { Menu } from "@deemlol/next-icons";
-import { ShoppingCart, User } from "lucide-react";
+import { ShoppingCart, User, ShieldUser } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
@@ -47,10 +47,11 @@ function NavbarAction({
       {isManager && (
         <button
           onClick={handleManagerClick}
-          className="btn btn-sm md:btn-md bg-white hover:bg-gray-50 rounded-md text-black border-black font-semibold text-xs md:text-base px-2 md:px-6"
+          className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all cursor-pointer"
         >
-          <span className="hidden sm:inline">MANAGER</span>
-          <span className="sm:hidden">MGR</span>
+          <ShieldUser className="w-5 h-5 md:w-6 md:h-6" />
+          {/* <span className="hidden sm:inline">MANAGER</span>
+          <span className="sm:hidden">MGR</span> */}
         </button>
       )}
       <div className="relative">
