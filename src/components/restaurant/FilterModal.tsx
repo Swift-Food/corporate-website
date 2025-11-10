@@ -167,6 +167,10 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
     setSelectedAllergens([]);
   };
 
+  const clearDietaryRestrictions = () => {
+    setSelectedDietaryRestrictions([]);
+  };
+
   const toggleDietary = (item: DietaryFilter) => {
     setSelectedDietaryRestrictions((prev) =>
       prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
@@ -224,17 +228,6 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
             </button>
           </div>
 
-          {/* Clear Filter Button (mobile) */}
-          {(selectedAllergens.length > 0 ||
-            selectedDietaryRestrictions.length > 0) && (
-            <button
-              onClick={clearFilters}
-              className="mb-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-full text-sm transition-colors"
-            >
-              Clear Filter
-            </button>
-          )}
-
           {/* Allergens */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
@@ -246,7 +239,7 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
                   onClick={clearAllergens}
                   className="text-xs text-pink-500 hover:text-pink-600 font-medium"
                 >
-                  Clear all
+                  Clear
                 </button>
               )}
             </div>
@@ -272,9 +265,19 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
 
           {/* Dietary Restrictions */}
           <div className="mb-5">
-            <h3 className="text-base font-semibold text-base-content mb-2">
-              Dietary Restrictions
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-semibold text-base-content">
+                Dietary Restrictions
+              </h3>
+              {selectedDietaryRestrictions.length > 0 && (
+                <button
+                  onClick={clearDietaryRestrictions}
+                  className="text-xs text-pink-500 hover:text-pink-600 font-medium"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2">
               {dietaryFilterOptions.map((item) => (
                 <button
@@ -331,17 +334,6 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
           </button>
         </div>
 
-        {/* Clear Filter Button (desktop) */}
-        {(selectedAllergens.length > 0 ||
-          selectedDietaryRestrictions.length > 0) && (
-          <button
-            onClick={clearFilters}
-            className="mb-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-full text-sm transition-colors"
-          >
-            Clear Filter
-          </button>
-        )}
-
         {/* Allergens */}
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
@@ -353,7 +345,7 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
                 onClick={clearAllergens}
                 className="text-xs text-pink-500 hover:text-pink-600 font-medium"
               >
-                Clear all
+                Clear
               </button>
             )}
           </div>
@@ -379,9 +371,19 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
 
         {/* Dietary Restrictions */}
         <div className="mb-5">
-          <h3 className="text-base font-semibold text-base-content mb-2">
-            Dietary Restrictions
-          </h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-base font-semibold text-base-content">
+              Dietary Restrictions
+            </h3>
+            {selectedDietaryRestrictions.length > 0 && (
+              <button
+                onClick={clearDietaryRestrictions}
+                className="text-xs text-pink-500 hover:text-pink-600 font-medium"
+              >
+                Clear
+              </button>
+            )}
+          </div>
           <div className="flex flex-wrap gap-2">
             {dietaryFilterOptions.map((item) => (
               <button
@@ -398,6 +400,17 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
             ))}
           </div>
         </div>
+
+        {/* Clear Filter Button (desktop) */}
+        {(selectedAllergens.length > 0 ||
+          selectedDietaryRestrictions.length > 0) && (
+          <button
+            onClick={clearFilters}
+            className="mb-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-full text-sm transition-colors"
+          >
+            Clear Filter
+          </button>
+        )}
 
         {/* Apply Button */}
         <button
