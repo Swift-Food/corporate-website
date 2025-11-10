@@ -65,6 +65,10 @@ function NavbarAction({
 
           {/* Profile Icon */}
           <button
+            onClick={() => {
+              router.push("/profile");
+              if (onLinkClick) onLinkClick();
+            }}
             className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex items-center justify-center transition-all hover:shadow-lg"
             aria-label="Profile"
           >

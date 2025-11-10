@@ -64,7 +64,7 @@ export default function CartSidebar({
                 return (
                   <div
                     key={index}
-                    className={`flex gap-3 pb-4${
+                    className={`flex gap-3 pb-6${
                       index !== cartItems.length - 1
                         ? " border-b border-base-300"
                         : ""
