@@ -38,7 +38,7 @@ function CheckoutPageNoFilterContext() {
     null
   );
   const [isWithinBudget, setIsWithinBudget] = useState(true);
-  const [orderAction, setOrderAction] = useState<"replace" | "add">("replace");
+  const [orderAction, setOrderAction] = useState<"replace" | "add" | null>("replace");
   const [isCheckingOrder, setIsCheckingOrder] = useState(true);
 
   // Load delivery date and time from localStorage
