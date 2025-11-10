@@ -1,3 +1,5 @@
+import { DietaryFilter } from "./menuItem";
+
 export interface SearchResult {
   type: "restaurant" | "menu_item";
   id: string;
@@ -71,4 +73,5 @@ export interface SearchFilters {
   categoryId?: string;
   minRating?: number;
   maxPrice?: number;
+  dietaryFilters: DietaryFilter[]
 }

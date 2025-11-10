@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useCart } from "../../context/CartContext";
 import { Menu } from "@deemlol/next-icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,10 @@ function NavbarAction({
     onLogout();
     if (onLinkClick) onLinkClick();
   };
+
+  // Use the custom hook for cart context
+  const { cartItems = [] } = useCart();
+  const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div className="flex gap-4 items-center max-sm:flex-col-reverse max-sm:mt-8 text-black">
@@ -88,6 +93,59 @@ function NavbarAction({
           LOGIN
         </button>
       )}
+      {/* <button
+        className="w-10 h-10 rounded-full text-white bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex items-center justify-center transition-all hover:shadow-lg"
+        aria-label="Profile"
+      > */}
+      <div className="relative">
+        <button
+          onClick={() => router.push("/checkout")}
+          className="w-10 h-10 rounded-full text-black flex items-center justify-center transition-all cursor-pointer"
+          aria-label="Profile"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            role="img"
+            aria-label="Shopping cart"
+            focusable="false"
+          >
+            <g
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 3h2l1.5 9h11l2-6H8.5" />
+              <circle
+                cx="10"
+                cy="19"
+                r="1.4"
+                fill="currentColor"
+                stroke="none"
+              />
+              <circle
+                cx="18"
+                cy="19"
+                r="1.4"
+                fill="currentColor"
+                stroke="none"
+              />
+            </g>
+          </svg>
+        </button>
+        {cartItemCount > 0 && (
+          <span
+            className="absolute bottom-0 right-0 bg-primary text-white text-xs font-bold rounded-full px-2 py-0.5 shadow-lg border border-white"
+            style={{ transform: "translate(40%, 40%)" }}
+          >
+            {cartItemCount}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -115,7 +173,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 left-0 right-0 flex flex-col z-50 relative">
+      <nav className="sticky top-0 left-0 right-0 flex flex-col z-50">
         <div className="flex items-center justify-between px-16 py-4 max-lg:px-4 bg-base-200 gap-5 flex-nowrap">
           <div className="invisible max-xl:hidden whitespace-nowrap">
             <NavbarAction

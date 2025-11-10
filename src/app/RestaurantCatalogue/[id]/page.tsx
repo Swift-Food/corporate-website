@@ -9,11 +9,14 @@ import CartSidebar from "@/components/cart/CartSidebar";
 import MobileCart from "@/components/cart/MobileCart";
 import MenuItemCard from "@/components/catalogue/MenuItemCard";
 import { transformMenuItems } from "@/util/menuItems";
+import FilterModal from "@/components/restaurant/FilterModal";
+import { FilterProvider, useFilters } from "@/contexts/FilterContext";
 
-export default function RestaurantDetailPage() {
+function RestaurantDetailContent() {
   const params = useParams();
   const router = useRouter();
   const restaurantId = params.id as string;
+  const { filters } = useFilters();
 
   const [menuItems, setMenuItems] = useState<CorporateMenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +25,10 @@ export default function RestaurantDetailPage() {
   const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const tabContainerRef = useRef<HTMLDivElement | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [filterExpanded, setFilterExpanded] = useState(false);
+  const closeButtonClickedRef = useRef(false);
 
   useEffect(() => {
     // Get restaurant data from sessionStorage
@@ -52,8 +59,33 @@ export default function RestaurantDetailPage() {
     fetchItems();
   }, [restaurantId]);
 
+  // Filter menu items based on search query and dietary filters
+  const filteredMenuItems = menuItems.filter((item) => {
+    // Search filter
+    const matchesSearch =
+      !searchQuery ||
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Dietary filter
+    const matchesDietary =
+      !filters.dietaryRestrictions ||
+      filters.dietaryRestrictions.length === 0 ||
+      filters.dietaryRestrictions.some((restriction) =>
+        item.dietaryFilters?.includes(restriction)
+      );
+
+    // Allergen filter - exclude items that contain selected allergens
+    const matchesAllergens =
+      !filters.allergens ||
+      filters.allergens.length === 0 ||
+      !filters.allergens.some((allergen) => item.allergens?.includes(allergen));
+
+    return matchesSearch && matchesDietary && matchesAllergens;
+  });
+
   // Group menu items by groupTitle
-  const groupedMenuItems = menuItems.reduce((acc, item) => {
+  const groupedMenuItems = filteredMenuItems.reduce((acc, item) => {
     const group = item.groupTitle || "Other";
     if (!acc[group]) {
       acc[group] = [];
@@ -160,6 +192,10 @@ export default function RestaurantDetailPage() {
     router.push("/checkout");
   };
 
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
+
   return (
     <div className="w-full min-h-screen bg-base-100">
       {/* Restaurant Header */}
@@ -227,8 +263,145 @@ export default function RestaurantDetailPage() {
         </div>
       )}
 
+      {/* Search and Filter Bar - Sticky */}
+      <div className="sticky top-[136px] md:top-[144px] z-30">
+        <div className="px-4 md:px-8 py-3">
+          <div className="flex items-center gap-2 w-full max-w-7xl mx-auto">
+            {/* Search Bar fills available width */}
+            <div className="flex-1">
+              <div className="flex items-center bg-white rounded-full h-12 px-3 w-full border border-base-200">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5 text-gray-400 flex-shrink-0"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search menu items..."
+                  className="flex-1 text-base text-gray-600 placeholder-gray-400 focus:outline-none bg-transparent ml-2"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+            {/* Filter Button - animated */}
+            <div
+              onMouseEnter={() => setFilterExpanded(true)}
+              onMouseLeave={() => setFilterExpanded(false)}
+            >
+              <button
+                onClick={() => {
+                  // Don't open if close button was just clicked
+                  if (closeButtonClickedRef.current) {
+                    closeButtonClickedRef.current = false;
+                    return;
+                  }
+                  if (!filterModalOpen) {
+                    setFilterModalOpen(true);
+                  }
+                }}
+                className={`rounded-full border border-base-200 transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-12 overflow-hidden ${
+                  filterModalOpen || filterExpanded
+                    ? "w-36 px-4 gap-2 justify-between"
+                    : "w-12 justify-center"
+                } ${filterModalOpen ? "bg-primary text-white" : "bg-white"}`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className={`w-5 h-5 flex-shrink-0 ${
+                    filterModalOpen ? "text-white" : "text-gray-700"
+                  }`}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                  />
+                </svg>
+                {(filterModalOpen || filterExpanded) && (
+                  <>
+                    <span
+                      className={`text-sm font-medium whitespace-nowrap ${
+                        filterModalOpen ? "text-white" : "text-gray-700"
+                      }`}
+                    >
+                      Filters
+                    </span>
+                    <div
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        closeButtonClickedRef.current = true;
+                        setFilterModalOpen(false);
+                      }}
+                      className={`filter-close-btn rounded-full h-8 w-8 bg-white text-black flex justify-center items-center cursor-pointer ${
+                        filterModalOpen ? "visible" : "invisible"
+                      }`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                        <line x1="6" y1="18" x2="18" y2="6" />
+                      </svg>
+                    </div>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Modal */}
+        <FilterModal
+          isOpen={filterModalOpen}
+          onClose={() => setFilterModalOpen(false)}
+        />
+      </div>
+
       {/* Main Content Container */}
-      <div className="flex gap-6 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 max-w-7xl mx-auto">
+      <div className="flex gap-6 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 mx-auto">
         {/* Menu Items */}
         <div className="flex-1">
           {loading ? (
@@ -258,9 +431,9 @@ export default function RestaurantDetailPage() {
 
         {/* Cart Sidebar - Desktop */}
         <CartSidebar
-          topOffset="top-40"
-          maxHeightOffset="12rem"
-          widthPercentage={35}
+          topOffset="top-54"
+          maxHeightOffset="14rem"
+          widthPercentage={25}
           onCheckout={handleCheckout}
         />
       </div>
@@ -268,5 +441,13 @@ export default function RestaurantDetailPage() {
       {/* Mobile Cart */}
       <MobileCart onCheckout={handleCheckout} />
     </div>
+  );
+}
+
+export default function RestaurantDetailPage() {
+  return (
+    <FilterProvider>
+      <RestaurantDetailContent />
+    </FilterProvider>
   );
 }

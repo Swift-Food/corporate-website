@@ -2,6 +2,7 @@ import {
   CorporateMenuItem,
   Addon as TransformedAddon,
   ApiMenuItem,
+  DietaryFilter,
 } from "@/types/menuItem";
 
 // API types where prices are strings
@@ -23,6 +24,19 @@ const parseNumber = (value: string | number | null | undefined): number => {
 
 export const transformMenuItems = (apiData: ApiMenuItem[]): CorporateMenuItem[] => {
   const transformedData = (apiData || []).map((item: ApiMenuItem) => {
+    // Transform dietary filters from strings to DietaryFilter enum
+    const dietaryFilters: DietaryFilter[] | undefined = item.dietaryFilters
+      ? item.dietaryFilters
+          .map((filter) => {
+            // Convert to lowercase and check if it's a valid DietaryFilter
+            const filterKey = filter.toLowerCase();
+            return Object.values(DietaryFilter).includes(filterKey as DietaryFilter)
+              ? (filterKey as DietaryFilter)
+              : null;
+          })
+          .filter((f): f is DietaryFilter => f !== null)
+      : undefined;
+
     return {
       id: item.id,
       restaurantId: item.restaurantId,
@@ -40,6 +54,7 @@ export const transformMenuItems = (apiData: ApiMenuItem[]): CorporateMenuItem[] 
       isDiscount: item.isDiscount,
 
       allergens: item.allergens,
+      dietaryFilters: dietaryFilters,
 
       addons: item.addons,
 

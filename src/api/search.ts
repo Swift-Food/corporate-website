@@ -8,7 +8,7 @@ export const searchApi = {
   ): Promise<SearchResponse> => {
     const params = new URLSearchParams();
 
-    if (query) params.append("q", query);
+    params.append("q", query);
     if (filters?.page) params.append("page", filters.page.toString());
     if (filters?.limit) params.append("limit", filters.limit.toString());
     if (filters?.marketId) params.append("marketId", filters.marketId);
@@ -17,12 +17,16 @@ export const searchApi = {
       params.append("minRating", filters.minRating.toString());
     if (filters?.maxPrice)
       params.append("maxPrice", filters.maxPrice.toString());
+    if (filters?.dietaryFilters)
+      params.append("dietaryFilters", filters.dietaryFilters.join(","));
 
+    console.log("Search payload: ", params);
     const response = await apiClient.get(
       `${
         process.env.NEXT_PUBLIC_API_URL
       }/search?corporate=true&${params.toString()}`
     );
+    console.log("Search response: ", response);
     return response.data;
   },
 };

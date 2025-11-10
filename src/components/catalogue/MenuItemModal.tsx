@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
+import Image from "next/image";
 import { CorporateMenuItem, Addon, AddonGroup } from "@/types/menuItem";
 import { SelectedAddon } from "@/context/CartContext";
 
@@ -8,18 +10,34 @@ interface MenuItemModalProps {
   item: CorporateMenuItem;
   isOpen: boolean;
   onClose: () => void;
+  quantity?: number;
   onAddItem: (
     item: CorporateMenuItem,
     quantity: number,
     selectedAddons: SelectedAddon[]
   ) => void;
+  onUpdateQuantity?: (
+    itemId: string,
+    cartIndex: number,
+    quantity: number
+  ) => void;
+  isEditMode?: boolean;
+  onRemoveItem?: (itemId: string, cartIndex: number) => void;
+  cartIndex?: number;
+  existingSelectedAddons?: SelectedAddon[];
 }
 
 export default function MenuItemModal({
   item,
   isOpen,
   onClose,
+  quantity = 0,
   onAddItem,
+  onUpdateQuantity,
+  isEditMode = false,
+  onRemoveItem,
+  cartIndex = -1,
+  existingSelectedAddons = [],
 }: MenuItemModalProps) {
   // Reset quantity when modal opens/closes using isOpen as a key driver
   const [itemQuantity, setItemQuantity] = useState(1);
@@ -27,6 +45,9 @@ export default function MenuItemModal({
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, Record<string, boolean>>
   >({});
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+  const [hasModifiedQuantity, setHasModifiedQuantity] = useState(false);
+  const [initialModalQuantity, setInitialModalQuantity] = useState(0);
 
   const price = parseFloat(item.price?.toString() || "0");
   const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
@@ -68,8 +89,28 @@ export default function MenuItemModal({
         initialSelections[group.groupTitle][addon.name] = false;
       });
     });
+
+    // If in edit mode, pre-populate with existing selections
+    if (
+      isEditMode &&
+      existingSelectedAddons &&
+      existingSelectedAddons.length > 0
+    ) {
+      existingSelectedAddons.forEach((selectedAddon) => {
+        const groupTitle = selectedAddon.addonName; // addonName is the group title
+        const addonName = selectedAddon.optionName; // optionName is the actual addon name
+
+        if (
+          initialSelections[groupTitle] &&
+          initialSelections[groupTitle][addonName] !== undefined
+        ) {
+          initialSelections[groupTitle][addonName] = true;
+        }
+      });
+    }
+
     return initialSelections;
-  }, [addonGroups]);
+  }, [addonGroups, isEditMode, existingSelectedAddons]);
 
   // Reset state when item changes (which typically happens when modal opens with new item)
   const prevItemIdRef = useRef<string | null>(null);
@@ -80,17 +121,23 @@ export default function MenuItemModal({
       prevItemIdRef.current = item.id || null;
       // Schedule state updates to next tick to avoid synchronous setState warning
       Promise.resolve().then(() => {
-        setItemQuantity(1);
-        setItemQuantityInput("1");
+        // Initialize quantity from prop or default to 1
+        const initialQty = quantity > 0 ? quantity : 1;
+        setItemQuantity(initialQty);
+        setItemQuantityInput(initialQty.toString());
+        setInitialModalQuantity(initialQty);
+        setHasModifiedQuantity(false);
         setSelectedOptions(initialSelectedOptions);
+        setActiveTooltip(null);
       });
     }
 
     // Clear ref when modal closes
     if (!isOpen) {
       prevItemIdRef.current = null;
+      setActiveTooltip(null);
     }
-  }, [item.id, isOpen, initialSelectedOptions]);
+  }, [item.id, isOpen, quantity, initialSelectedOptions]);
 
   // Calculate total price using useMemo
   const totalPrice = useMemo(() => {
@@ -215,9 +262,14 @@ export default function MenuItemModal({
     return "Select any";
   };
 
-  return (
+  if (!isOpen) return null;
+
+  // Only render on client side
+  if (typeof window === "undefined") return null;
+
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       onClick={onClose}
     >
       {/* Backdrop */}
@@ -255,6 +307,73 @@ export default function MenuItemModal({
                 <p className="text-base-content/70 text-sm leading-relaxed">
                   {item.description}
                 </p>
+              </div>
+            )}
+
+            {/* Dietary Filters */}
+            {item.dietaryFilters && item.dietaryFilters.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-sm text-base-content mb-2">
+                  Dietary Information
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {item.dietaryFilters.map((filter) => {
+                    const iconMap: Record<string, string> = {
+                      vegetarian: "Vegetarian.png",
+                      halal: "Halal.png",
+                      no_gluten: "No Gluten.png",
+                      no_nut: "No Nuts.png",
+                      no_dairy: "No Dairy.png",
+                      pescatarian: "Pescatarian.png",
+                      vegan: "Vegan.png",
+                    };
+                    const labelMap: Record<string, string> = {
+                      vegetarian: "Vegetarian",
+                      halal: "Halal",
+                      no_gluten: "No Gluten",
+                      no_nut: "No Nuts",
+                      no_dairy: "No Dairy",
+                      pescatarian: "Pescatarian",
+                      vegan: "Vegan",
+                      nonvegetarian: "Non-Vegetarian",
+                    };
+                    const iconFile = iconMap[filter.toLowerCase()];
+                    const label = labelMap[filter.toLowerCase()] || filter;
+                    const tooltipKey = `modal-${filter}`;
+                    const isTooltipActive = activeTooltip === tooltipKey;
+
+                    if (!iconFile) return null;
+
+                    return (
+                      <div
+                        key={filter}
+                        className="relative w-8 h-8 group cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveTooltip(isTooltipActive ? null : tooltipKey);
+                        }}
+                      >
+                        <Image
+                          src={`/icons/Mini_Allergens_Icons/Icon only/${iconFile}`}
+                          alt={label}
+                          fill
+                          className="object-contain"
+                        />
+                        {/* Tooltip */}
+                        <div
+                          className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap transition-opacity z-10 ${
+                            isTooltipActive
+                              ? "opacity-100"
+                              : "opacity-0 group-hover:opacity-100 pointer-events-none"
+                          }`}
+                        >
+                          {label}
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
@@ -317,6 +436,12 @@ export default function MenuItemModal({
                       const newQty = Math.max(1, itemQuantity - 1);
                       setItemQuantity(newQty);
                       setItemQuantityInput(newQty.toString());
+                      if (
+                        quantity > 0 &&
+                        (!item.addons || item.addons.length === 0)
+                      ) {
+                        setHasModifiedQuantity(newQty !== initialModalQuantity);
+                      }
                     }}
                     className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
                   >
@@ -333,6 +458,14 @@ export default function MenuItemModal({
                         if (val !== "" && !isNaN(parseInt(val))) {
                           const newQty = Math.max(1, parseInt(val));
                           setItemQuantity(newQty);
+                          if (
+                            quantity > 0 &&
+                            (!item.addons || item.addons.length === 0)
+                          ) {
+                            setHasModifiedQuantity(
+                              newQty !== initialModalQuantity
+                            );
+                          }
                         }
                       }
                     }}
@@ -343,6 +476,12 @@ export default function MenuItemModal({
                       ) {
                         setItemQuantity(1);
                         setItemQuantityInput("1");
+                        if (
+                          quantity > 0 &&
+                          (!item.addons || item.addons.length === 0)
+                        ) {
+                          setHasModifiedQuantity(1 !== initialModalQuantity);
+                        }
                       }
                     }}
                     className="w-20 text-center font-bold text-lg text-base-content bg-base-100 border border-base-300 rounded px-2 py-1"
@@ -352,6 +491,12 @@ export default function MenuItemModal({
                       const newQty = itemQuantity + 1;
                       setItemQuantity(newQty);
                       setItemQuantityInput(newQty.toString());
+                      if (
+                        quantity > 0 &&
+                        (!item.addons || item.addons.length === 0)
+                      ) {
+                        setHasModifiedQuantity(newQty !== initialModalQuantity);
+                      }
                     }}
                     className="w-10 h-10 bg-base-100 border border-base-300 rounded-lg hover:bg-base-200 flex items-center justify-center text-lg font-medium flex-shrink-0"
                   >
@@ -453,16 +598,67 @@ export default function MenuItemModal({
               </div>
             </div>
 
-            {/* Add to Cart Button */}
-            <button
-              onClick={handleAddToCart}
-              className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
-            >
-              Add to Cart
-            </button>
+            {/* Action Buttons */}
+            {isEditMode ? (
+              <div className="space-y-2">
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => {
+                    if (onRemoveItem && cartIndex >= 0) {
+                      onRemoveItem(item.id, cartIndex);
+                      onClose();
+                    }
+                  }}
+                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Remove from Cart
+                </button>
+              </div>
+            ) : quantity > 0 && (!item.addons || item.addons.length === 0) ? (
+              <div className="space-y-2">
+                {hasModifiedQuantity && (
+                  <button
+                    onClick={() => {
+                      if (onUpdateQuantity && cartIndex >= 0) {
+                        onUpdateQuantity(item.id, cartIndex, itemQuantity);
+                        onClose();
+                      }
+                    }}
+                    className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                  >
+                    Update Quantity
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    if (onUpdateQuantity && cartIndex >= 0) {
+                      onUpdateQuantity(item.id, cartIndex, 0);
+                      onClose();
+                    }
+                  }}
+                  className="w-full bg-error hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+                >
+                  Remove from Cart
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                className="w-full bg-primary hover:opacity-90 text-white py-3 rounded-lg font-medium transition-all text-base"
+              >
+                Add to Cart
+              </button>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
