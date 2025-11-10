@@ -177,10 +177,10 @@ export default function OrderDetailsPage() {
                 <p className="text-sm text-base-content/70 mb-1">Status</p>
                 <div
                   className={`badge ${getStatusColor(
-                    order.status
+                    order.status || ""
                   )} badge-lg px-4 py-3 capitalize text-base`}
                 >
-                  {order.status.replace(/_/g, " ")}
+                  {order.status ? order.status.replace(/_/g, " ") : "Unknown"}
                 </div>
               </div>
               {order.estimatedDeliveryTime && (
@@ -202,14 +202,16 @@ export default function OrderDetailsPage() {
                   </p>
                 </div>
               )}
-              <div>
-                <p className="text-sm text-base-content/70 mb-1">
-                  Payment Method
-                </p>
-                <p className="text-lg font-semibold capitalize">
-                  {order.paymentMethod.replace(/_/g, " ")}
-                </p>
-              </div>
+              {order.paymentMethod && (
+                <div>
+                  <p className="text-sm text-base-content/70 mb-1">
+                    Payment Method
+                  </p>
+                  <p className="text-lg font-semibold capitalize">
+                    {order.paymentMethod.replace(/_/g, " ")}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Price Breakdown */}
@@ -330,7 +332,7 @@ export default function OrderDetailsPage() {
                             {item.quantity}x {item.name}
                           </p>
                           <p className="text-sm text-base-content/70">
-                            ${item.unitPrice.toFixed(2)} each
+                            ${Number(item.unitPrice).toFixed(2)} each
                           </p>
 
                           {/* Selected Addons */}

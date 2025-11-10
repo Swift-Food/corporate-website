@@ -9,7 +9,9 @@ import { OrderHistoryResponse, OrderResponse } from "@/types/order";
 export default function OrderHistoryPage() {
   const { corporateUser, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
-  const [orderHistory, setOrderHistory] = useState<OrderHistoryResponse | null>(null);
+  const [orderHistory, setOrderHistory] = useState<OrderHistoryResponse | null>(
+    null
+  );
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,11 +45,12 @@ export default function OrderHistoryPage() {
     setLoadingOrders(true);
     setError("");
     try {
-      const data = await ordersApi.getMyOrderHistory(
+      const { data } = await ordersApi.getMyOrderHistory(
         corporateUser.id,
         currentPage,
         itemsPerPage
       );
+      console.log("Data in order history: ", data);
       setOrderHistory(data);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to load order history");
@@ -89,7 +92,9 @@ export default function OrderHistoryPage() {
       <div className="card-body p-4">
         <div className="flex justify-between items-start mb-3">
           <div>
-            <p className="font-semibold text-lg">Order #{order.id.slice(0, 8)}</p>
+            <p className="font-semibold text-lg">
+              Order #{order.id.slice(0, 8)}
+            </p>
             <p className="text-sm text-base-content/70">
               {new Date(order.createdAt).toLocaleDateString("en-US", {
                 year: "numeric",
@@ -117,10 +122,7 @@ export default function OrderHistoryPage() {
               <p className="font-semibold mb-2">{restOrder.restaurantName}</p>
               <div className="space-y-1">
                 {restOrder.menuItems.map((item, itemIdx) => (
-                  <div
-                    key={itemIdx}
-                    className="flex justify-between text-sm"
-                  >
+                  <div key={itemIdx} className="flex justify-between text-sm">
                     <span className="text-base-content/80">
                       {item.quantity}x {item.name}
                     </span>
@@ -217,7 +219,9 @@ export default function OrderHistoryPage() {
                 1
               </button>
               {startPage > 2 && (
-                <button className="join-item btn btn-sm btn-disabled">...</button>
+                <button className="join-item btn btn-sm btn-disabled">
+                  ...
+                </button>
               )}
             </>
           )}
@@ -235,7 +239,9 @@ export default function OrderHistoryPage() {
           {endPage < totalPages && (
             <>
               {endPage < totalPages - 1 && (
-                <button className="join-item btn btn-sm btn-disabled">...</button>
+                <button className="join-item btn btn-sm btn-disabled">
+                  ...
+                </button>
               )}
               <button
                 className="join-item btn btn-sm"
@@ -255,7 +261,7 @@ export default function OrderHistoryPage() {
         </div>
 
         <div className="text-sm text-base-content/70">
-          Showing {((page - 1) * itemsPerPage) + 1} to{" "}
+          Showing {(page - 1) * itemsPerPage + 1} to{" "}
           {Math.min(page * itemsPerPage, orderHistory.pagination.totalItems)} of{" "}
           {orderHistory.pagination.totalItems} orders
         </div>

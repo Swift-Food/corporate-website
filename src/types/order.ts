@@ -53,8 +53,8 @@ export interface OrderResponse {
   discount: string | number;
   totalAmount: string | number;
   totalEmployees: number;
-  paymentMethod: string;
-  paymentSource: string;
+  paymentMethod?: string;
+  paymentSource?: string;
   paymentIntentId: string | null;
   paymentCompleted: boolean;
   isPaid: boolean;
