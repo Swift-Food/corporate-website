@@ -13,15 +13,16 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
 import LoginModal from "../components/LoginModal";
 import { getNextWorkingDayISO } from "@/util/catalogue";
+import { FilterProvider, useFilters } from "@/contexts/FilterContext";
 
-export default function CheckoutPage() {
+function CheckoutPageNoFilterContext() {
   const router = useRouter();
   const { cartItems, getTotalPrice, clearCart } = useCart();
   const { corporateUser, isAuthenticated } = useAuth();
+  const { filters } = useFilters();
   const employeeId = corporateUser?.id; //user?.id || corporateUser?.id;
 
   const [specialInstructions, setSpecialInstructions] = useState("");
-  const [dietaryRestrictions, setDietaryRestrictions] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -174,9 +175,10 @@ export default function CheckoutPage() {
         deliveryAddressId: "default-address-id", // TODO: Get from user context
         requestedDeliveryTime: getRequestedDeliveryTime(),
         specialInstructions: specialInstructions || undefined,
-        dietaryRestrictions: dietaryRestrictions
-          ? dietaryRestrictions.split(",").map((r) => r.trim())
-          : undefined,
+        dietaryRestrictions: [
+          ...filters.dietaryRestrictions,
+          ...filters.allergens,
+        ].filter(Boolean),
       };
       if (!employeeId) {
         throw new Error();
@@ -266,25 +268,56 @@ export default function CheckoutPage() {
                   />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="dietaryRestrictions"
-                    className="block text-sm font-medium text-base-content mb-2"
-                  >
-                    Dietary Restrictions
-                  </label>
-                  <input
-                    id="dietaryRestrictions"
-                    type="text"
-                    className="w-full px-4 py-3 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-base-100 text-base-content"
-                    placeholder="Enter dietary restrictions separated by commas (e.g., vegetarian, gluten-free)"
-                    value={dietaryRestrictions}
-                    onChange={(e) => setDietaryRestrictions(e.target.value)}
-                  />
-                  <p className="text-xs text-base-content/60 mt-1">
-                    Separate multiple restrictions with commas
-                  </p>
-                </div>
+                {(filters.dietaryRestrictions.length > 0 ||
+                  filters.allergens.length > 0) && (
+                  <div>
+                    <label className="block text-sm font-medium text-base-content mb-2">
+                      Active Dietary Filters
+                    </label>
+                    <div className="p-4 bg-base-200 rounded-lg">
+                      {filters.dietaryRestrictions.length > 0 && (
+                        <div className="mb-2">
+                          <p className="text-xs font-semibold text-base-content/60 mb-1">
+                            Dietary Restrictions:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {filters.dietaryRestrictions.map(
+                              (filter, index) => (
+                                <span
+                                  key={index}
+                                  className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                                >
+                                  {filter}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {filters.allergens.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-base-content/60 mb-1">
+                            Allergens to Avoid:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {filters.allergens.map((allergen, index) => (
+                              <span
+                                key={index}
+                                className="px-3 py-1 bg-error/10 text-error rounded-full text-sm"
+                              >
+                                {allergen}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-base-content/60 mt-2">
+                      These filters were set in the restaurant catalogue and
+                      will be applied to your order.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -462,5 +495,13 @@ export default function CheckoutPage() {
         onClose={() => setShowLoginModal(false)}
       />
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <FilterProvider>
+      <CheckoutPageNoFilterContext />
+    </FilterProvider>
   );
 }

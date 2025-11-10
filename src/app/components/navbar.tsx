@@ -58,7 +58,7 @@ function NavbarAction({
           onClick={handleManagerClick}
           className={`px-2 py-1 md:px-3 md:py-1.5 ${
             isOnDashboard ? "bg-transparent" : "bg-white"
-          } rounded flex items-center justify-center transition-all cursor-pointer hover:bg-gray-100`}
+          } rounded flex items-center justify-center transition-all cursor-pointer`}
           aria-label={isOnDashboard ? "Go to Order" : "Manager Dashboard"}
         >
           {isOnDashboard ? (
