@@ -225,7 +225,9 @@ export default function ProfilePage() {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <p className="text-base-content/70 text-lg">No order for today</p>
+                <p className="text-base-content/70 text-lg">
+                  No order for today
+                </p>
                 <p className="text-base-content/50 text-sm mt-2">
                   You haven&apos;t placed an order today yet
                 </p>
@@ -251,11 +253,11 @@ export default function ProfilePage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="badge badge-primary badge-lg">
+                    <div className="badge badge-primary badge-lg px-4 py-2">
                       {todayOrder.status}
                     </div>
                     <p className="text-lg font-bold mt-1">
-                      ${todayOrder.totalAmount.toFixed(2)}
+                      ${Number(todayOrder.totalAmount).toFixed(2)}
                     </p>
                   </div>
                 </div>
