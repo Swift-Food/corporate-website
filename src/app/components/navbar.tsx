@@ -88,6 +88,36 @@ function NavbarAction({
           LOGIN
         </button>
       )}
+      {/* <button
+        className="w-10 h-10 rounded-full text-white bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex items-center justify-center transition-all hover:shadow-lg"
+        aria-label="Profile"
+      > */}
+      <button
+        className="w-10 h-10 rounded-full text-black flex items-center justify-center transition-all cursor-pointer"
+        aria-label="Profile"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+          role="img"
+          aria-label="Shopping cart"
+          focusable="false"
+        >
+          <g
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 3h2l1.5 9h11l2-6H8.5" />
+            <circle cx="10" cy="19" r="1.4" fill="currentColor" stroke="none" />
+            <circle cx="18" cy="19" r="1.4" fill="currentColor" stroke="none" />
+          </g>
+        </svg>
+      </button>
     </div>
   );
 }
