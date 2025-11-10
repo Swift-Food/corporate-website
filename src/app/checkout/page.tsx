@@ -244,82 +244,6 @@ function CheckoutPageNoFilterContext() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Section - Order Details Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Special Instructions */}
-            <div className="bg-base-100 rounded-xl p-6 border border-base-300">
-              <h2 className="text-2xl font-bold text-base-content mb-4">
-                Order Details
-              </h2>
-
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="specialInstructions"
-                    className="block text-sm font-medium text-base-content mb-2"
-                  >
-                    Special Instructions
-                  </label>
-                  <textarea
-                    id="specialInstructions"
-                    rows={4}
-                    className="w-full px-4 py-3 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-base-100 text-base-content"
-                    placeholder="Any special requests for your order? (e.g., no onions, extra sauce)"
-                    value={specialInstructions}
-                    onChange={(e) => setSpecialInstructions(e.target.value)}
-                  />
-                </div>
-
-                {(filters.dietaryRestrictions.length > 0 ||
-                  filters.allergens.length > 0) && (
-                  <div>
-                    <label className="block text-sm font-medium text-base-content mb-2">
-                      Active Dietary Filters
-                    </label>
-                    <div className="p-4 bg-base-200 rounded-lg">
-                      {filters.dietaryRestrictions.length > 0 && (
-                        <div className="mb-2">
-                          <p className="text-xs font-semibold text-base-content/60 mb-1">
-                            Dietary Restrictions:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {filters.dietaryRestrictions.map(
-                              (filter, index) => (
-                                <span
-                                  key={index}
-                                  className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
-                                >
-                                  {filter}
-                                </span>
-                              )
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      {filters.allergens.length > 0 && (
-                        <div>
-                          <p className="text-xs font-semibold text-base-content/60 mb-1">
-                            Allergens to Avoid:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {filters.allergens.map((allergen, index) => (
-                              <span
-                                key={index}
-                                className="px-3 py-1 bg-error/10 text-error rounded-full text-sm"
-                              >
-                                {allergen}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs text-base-content/60 mt-2">
-                      These filters were set in the restaurant catalogue and
-                      will be applied to your order.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Cart Items by Restaurant */}
             <div className="bg-base-100 rounded-xl p-6 border border-base-300">
@@ -420,6 +344,75 @@ function CheckoutPageNoFilterContext() {
               <h2 className="text-2xl font-bold text-base-content mb-6">
                 Order Summary
               </h2>
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="specialInstructions"
+                    className="block text-sm font-medium text-base-content mb-2"
+                  >
+                    Special Instructions
+                  </label>
+                  <textarea
+                    id="specialInstructions"
+                    rows={4}
+                    className="w-full px-4 py-3 border border-base-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-base-100 text-base-content"
+                    placeholder="Any special requests for your order? (e.g., no onions, extra sauce)"
+                    value={specialInstructions}
+                    onChange={(e) => setSpecialInstructions(e.target.value)}
+                  />
+                </div>
+
+                {/* {(filters.dietaryRestrictions.length > 0 ||
+                  filters.allergens.length > 0) && (
+                  <div>
+                    <label className="block text-sm font-medium text-base-content mb-2">
+                      Active Dietary Filters
+                    </label>
+                    <div className="p-4 bg-base-200 rounded-lg">
+                      {filters.dietaryRestrictions.length > 0 && (
+                        <div className="mb-2">
+                          <p className="text-xs font-semibold text-base-content/60 mb-1">
+                            Dietary Restrictions:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {filters.dietaryRestrictions.map(
+                              (filter, index) => (
+                                <span
+                                  key={index}
+                                  className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                                >
+                                  {filter}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {filters.allergens.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-base-content/60 mb-1">
+                            Allergens to Avoid:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {filters.allergens.map((allergen, index) => (
+                              <span
+                                key={index}
+                                className="px-3 py-1 bg-error/10 text-error rounded-full text-sm"
+                              >
+                                {allergen}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-base-content/60 mt-2">
+                      These filters were set in the restaurant catalogue and
+                      will be applied to your order.
+                    </p>
+                  </div>
+                )} */}
+              </div>
 
               {/* Delivery Date and Time */}
               {deliveryDate && deliveryTime && (
