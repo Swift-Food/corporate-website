@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const [loadingOrg, setLoadingOrg] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [error, setError] = useState("");
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -93,14 +94,16 @@ export default function ProfilePage() {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-base-content mb-2">Profile</h1>
+            <h1 className="text-4xl font-bold text-base-content mb-2">
+              Profile
+            </h1>
             <p className="text-base-content/70">
               Manage your account information and view your orders
             </p>
           </div>
           <button
             className="btn btn-outline btn-error"
-            onClick={logout}
+            onClick={() => setShowLogoutConfirm(true)}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -319,6 +322,33 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="modal modal-open">
+          <div className="modal-box p-8">
+            <h3 className="font-bold text-lg mb-4">Confirm Logout</h3>
+            <p className="py-4">Are you sure you want to logout?</p>
+            <div className="modal-action">
+              <button
+                className="btn shadow-none"
+                onClick={() => setShowLogoutConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn bg-primary px-4 py-2 rounded-xl ml-4"
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  logout();
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
