@@ -126,10 +126,11 @@ export const ordersApi = {
   /**
    * Get employee's order history
    * GET /corporate-orders/my-orders/history/:employeeId?page=1&limit=10
+   * Returns sub-orders with pagination wrapped in a data property
    */
   getMyOrderHistory: async (
     employeeId: string,
-    page: number = 5,
+    page: number = 1,
     limit: number = 10
   ): Promise<OrderHistoryResponse> => {
     const response = await apiClient.get(
@@ -138,7 +139,6 @@ export const ordersApi = {
         params: { page, limit },
       }
     );
-    console.log("Order History Response: ", response);
     return response.data;
   },
 

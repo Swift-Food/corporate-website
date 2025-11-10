@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../../interceptors/auth/authContext";
 import { useRouter } from "next/navigation";
 import { ordersApi } from "@/api/orders";
-import { OrderHistoryResponse, OrderResponse } from "@/types/order";
+import { OrderHistoryResponse, SubOrderResponse } from "@/types/order";
 
 export default function OrderHistoryPage() {
   const { corporateUser, isAuthenticated, isLoading } = useAuth();
@@ -45,13 +45,14 @@ export default function OrderHistoryPage() {
     setLoadingOrders(true);
     setError("");
     try {
-      const { data } = await ordersApi.getMyOrderHistory(
+      const response = await ordersApi.getMyOrderHistory(
         corporateUser.id,
         currentPage,
         itemsPerPage
       );
-      console.log("Data in order history: ", data);
-      setOrderHistory(data);
+      console.log("Data in order history: ", response);
+      // The API returns { data: { orders: [...], pagination: {...} } }
+      setOrderHistory(response);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to load order history");
     } finally {
@@ -83,7 +84,7 @@ export default function OrderHistoryPage() {
     return null;
   }
 
-  const renderOrderCard = (order: OrderResponse) => (
+  const renderOrderCard = (order: SubOrderResponse) => (
     <div
       key={order.id}
       className="card bg-base-100 rounded-xl mb-4 border border-base-200 hover:shadow-lg transition-shadow cursor-pointer"
@@ -329,7 +330,7 @@ export default function OrderHistoryPage() {
             <div className="flex justify-center py-12">
               <div className="loading loading-spinner loading-lg text-primary"></div>
             </div>
-          ) : !orderHistory?.orders || orderHistory.orders.length === 0 ? (
+          ) : !orderHistory?.data || orderHistory.data.length === 0 ? (
             <div className="card bg-base-100 rounded-xl border border-base-200">
               <div className="card-body text-center py-12">
                 <svg
@@ -362,7 +363,7 @@ export default function OrderHistoryPage() {
             </div>
           ) : (
             <>
-              {orderHistory.orders.map(renderOrderCard)}
+              {orderHistory.data.map(renderOrderCard)}
               {renderPagination()}
             </>
           )}
