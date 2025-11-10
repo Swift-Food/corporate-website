@@ -296,7 +296,16 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
               ))}
             </div>
           </div>
-
+          {/* Clear Filter Button (mobile) */}
+          {(selectedAllergens.length > 0 ||
+            selectedDietaryRestrictions.length > 0) && (
+            <button
+              onClick={clearFilters}
+              className="mb-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-full text-sm transition-colors"
+            >
+              Clear Filter
+            </button>
+          )}
           {/* Apply Button */}
           <button
             onClick={handleApply}
