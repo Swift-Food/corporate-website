@@ -7,7 +7,9 @@ import {
   CreateEmployeeOrderDto,
   RestaurantOrder,
   MenuItem,
+  OrderResponse,
 } from "@/types/order";
+import { MenuItemStyle, MenuItemStatus } from "@/types/menuItem";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
@@ -32,6 +34,10 @@ function CheckoutPageNoFilterContext() {
   >({});
   const [loadingRestaurants, setLoadingRestaurants] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [existingOrder, setExistingOrder] = useState<OrderResponse | null>(null);
+  const [isWithinBudget, setIsWithinBudget] = useState(true);
+  const [orderAction, setOrderAction] = useState<"replace" | "add">("replace");
+  const [isCheckingOrder, setIsCheckingOrder] = useState(true);
 
   // Load delivery date and time from localStorage
   useEffect(() => {
@@ -41,6 +47,41 @@ function CheckoutPageNoFilterContext() {
     if (savedDate) setDeliveryDate(savedDate);
     if (savedTime) setDeliveryTime(savedTime);
   }, []);
+
+  // Fetch existing active order
+  useEffect(() => {
+    const fetchExistingOrder = async () => {
+      if (!employeeId || !isAuthenticated) {
+        setIsCheckingOrder(false);
+        return;
+      }
+
+      try {
+        const order = await ordersApi.getMyOrder(employeeId);
+        setExistingOrder(order);
+
+        // Check budget if order exists
+        if (order && corporateUser) {
+          const newCartTotal = getTotalPrice();
+          const existingOrderTotal = parseFloat(order.totalAmount.toString());
+          const combinedTotal = newCartTotal + existingOrderTotal;
+          const dailyBudgetRemaining = corporateUser.dailyBudgetRemaining;
+          const withinBudget = combinedTotal <= dailyBudgetRemaining;
+
+          setIsWithinBudget(withinBudget);
+          // Default to "add" if within budget, otherwise "replace"
+          setOrderAction(withinBudget ? "add" : "replace");
+        }
+      } catch (error) {
+        console.error("Error fetching existing order:", error);
+        // Not a critical error - user might not have an existing order
+      } finally {
+        setIsCheckingOrder(false);
+      }
+    };
+
+    fetchExistingOrder();
+  }, [employeeId, isAuthenticated, corporateUser, getTotalPrice]);
 
   // Fetch restaurant data from API
   useEffect(() => {
@@ -104,6 +145,74 @@ function CheckoutPageNoFilterContext() {
     return acc;
   }, {} as Record<string, { restaurantId: string; restaurantName: string; items: typeof cartItems }>);
 
+  // Helper function to get items based on selected action
+  const getItemsForOrder = () => {
+    let itemsToOrder = [...cartItems];
+
+    // If user chose to add to existing order, merge the items
+    if (orderAction === "add" && existingOrder) {
+      // Convert existing order items back to cart item format
+      existingOrder.restaurantOrders?.forEach((restOrder) => {
+        restOrder.menuItems.forEach((menuItem) => {
+          itemsToOrder.push({
+            item: {
+              id: menuItem.menuItemId,
+              name: menuItem.name,
+              price: menuItem.unitPrice,
+              restaurantId: restOrder.restaurantId,
+              cateringQuantityUnit: menuItem.cateringQuantityUnit || 0,
+              feedsPerUnit: menuItem.feedsPerUnit || 0,
+              isDiscount: false,
+              allergens: [],
+              style: MenuItemStyle.CARD,
+              itemDisplayOrder: 0,
+              prepTime: 0,
+              averageRating: 0,
+              popular: false,
+              isAvailable: true,
+              status: "ACTIVE" as MenuItemStatus,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            quantity: menuItem.quantity,
+            selectedAddons: menuItem.selectedAddons?.map((addon) => ({
+              addonName: addon.groupTitle || "",
+              optionName: addon.name,
+              price: addon.price,
+              quantity: addon.quantity,
+            })),
+          });
+        });
+      });
+    }
+
+    return itemsToOrder;
+  };
+
+  // Helper function to calculate total price based on selected action
+  const getSelectedTotal = () => {
+    if (orderAction === "add" && existingOrder) {
+      return getTotalPrice() + parseFloat(existingOrder.totalAmount.toString());
+    }
+    return getTotalPrice();
+  };
+
+  // Helper function to group items by restaurant for display
+  const getGroupedItems = (items: typeof cartItems) => {
+    return items.reduce((acc, cartItem) => {
+      const restaurantId = cartItem.item.restaurantId;
+      if (!acc[restaurantId]) {
+        acc[restaurantId] = {
+          restaurantId,
+          restaurantName: restaurantNames[restaurantId] || "Unknown Restaurant",
+          items: [],
+        };
+      }
+      acc[restaurantId].items.push(cartItem);
+      return acc;
+    }, {} as Record<string, { restaurantId: string; restaurantName: string; items: typeof items }>);
+  };
+
   const handleSubmitOrder = async () => {
     if (cartItems.length === 0) {
       setError("Your cart is empty");
@@ -122,9 +231,15 @@ function CheckoutPageNoFilterContext() {
     setError(null);
 
     try {
+      // Get items based on selected action
+      const itemsToOrder = getItemsForOrder();
+
+      // Group items by restaurant
+      const groupedItems = getGroupedItems(itemsToOrder);
+
       // Transform cart items into the backend DTO format
       const restaurantOrders: RestaurantOrder[] = Object.values(
-        groupedByRestaurant
+        groupedItems
       ).map((group) => {
         const menuItems: MenuItem[] = group.items.map((cartItem) => {
           const price = parseFloat(cartItem.item.price?.toString() || "0");
@@ -191,6 +306,10 @@ function CheckoutPageNoFilterContext() {
       clearCart();
       localStorage.setItem("corporate_order_submitted", "true");
 
+      // Reset order action state
+      setOrderAction(null);
+      setExistingOrder(null);
+
       // Redirect to order details page
       router.push(`/order/${response.id}`);
     } catch (err: any) {
@@ -225,7 +344,7 @@ function CheckoutPageNoFilterContext() {
     );
   }
 
-  if (loadingRestaurants) {
+  if (loadingRestaurants || isCheckingOrder) {
     return (
       <div className="min-h-screen bg-base-100 flex items-center justify-center">
         <div className="text-center">
@@ -245,14 +364,103 @@ function CheckoutPageNoFilterContext() {
           {/* Left Section - Order Details Form */}
           <div className="lg:col-span-2 space-y-6">
 
+            {/* Selection UI if existing order exists */}
+            {existingOrder && (
+              <div className="bg-base-100 rounded-xl p-6 border border-base-300">
+                <h2 className="text-2xl font-bold text-base-content mb-4">
+                  Choose Your Order Option
+                </h2>
+
+                {!isWithinBudget && (
+                  <div className="bg-error/10 border border-error rounded-lg p-4 mb-6">
+                    <p className="text-error font-semibold mb-2">
+                      Budget Limit Reached
+                    </p>
+                    <p className="text-error/80 text-sm">
+                      Adding to your existing order would exceed your daily budget limit.
+                      You can only replace your existing order.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {/* Replace Option */}
+                  <div
+                    onClick={() => setOrderAction("replace")}
+                    className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                      orderAction === "replace"
+                        ? "border-primary bg-primary/5"
+                        : "border-base-300 hover:border-base-400"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        checked={orderAction === "replace"}
+                        onChange={() => setOrderAction("replace")}
+                        className="radio radio-primary mt-1"
+                      />
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-base-content mb-1">
+                          Replace Existing Order
+                        </h3>
+                        <p className="text-sm text-base-content/60 mb-3">
+                          Your existing order will be replaced with the new items in your cart.
+                        </p>
+                        <p className="text-base font-semibold text-primary">
+                          Total: £{getTotalPrice().toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Add Option - Only show if within budget */}
+                  {isWithinBudget && (
+                    <div
+                      onClick={() => setOrderAction("add")}
+                      className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                        orderAction === "add"
+                          ? "border-primary bg-primary/5"
+                          : "border-base-300 hover:border-base-400"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          checked={orderAction === "add"}
+                          onChange={() => setOrderAction("add")}
+                          className="radio radio-primary mt-1"
+                        />
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-base-content mb-1">
+                            Add to Existing Order
+                          </h3>
+                          <p className="text-sm text-base-content/60 mb-3">
+                            Combine your existing order with the new items in your cart.
+                          </p>
+                          <p className="text-base font-semibold text-primary">
+                            Total: £{getSelectedTotal().toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Cart Items by Restaurant */}
             <div className="bg-base-100 rounded-xl p-6 border border-base-300">
               <h2 className="text-2xl font-bold text-base-content mb-4">
-                Your Order
+                {existingOrder ? (
+                  orderAction === "replace" ? "New Order (Replacing Existing)" : "Combined Order (Existing + New)"
+                ) : (
+                  "Your Order"
+                )}
               </h2>
 
               <div className="space-y-6">
-                {Object.values(groupedByRestaurant).map((group) => (
+                {Object.values(getGroupedItems(getItemsForOrder())).map((group) => (
                   <div
                     key={group.restaurantId}
                     className="border-b border-base-300 pb-6 last:border-b-0 last:pb-0"
@@ -442,18 +650,50 @@ function CheckoutPageNoFilterContext() {
                 </div>
               )}
 
+              {/* Budget Information */}
+              {existingOrder && (
+                <div className="mb-6 p-4 bg-info/10 border border-info rounded-lg">
+                  <h3 className="text-sm font-semibold text-info mb-2">
+                    Budget Information
+                  </h3>
+                  <div className="space-y-1 text-xs text-base-content/80">
+                    <div className="flex justify-between">
+                      <span>Existing Order:</span>
+                      <span className="font-semibold">
+                        £{parseFloat(existingOrder.totalAmount.toString()).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>New Cart:</span>
+                      <span className="font-semibold">£{getTotalPrice().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-info/20 pt-1 mt-1">
+                      <span>Daily Budget Remaining:</span>
+                      <span className="font-semibold">
+                        £{corporateUser?.dailyBudgetRemaining.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-base-content">
                   <span>Subtotal</span>
-                  <span>£{getTotalPrice().toFixed(2)}</span>
+                  <span>£{getSelectedTotal().toFixed(2)}</span>
                 </div>
+                {existingOrder && orderAction === "add" && (
+                  <div className="text-xs text-base-content/60 -mt-2 mb-2">
+                    (Existing £{parseFloat(existingOrder.totalAmount.toString()).toFixed(2)} + New £{getTotalPrice().toFixed(2)})
+                  </div>
+                )}
                 {/* <div className="flex justify-between text-base-content">
                   <span>Delivery Fee</span>
                   <span>£0.00</span>
                 </div> */}
                 <div className="border-t border-base-300 pt-3 flex justify-between text-xl font-bold text-base-content">
                   <span>Total</span>
-                  <span>£{getTotalPrice().toFixed(2)}</span>
+                  <span>£{getSelectedTotal().toFixed(2)}</span>
                 </div>
               </div>
 
@@ -468,7 +708,7 @@ function CheckoutPageNoFilterContext() {
                 disabled={isSubmitting}
                 className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Placing Order..." : "Place Order"}
+                {isSubmitting ? "Placing Order..." : existingOrder ? (orderAction === "replace" ? "Replace & Place Order" : "Add & Place Order") : "Place Order"}
               </button>
 
               <button
