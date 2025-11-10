@@ -70,39 +70,22 @@ function NavbarAction({
           </span>
         )}
       </div>
-      {isAuthenticated ? (
-        <>
-          {/* Logout Button */}
-          {/* <button
-            onClick={handleLogout}
-            className="btn btn-md bg-primary hover:bg-primary/90 rounded-md text-white border-0 font-semibold text-base px-6"
-          >
-            LOGOUT
-          </button> */}
 
-          {/* Profile Icon */}
-          <button
-            onClick={() => {
-              router.push("/profile");
-              if (onLinkClick) onLinkClick();
-            }}
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer"
-            aria-label="Profile"
-          >
-            <User className="w-6 h-6 text-black" />
-          </button>
-        </>
-      ) : (
-        <button
-          onClick={() => {
+      <button
+        onClick={() => {
+          if (isAuthenticated) {
+            router.push("/profile");
+            if (onLinkClick) onLinkClick();
+          } else {
             onLoginClick();
             if (onLinkClick) onLinkClick();
-          }}
-          className="btn btn-md bg-primary hover:bg-primary/90 rounded-md text-white border-0 font-semibold text-base px-6  cursor-pointer"
-        >
-          LOGIN
-        </button>
-      )}
+          }
+        }}
+        className="w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer"
+        aria-label="Profile"
+      >
+        <User className="w-6 h-6 text-black" />
+      </button>
       {/* <button
         className="w-10 h-10 rounded-full text-white bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex items-center justify-center transition-all hover:shadow-lg"
         aria-label="Profile"
