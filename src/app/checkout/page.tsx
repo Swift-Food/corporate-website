@@ -34,7 +34,9 @@ function CheckoutPageNoFilterContext() {
   >({});
   const [loadingRestaurants, setLoadingRestaurants] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [existingOrder, setExistingOrder] = useState<OrderResponse | null>(null);
+  const [existingOrder, setExistingOrder] = useState<OrderResponse | null>(
+    null
+  );
   const [isWithinBudget, setIsWithinBudget] = useState(true);
   const [orderAction, setOrderAction] = useState<"replace" | "add">("replace");
   const [isCheckingOrder, setIsCheckingOrder] = useState(true);
@@ -191,10 +193,23 @@ function CheckoutPageNoFilterContext() {
 
   // Helper function to calculate total price based on selected action
   const getSelectedTotal = () => {
-    if (orderAction === "add" && existingOrder) {
-      return getTotalPrice() + parseFloat(existingOrder.totalAmount.toString());
-    }
-    return getTotalPrice();
+    const itemsToCalculate = getItemsForOrder();
+
+    return itemsToCalculate.reduce((total, cartItem) => {
+      const price = parseFloat(cartItem.item.price?.toString() || "0");
+      const discountPrice = parseFloat(
+        cartItem.item.discountPrice?.toString() || "0"
+      );
+      const itemPrice =
+        cartItem.item.isDiscount && discountPrice > 0 ? discountPrice : price;
+
+      const addonPrice = (cartItem.selectedAddons || []).reduce(
+        (sum, addon) => sum + (addon.price || 0),
+        0
+      );
+
+      return total + (itemPrice + addonPrice) * cartItem.quantity;
+    }, 0);
   };
 
   // Helper function to group items by restaurant for display
@@ -363,7 +378,6 @@ function CheckoutPageNoFilterContext() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Section - Order Details Form */}
           <div className="lg:col-span-2 space-y-6">
-
             {/* Selection UI if existing order exists */}
             {existingOrder && (
               <div className="bg-base-100 rounded-xl p-6 border border-base-300">
@@ -377,8 +391,8 @@ function CheckoutPageNoFilterContext() {
                       Budget Limit Reached
                     </p>
                     <p className="text-error/80 text-sm">
-                      Adding to your existing order would exceed your daily budget limit.
-                      You can only replace your existing order.
+                      Adding to your existing order would exceed your daily
+                      budget limit. You can only replace your existing order.
                     </p>
                   </div>
                 )}
@@ -405,10 +419,38 @@ function CheckoutPageNoFilterContext() {
                           Replace Existing Order
                         </h3>
                         <p className="text-sm text-base-content/60 mb-3">
-                          Your existing order will be replaced with the new items in your cart.
+                          Your existing order will be replaced with the new
+                          items in your cart.
                         </p>
                         <p className="text-base font-semibold text-primary">
-                          Total: £{getTotalPrice().toFixed(2)}
+                          Total: £
+                          {
+                            // Calculate total for new cart items only
+                            cartItems
+                              .reduce((total, cartItem) => {
+                                const price = parseFloat(
+                                  cartItem.item.price?.toString() || "0"
+                                );
+                                const discountPrice = parseFloat(
+                                  cartItem.item.discountPrice?.toString() || "0"
+                                );
+                                const itemPrice =
+                                  cartItem.item.isDiscount && discountPrice > 0
+                                    ? discountPrice
+                                    : price;
+                                const addonPrice = (
+                                  cartItem.selectedAddons || []
+                                ).reduce(
+                                  (sum, addon) => sum + (addon.price || 0),
+                                  0
+                                );
+                                return (
+                                  total +
+                                  (itemPrice + addonPrice) * cartItem.quantity
+                                );
+                              }, 0)
+                              .toFixed(2)
+                          }
                         </p>
                       </div>
                     </div>
@@ -436,10 +478,51 @@ function CheckoutPageNoFilterContext() {
                             Add to Existing Order
                           </h3>
                           <p className="text-sm text-base-content/60 mb-3">
-                            Combine your existing order with the new items in your cart.
+                            Combine your existing order with the new items in
+                            your cart.
                           </p>
                           <p className="text-base font-semibold text-primary">
-                            Total: £{getSelectedTotal().toFixed(2)}
+                            Total: £
+                            {
+                              // Calculate combined total when add is selected
+                              (() => {
+                                const newCartTotal = cartItems.reduce(
+                                  (total, cartItem) => {
+                                    const price = parseFloat(
+                                      cartItem.item.price?.toString() || "0"
+                                    );
+                                    const discountPrice = parseFloat(
+                                      cartItem.item.discountPrice?.toString() ||
+                                        "0"
+                                    );
+                                    const itemPrice =
+                                      cartItem.item.isDiscount &&
+                                      discountPrice > 0
+                                        ? discountPrice
+                                        : price;
+                                    const addonPrice = (
+                                      cartItem.selectedAddons || []
+                                    ).reduce(
+                                      (sum, addon) => sum + (addon.price || 0),
+                                      0
+                                    );
+                                    return (
+                                      total +
+                                      (itemPrice + addonPrice) *
+                                        cartItem.quantity
+                                    );
+                                  },
+                                  0
+                                );
+
+                                const existingTotal = parseFloat(
+                                  existingOrder.totalAmount.toString()
+                                );
+                                return (newCartTotal + existingTotal).toFixed(
+                                  2
+                                );
+                              })()
+                            }
                           </p>
                         </div>
                       </div>
@@ -452,96 +535,99 @@ function CheckoutPageNoFilterContext() {
             {/* Cart Items by Restaurant */}
             <div className="bg-base-100 rounded-xl p-6 border border-base-300">
               <h2 className="text-2xl font-bold text-base-content mb-4">
-                {existingOrder ? (
-                  orderAction === "replace" ? "New Order (Replacing Existing)" : "Combined Order (Existing + New)"
-                ) : (
-                  "Your Order"
-                )}
+                {existingOrder
+                  ? orderAction === "replace"
+                    ? "New Order (Replacing Existing)"
+                    : "Combined Order (Existing + New)"
+                  : "Your Order"}
               </h2>
 
               <div className="space-y-6">
-                {Object.values(getGroupedItems(getItemsForOrder())).map((group) => (
-                  <div
-                    key={group.restaurantId}
-                    className="border-b border-base-300 pb-6 last:border-b-0 last:pb-0"
-                  >
-                    <h3 className="text-xl font-bold text-base-content mb-4">
-                      {group.restaurantName}
-                    </h3>
+                {Object.values(getGroupedItems(getItemsForOrder())).map(
+                  (group) => (
+                    <div
+                      key={group.restaurantId}
+                      className="border-b border-base-300 pb-6 last:border-b-0 last:pb-0"
+                    >
+                      <h3 className="text-xl font-bold text-base-content mb-4">
+                        {group.restaurantName}
+                      </h3>
 
-                    <div className="space-y-4">
-                      {group.items.map(
-                        ({ item, quantity, selectedAddons }, index) => {
-                          const price = parseFloat(
-                            item.price?.toString() || "0"
-                          );
-                          const discountPrice = parseFloat(
-                            item.discountPrice?.toString() || "0"
-                          );
-                          const itemPrice =
-                            item.isDiscount && discountPrice > 0
-                              ? discountPrice
-                              : price;
+                      <div className="space-y-4">
+                        {group.items.map(
+                          ({ item, quantity, selectedAddons }, index) => {
+                            const price = parseFloat(
+                              item.price?.toString() || "0"
+                            );
+                            const discountPrice = parseFloat(
+                              item.discountPrice?.toString() || "0"
+                            );
+                            const itemPrice =
+                              item.isDiscount && discountPrice > 0
+                                ? discountPrice
+                                : price;
 
-                          const addonPrice = (selectedAddons || []).reduce(
-                            (sum, addon) => sum + (addon.price || 0),
-                            0
-                          );
+                            const addonPrice = (selectedAddons || []).reduce(
+                              (sum, addon) => sum + (addon.price || 0),
+                              0
+                            );
 
-                          const subtotal = (itemPrice + addonPrice) * quantity;
+                            const subtotal =
+                              (itemPrice + addonPrice) * quantity;
 
-                          return (
-                            <div
-                              key={`${group.restaurantId}-${index}`}
-                              className="flex gap-4 p-4 bg-base-200 rounded-lg"
-                            >
-                              {item.image && (
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="w-20 h-20 object-cover rounded-lg"
-                                />
-                              )}
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <h4 className="font-semibold text-base text-base-content">
-                                      {item.name}
-                                    </h4>
-                                    {selectedAddons &&
-                                      selectedAddons.length > 0 && (
-                                        <div className="text-sm text-base-content/60 mt-1">
-                                          {selectedAddons.map(
-                                            (addon, addonIndex) => (
-                                              <div key={addonIndex}>
-                                                + {addon.optionName}
-                                                {addon.price > 0 &&
-                                                  ` (£${addon.price.toFixed(
-                                                    2
-                                                  )})`}
-                                              </div>
-                                            )
-                                          )}
-                                        </div>
-                                      )}
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="text-lg font-bold text-primary">
-                                      £{subtotal.toFixed(2)}
-                                    </p>
-                                    <p className="text-sm text-base-content/60">
-                                      Qty: {quantity}
-                                    </p>
+                            return (
+                              <div
+                                key={`${group.restaurantId}-${index}`}
+                                className="flex gap-4 p-4 bg-base-200 rounded-lg"
+                              >
+                                {item.image && (
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="w-20 h-20 object-cover rounded-lg"
+                                  />
+                                )}
+                                <div className="flex-1">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h4 className="font-semibold text-base text-base-content">
+                                        {item.name}
+                                      </h4>
+                                      {selectedAddons &&
+                                        selectedAddons.length > 0 && (
+                                          <div className="text-sm text-base-content/60 mt-1">
+                                            {selectedAddons.map(
+                                              (addon, addonIndex) => (
+                                                <div key={addonIndex}>
+                                                  + {addon.optionName}
+                                                  {addon.price > 0 &&
+                                                    ` (£${addon.price.toFixed(
+                                                      2
+                                                    )})`}
+                                                </div>
+                                              )
+                                            )}
+                                          </div>
+                                        )}
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-lg font-bold text-primary">
+                                        £{subtotal.toFixed(2)}
+                                      </p>
+                                      <p className="text-sm text-base-content/60">
+                                        Qty: {quantity}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        }
-                      )}
+                            );
+                          }
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </div>
           </div>
@@ -651,12 +737,18 @@ function CheckoutPageNoFilterContext() {
               )}
 
               {/* Budget Information */}
-              {existingOrder && (
+              {/* {existingOrder && (
                 <div className="mb-6 p-4 bg-info/10 border border-info rounded-lg">
                   <h3 className="text-sm font-semibold text-info mb-2">
                     Budget Information
                   </h3>
                   <div className="space-y-1 text-xs text-base-content/80">
+                    <div className="flex justify-between">
+                      <span>Current Selection:</span>
+                      <span className="font-semibold">
+                        {orderAction === "replace" ? "Replace Order" : "Add to Order"}
+                      </span>
+                    </div>
                     <div className="flex justify-between">
                       <span>Existing Order:</span>
                       <span className="font-semibold">
@@ -675,18 +767,13 @@ function CheckoutPageNoFilterContext() {
                     </div>
                   </div>
                 </div>
-              )}
+              )} */}
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-base-content">
                   <span>Subtotal</span>
                   <span>£{getSelectedTotal().toFixed(2)}</span>
                 </div>
-                {existingOrder && orderAction === "add" && (
-                  <div className="text-xs text-base-content/60 -mt-2 mb-2">
-                    (Existing £{parseFloat(existingOrder.totalAmount.toString()).toFixed(2)} + New £{getTotalPrice().toFixed(2)})
-                  </div>
-                )}
                 {/* <div className="flex justify-between text-base-content">
                   <span>Delivery Fee</span>
                   <span>£0.00</span>
@@ -708,7 +795,13 @@ function CheckoutPageNoFilterContext() {
                 disabled={isSubmitting}
                 className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Placing Order..." : existingOrder ? (orderAction === "replace" ? "Replace & Place Order" : "Add & Place Order") : "Place Order"}
+                {isSubmitting
+                  ? "Placing Order..."
+                  : existingOrder
+                  ? orderAction === "replace"
+                    ? "Replace & Place Order"
+                    : "Add & Place Order"
+                  : "Place Order"}
               </button>
 
               <button
