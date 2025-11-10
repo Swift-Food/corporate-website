@@ -12,7 +12,7 @@ export default function RestaurantCard({
   return (
     <div
       onClick={() => onClick(restaurant)}
-      className="rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 border-2 border-base-300 cursor-pointer"
+      className="rounded-lg overflow-hidden transition-transform duration-300 border-2 border-gray-200 cursor-pointer"
     >
       <div className="relative w-full aspect-[16/9] overflow-hidden">
         <img
@@ -21,8 +21,8 @@ export default function RestaurantCard({
           className="w-full h-full object-cover"
         />
       </div>
-      <div className="p-4">
-        <h4 className="font-semibold text-lg text-base-content mb-2 line-clamp-1">
+      <div className="px-4 py-2">
+        <h4 className="font-bold text-md text-base-content mb-1 line-clamp-1">
           {restaurant.restaurant_name}
         </h4>
         <div className="flex items-center gap-1">

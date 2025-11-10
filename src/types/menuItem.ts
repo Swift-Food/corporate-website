@@ -15,6 +15,7 @@ export enum MenuItemStyle {
 export enum DietaryFilter {
   VEGETARIAN = "vegetarian",
   NONVEGETARIAN = "nonvegetarian",
+  VEGAN = "vegan",
   NO_GLUTEN = "no_gluten",
   NO_NUT = "no_nut",
   NO_DAIRY = "no_dairy",

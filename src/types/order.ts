@@ -45,3 +45,17 @@ export interface OrderResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+// Pagination info
+export interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+}
+
+// Order history response with pagination
+export interface OrderHistoryResponse {
+  orders: OrderResponse[];
+  pagination: PaginationInfo;
+}

@@ -249,7 +249,7 @@ export default function LoginForm({ onClose }: LoginFormProps) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <label className="flex items-center">
                 <input
                   type="checkbox"
@@ -265,7 +265,7 @@ export default function LoginForm({ onClose }: LoginFormProps) {
               >
                 Forgot password?
               </a>
-            </div>
+            </div> */}
 
             {error && !needsVerification && (
               <div className="bg-error/10 border border-error/20 text-error text-sm p-3 rounded-lg">

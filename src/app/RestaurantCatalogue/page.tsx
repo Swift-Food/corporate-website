@@ -157,9 +157,7 @@ function RestaurantCatalogueContent() {
         }
 
         // If no filters, show restaurants that match by name OR have matching menu items
-        return (
-          nameMatches || restaurantIdsWithMatchingItems.has(restaurant.id)
-        );
+        return nameMatches || restaurantIdsWithMatchingItems.has(restaurant.id);
       });
 
       setRestaurantSearchResults(restaurantMatches);
@@ -197,7 +195,7 @@ function RestaurantCatalogueContent() {
 
   return (
     <div className="w-full bg-base-100">
-      <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto max-w-[1500px]">
+      <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto">
         <div className="flex-1">
           {/* Desktop Sticky Search/Filter Section */}
           <div className="hidden md:block md:sticky top-16 md:top-20 z-40 md:-mx-4 md:px-4 md:py-6 mb-[-1px] overflow-visible relative">
@@ -557,15 +555,12 @@ function RestaurantCatalogueContent() {
             />
           ) : (
             <>
-              <h3 className="text-xl md:text-2xl font-semibold mb-6 text-base-content">
-                Select Restaurant
-              </h3>
               {restaurantsLoading ? (
                 <div className="text-center py-12 text-base-content/60">
                   Loading restaurants...
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-1 md:px-12">
                   {restaurants.map((restaurant) => (
                     <RestaurantCard
                       key={restaurant.id}

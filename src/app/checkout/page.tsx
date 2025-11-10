@@ -1,7 +1,7 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
-import { checkoutApi } from "@/api/checkout";
+import { ordersApi } from "@/api/orders";
 import { restaurantApi } from "@/api/restaurant";
 import {
   CreateEmployeeOrderDto,
@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
 import LoginModal from "../components/LoginModal";
+import { getNextWorkingDayISO } from "@/util/catalogue";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -73,7 +74,9 @@ export default function CheckoutPage() {
   const getRequestedDeliveryTime = (): string => {
     if (deliveryDate && deliveryTime) {
       // Combine date and time into ISO format
-      const dateTimeString = `${deliveryDate}T${deliveryTime}`;
+      // const dateTimeString = `${deliveryDate}T${deliveryTime}`;
+      // Use getNextWorkingDayISO for ISO date string
+      const dateTimeString = `${getNextWorkingDayISO()}T${deliveryTime}`;
       const date = new Date(dateTimeString);
 
       // Check if date is valid
@@ -175,10 +178,10 @@ export default function CheckoutPage() {
           ? dietaryRestrictions.split(",").map((r) => r.trim())
           : undefined,
       };
-      if (!employeeId){
-        throw new Error()
+      if (!employeeId) {
+        throw new Error();
       }
-      const response = await checkoutApi.createOrder(employeeId, orderData);
+      const response = await ordersApi.createOrder(employeeId, orderData);
 
       console.log("Order created successfully:", response);
 
