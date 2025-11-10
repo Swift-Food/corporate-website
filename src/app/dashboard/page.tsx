@@ -64,8 +64,9 @@ function DashboardContent() {
       loadEmployees();
       loadPendingApprovals();
       loadOrganizationSettings();   
-    } else if (activeTab === 'job-titles' && organizationId) {
       loadJobTitles();
+    // } else if (activeTab === 'job-titles' && organizationId) {
+    //   loadJobTitles();
     } else if (activeTab === 'orders' && organizationId && corporateUser?.id) {
       loadOrganizationSettings();
       loadTodaysOrder();
@@ -456,7 +457,7 @@ function DashboardContent() {
           {/* Tabs - Horizontal scroll on mobile */}
           <div className="mt-8 sm:mt-6 border-b border-slate-200 -mx-4 sm:-mx-6 px-4 sm:px-6">
             <nav className="flex space-x-4 sm:space-x-8 overflow-x-auto scrollbar-hide">
-              {(['overview', 'employees', 'job-titles', 'orders', 'approved-orders', 'catering-orders', 'wallet', 'contact', 'report'] as const).map((tab) => (
+              {(['overview', 'employees', 'orders', 'approved-orders', 'catering-orders', 'wallet', 'contact', 'report'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -470,7 +471,8 @@ function DashboardContent() {
                     {tab.charAt(0).toUpperCase() + tab.slice(1).replace('-', ' ')}
                   </span>
                   <span className="sm:hidden">
-                    {tab === 'job-titles' ? 'Jobs' : 
+                    {
+                    // tab === 'job-titles' ? 'Jobs' : 
                      tab === 'approved-orders' ? 'Approved' : 
                      tab.charAt(0).toUpperCase() + tab.slice(1).split('-')[0]}
                   </span>
@@ -494,11 +496,11 @@ function DashboardContent() {
                       {approvedOrders.length}
                     </span>
                   )}
-                  {tab === 'job-titles' && jobTitles.length > 0 && (
+                  {/* {tab === 'job-titles' && jobTitles.length > 0 && (
                     <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
                       {jobTitles.length}
                     </span>
-                  )}
+                  )} */}
                   {tab === 'catering-orders' && cateringOrders.length > 0 && (
                     <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full text-xs">
                       {cateringOrders.length}
@@ -534,6 +536,9 @@ function DashboardContent() {
             autoApproveEmployees={autoApproveEmployees}
             onToggleAutoApprove={handleToggleAutoApprove}
             onRefreshApprovals={loadPendingApprovals}
+            onCreateJobTitle={() => { setSelectedJobTitle(null); setShowCreateModal(true); }}
+            onEditJobTitle={(title) => { setSelectedJobTitle(title); setShowCreateModal(true); }}
+            onAssignJobTitle={(title) => { setSelectedJobTitleForAssign(title); setShowAssignModal(true); }}
           />
         )}
 

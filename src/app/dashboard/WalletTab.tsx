@@ -40,6 +40,10 @@ export function WalletTab({ organizationId, managerId }: WalletTabProps) {
     }
   };
 
+  const formatNumber = (num: number): string => {
+    return num.toLocaleString('en-GB');
+  };
+
   const handleRemovePaymentMethod = async (paymentMethodId: string) => {
     if (!confirm('Remove this payment method?')) return;
 
@@ -150,7 +154,7 @@ export function WalletTab({ organizationId, managerId }: WalletTabProps) {
             <div>
               <p className="text-sm text-slate-500">Current Balance</p>
               <p className="text-3xl font-bold text-slate-900 mt-1">
-                £{walletStatus.walletBalance.toFixed(2)}
+                £{formatNumber(Number(walletStatus.walletBalance.toFixed(2)))}
               </p>
               <p className="text-xs text-slate-400 mt-1">{walletStatus.currency}</p>
             </div>

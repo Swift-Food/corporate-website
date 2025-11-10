@@ -195,7 +195,7 @@ function RestaurantCatalogueContent() {
 
   return (
     <div className="w-full bg-base-100">
-      <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto">
+      <div className="flex gap-6 px-4 pb-24 lg:pb-6 mx-auto">
         <div className="flex-1">
           {/* Desktop Sticky Search/Filter Section */}
           <div className="hidden md:block md:sticky top-16 md:top-20 z-40 md:-mx-4 md:px-4 md:py-6 mb-[-1px] overflow-visible relative">
@@ -400,9 +400,9 @@ function RestaurantCatalogueContent() {
           </div>
           {/* Mobile Layout - Date/Time (Not Sticky) */}
           <section className="md:hidden">
-            <label className="mb-4 font-bold text-base-content">
+            {/* <label className="mb-4 font-bold text-base-content">
               Delivery Details
-            </label>
+            </label> */}
             <div className="mt-3 bg-white rounded-xl border-1 border-base-200">
               <div className="flex items-center gap-2 px-2">
                 <div className="flex items-center gap-2 flex-1 px-4 py-1 border-r-1 border-gray-200">
@@ -560,7 +560,7 @@ function RestaurantCatalogueContent() {
                   Loading restaurants...
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-1 md:px-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-4 gap-1 md:px-12">
                   {restaurants.map((restaurant) => (
                     <RestaurantCard
                       key={restaurant.id}
