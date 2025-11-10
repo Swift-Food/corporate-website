@@ -36,7 +36,9 @@ interface CartContextType {
   clearCart: () => void;
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+export const CartContext = createContext<CartContextType | undefined>(
+  undefined
+);
 
 // LocalStorage keys
 const STORAGE_KEYS = {
