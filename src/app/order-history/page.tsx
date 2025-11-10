@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../../interceptors/auth/authContext";
 import { useRouter } from "next/navigation";
 import { ordersApi } from "@/api/orders";
-import { OrderHistoryResponse, SubOrderResponse } from "@/types/order";
+import { OrderHistoryResponse } from "@/types/order";
+import { OrderCard } from "@/components/order/OrderCard";
 
 export default function OrderHistoryPage() {
   const { corporateUser, isAuthenticated, isLoading } = useAuth();
@@ -83,86 +84,6 @@ export default function OrderHistoryPage() {
   if (!isAuthenticated || !corporateUser) {
     return null;
   }
-
-  const renderOrderCard = (order: SubOrderResponse) => (
-    <div
-      key={order.id}
-      className="card bg-base-100 rounded-xl mb-4 border border-base-200 hover:shadow-lg transition-shadow cursor-pointer"
-      onClick={() => router.push(`/order/${order.id}`)}
-    >
-      <div className="card-body p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <p className="font-semibold text-lg">
-              Order #{order.id.slice(0, 8)}
-            </p>
-            <p className="text-sm text-base-content/70">
-              {new Date(order.createdAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="badge badge-primary badge-lg px-4 py-2 capitalize">
-              {order.status}
-            </div>
-            <p className="text-lg font-bold mt-1">
-              ${Number(order.totalAmount).toFixed(2)}
-            </p>
-          </div>
-        </div>
-
-        {/* Restaurant Orders */}
-        <div className="space-y-3">
-          {order.restaurantOrders.map((restOrder, idx) => (
-            <div key={idx} className="bg-base-200 rounded-lg p-3">
-              <p className="font-semibold mb-2">{restOrder.restaurantName}</p>
-              <div className="space-y-1">
-                {restOrder.menuItems.map((item, itemIdx) => (
-                  <div key={itemIdx} className="flex justify-between text-sm">
-                    <span className="text-base-content/80">
-                      {item.quantity}x {item.name}
-                    </span>
-                    <span className="font-semibold">
-                      ${item.totalPrice.toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              {restOrder.specialInstructions && (
-                <p className="text-xs text-base-content/60 mt-2 italic">
-                  Note: {restOrder.specialInstructions}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* View Details Indicator */}
-        <div className="flex items-center justify-end mt-3 text-primary text-sm font-semibold">
-          <span>View Details</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 ml-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
 
   const renderPagination = () => {
     if (!orderHistory?.pagination) return null;
@@ -363,7 +284,9 @@ export default function OrderHistoryPage() {
             </div>
           ) : (
             <>
-              {orderHistory.data.map(renderOrderCard)}
+              {orderHistory.data.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
               {renderPagination()}
             </>
           )}
