@@ -131,12 +131,5 @@ export const ordersApi = {
     return response.data;
   },
 
-  /**
-   * Get specific order details
-   * GET /corporate-orders/:id
-   */
-  getOrderById: async (orderId: string): Promise<OrderResponse> => {
-    const response = await apiClient.get(`/corporate-orders/${orderId}`);
-    return response.data;
-  },
+  
 };

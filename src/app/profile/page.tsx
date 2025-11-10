@@ -21,7 +21,17 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      // Dispatch event to open login modal instead of routing
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("open-login-modal", {
+            detail: {
+              message: "Please log in to view your profile.",
+            },
+          })
+        );
+      }
+      router.push("/");
     }
   }, [isLoading, isAuthenticated, router]);
 

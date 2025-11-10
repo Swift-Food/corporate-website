@@ -17,7 +17,17 @@ export default function OrderHistoryPage() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      // Dispatch event to open login modal instead of routing
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("open-login-modal", {
+            detail: {
+              message: "Please log in to view your order history.",
+            },
+          })
+        );
+      }
+      router.push("/");
     }
   }, [isLoading, isAuthenticated, router]);
 

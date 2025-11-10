@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
 // import { Menu } from "@deemlol/next-icons";
 import { ShoppingCart, User, ShieldUser } from "lucide-react";
@@ -115,6 +115,21 @@ export default function Navbar() {
   const closeLoginModal = () => {
     setIsLoginModalOpen(false);
   };
+
+  // Listen for custom event to open login modal
+  useEffect(() => {
+    const handleOpenLoginModal = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      setIsLoginModalOpen(true);
+      // You can use customEvent.detail.message if needed for displaying a message
+    };
+
+    window.addEventListener("open-login-modal", handleOpenLoginModal);
+
+    return () => {
+      window.removeEventListener("open-login-modal", handleOpenLoginModal);
+    };
+  }, []);
 
   return (
     <>
