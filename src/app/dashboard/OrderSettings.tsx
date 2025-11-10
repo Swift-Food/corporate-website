@@ -35,18 +35,26 @@ export function OrderSettings({
     }
   };
 
-  const handleSaveCutoffTime = async () => {
+  const handleSaveCutoffTime = async (timeValue?: string) => {
     if (!organizationId) return;
     
-    // Validate time format
-    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
-    if (!timeRegex.test(tempCutoffTime)) {
-      setError('Invalid time format. Please use HH:MM:SS format (e.g., 11:00:00)');
+    // Get the time to save (either passed parameter or tempCutoffTime)
+    const timeToSave = timeValue || `${tempCutoffTime}:00`;
+    
+    // Validate time format (should be HH:MM or HH:MM:SS)
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
+    if (!timeRegex.test(timeToSave)) {
+      setError('Invalid time format. Please select a valid time.');
       return;
     }
   
+    // Ensure we have HH:MM:SS format
+    const fullTime = timeToSave.includes(':00') || timeToSave.split(':').length === 3 
+      ? timeToSave 
+      : `${timeToSave}:00`;
+  
     // Validate cutoff time is before 6 PM
-    const [hours, minutes] = tempCutoffTime.split(':').map(Number);
+    const [hours, minutes] = fullTime.split(':').map(Number);
     const timeInMinutes = hours * 60 + minutes;
     if (timeInMinutes >= 18 * 60) {
       setError('Cutoff time must be before 6:00 PM (18:00)');
@@ -57,8 +65,9 @@ export function OrderSettings({
     setError('');
     try {
       await apiClient.put(`/organizations/${organizationId}`, {
-        orderCutoffTime: tempCutoffTime,
+        orderCutoffTime: fullTime,
       });
+      setTempCutoffTime(fullTime);
       setIsEditingCutoff(false);
       onUpdate();
     } catch (err: any) {
@@ -74,21 +83,34 @@ export function OrderSettings({
     setError('');
   };
 
-  const handleSaveDeliveryWindow = async () => {
+  const handleSaveDeliveryWindow = async (timeValue?: string) => {
+    if (!organizationId) return;
+    
+    const timeToSave = timeValue || `${tempDeliveryWindow}:00`;
+    
     // Validate time format
-    if (!tempDeliveryWindow.match(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)) {
-      setError('Please enter a valid time in HH:MM:SS format');
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
+    if (!timeRegex.test(timeToSave)) {
+      setError('Invalid time format. Please select a valid time.');
       return;
     }
   
-    // Validate delivery time is between 12:30 PM and 8:00 PM
-    const [hours, minutes] = tempDeliveryWindow.split(':').map(Number);
-    const timeInMinutes = hours * 60 + minutes;
-    const minTime = 12 * 60 + 30; // 12:30 PM
-    const maxTime = 20 * 60;      // 8:00 PM
+    // Ensure we have HH:MM:SS format
+    const fullTime = timeToSave.includes(':00') || timeToSave.split(':').length === 3 
+      ? timeToSave 
+      : `${timeToSave}:00`;
   
-    if (timeInMinutes < minTime || timeInMinutes > maxTime) {
-      setError('Delivery time must be between 12:30 PM (12:30:00) and 8:00 PM (20:00:00)');
+    // Validate delivery time is between 12:30 PM and 8:00 PM
+    const [hours, minutes] = fullTime.split(':').map(Number);
+    const timeInMinutes = hours * 60 + minutes;
+    
+    if (timeInMinutes < 12 * 60) { // 12:30 PM
+      setError('Delivery time must be after 12:00 PM');
+      return;
+    }
+    
+    if (timeInMinutes > 20 * 60) { // 8:00 PM
+      setError('Delivery time must be before 8:00 PM');
       return;
     }
   
@@ -96,12 +118,13 @@ export function OrderSettings({
     setError('');
     try {
       await apiClient.put(`/organizations/${organizationId}`, {
-        defaultDeliveryTimeWindow: tempDeliveryWindow,
+        defaultDeliveryTimeWindow: fullTime,
       });
+      setTempDeliveryWindow(fullTime);
       setIsEditingDeliveryWindow(false);
       onUpdate();
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Error updating delivery window');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update delivery time');
     } finally {
       setIsSavingDeliveryWindow(false);
     }
@@ -142,169 +165,273 @@ export function OrderSettings({
         </div>
 
         {!isEditingCutoff ? (
-          <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-slate-200">
-            <div className="flex items-center space-x-4">
-              <div className="text-3xl font-bold text-blue-600">
-                {formatTimeDisplay(orderCutoffTime)}
-              </div>
-              <div className="text-sm text-slate-500">
-                ({orderCutoffTime})
-              </div>
-            </div>
-            <button
-              onClick={() => setIsEditingCutoff(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm flex items-center space-x-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span>Edit</span>
-            </button>
-          </div>
+  <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-slate-200">
+    <div className="flex items-center space-x-4">
+      <div className="text-3xl font-bold text-blue-600">
+        {formatTimeDisplay(orderCutoffTime)}
+      </div>
+      <div className="text-sm text-slate-500">
+        Daily cutoff time
+      </div>
+    </div>
+    <button
+      onClick={() => {
+        setIsEditingCutoff(true);
+        // Parse current time for dropdowns
+        const [hours, minutes] = orderCutoffTime.split(':');
+        setTempCutoffTime(`${hours}:${minutes}`);
+      }}
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm flex items-center space-x-2"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+      <span>Edit</span>
+    </button>
+  </div>
+) : (
+  <div className="bg-white rounded-lg p-6 border border-slate-200 space-y-4">
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-3">
+        Select Cutoff Time
+      </label>
+      
+      {/* Time Picker UI */}
+      <div className="flex items-center space-x-3">
+        {/* Hour Selector */}
+        <div className="flex-1">
+          <label className="block text-xs text-slate-500 mb-1">Hour</label>
+          <select
+            value={tempCutoffTime.split(':')[0] || '11'}
+            onChange={(e) => {
+              const minutes = tempCutoffTime.split(':')[1] || '00';
+              setTempCutoffTime(`${e.target.value}:${minutes}`);
+            }}
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold appearance-none bg-white cursor-pointer"
+          >
+            {Array.from({ length: 9 }, (_, i) => i + 10).map((hour) => {
+              const hourStr = hour.toString().padStart(2, '0');
+              return (
+                <option key={hour} value={hourStr}>
+                  {hour === 12 ? '12 PM' : hour < 12 ? `${hour} AM` : `${hour - 12} PM`}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
+        <span className="text-2xl font-bold text-slate-400 pt-6">:</span>
+
+        {/* Minute Selector */}
+        <div className="flex-1">
+          <label className="block text-xs text-slate-500 mb-1">Minute</label>
+          <select
+            value={tempCutoffTime.split(':')[1] || '00'}
+            onChange={(e) => {
+              const hours = tempCutoffTime.split(':')[0] || '11';
+              setTempCutoffTime(`${hours}:${e.target.value}`);
+            }}
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold appearance-none bg-white cursor-pointer"
+          >
+            {['00', '15', '30', '45'].map((minute) => (
+              <option key={minute} value={minute}>
+                {minute}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+    
+      <p className="text-xs text-slate-500 mt-3 flex items-start space-x-2">
+        <svg className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Orders must be placed before this time to be processed for the same day</span>
+      </p>
+    </div>
+    
+    <div className="flex space-x-3">
+      <button
+        onClick={() => {
+          const [hours, minutes] = tempCutoffTime.split(':');
+          handleSaveCutoffTime(`${hours}:${minutes}:00`);
+        }}
+        disabled={isSavingCutoff}
+        className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isSavingCutoff ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+            <span>Saving...</span>
+          </>
         ) : (
-          <div className="bg-white rounded-lg p-4 border border-slate-200 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Cutoff Time (24-hour format: HH:MM:SS)
-              </label>
-              <input
-                type="text"
-                value={tempCutoffTime}
-                onChange={(e) => setTempCutoffTime(e.target.value)}
-                placeholder="11:00:00"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <p className="text-xs text-slate-500 mt-2">
-                Examples: 09:00:00, 11:30:00, 14:00:00 (Must be before 6:00 PM)
-              </p>
-            </div>
-            
-            <div className="flex space-x-3">
-              <button
-                onClick={handleSaveCutoffTime}
-                disabled={isSavingCutoff}
-                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSavingCutoff ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Save Changes</span>
-                  </>
-                )}
-              </button>
-              <button
-                onClick={handleCancelEdit}
-                disabled={isSavingCutoff}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+          <>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Save Changes</span>
+          </>
         )}
+      </button>
+      <button
+        onClick={handleCancelEdit}
+        disabled={isSavingCutoff}
+        className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
       </div>
 
       {/* Delivery Time Window Card */}
       <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-100 mt-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-start space-x-3">
-            <div className="w-12 h-12 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">Default Delivery Time Window</h3>
-              <p className="text-sm text-slate-600 mt-1">
-                Standard delivery window duration for orders
-              </p>
-            </div>
-          </div>
-        </div>
+  <div className="flex items-start justify-between mb-4">
+    <div className="flex items-start space-x-3">
+      <div className="w-12 h-12 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-slate-900">Default Delivery Time</h3>
+        <p className="text-sm text-slate-600 mt-1">
+          Standard delivery time for orders
+        </p>
+      </div>
+    </div>
+  </div>
 
-        {!isEditingDeliveryWindow ? (
-          <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-slate-200">
-            <div className="flex items-center space-x-4">
-              <div className="text-3xl font-bold text-emerald-600">
-                {deliveryTimeWindow ? formatTimeDisplay(deliveryTimeWindow) : 'Not Set'}
-              </div>
-              {deliveryTimeWindow && (
-                <div className="text-sm text-slate-500">
-                  ({deliveryTimeWindow})
-                </div>
-              )}
-            </div>
-            <button
-              onClick={() => {
-                setTempDeliveryWindow(deliveryTimeWindow);
-                setIsEditingDeliveryWindow(true);
-              }}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center space-x-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span>Edit</span>
-            </button>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg p-4 border border-slate-200 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Delivery Window (24-hour format: HH:MM:SS)
-              </label>
-              <input
-                type="text"
-                value={tempDeliveryWindow}
-                onChange={(e) => setTempDeliveryWindow(e.target.value)}
-                placeholder="02:00:00"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
-              <p className="text-xs text-slate-500 mt-2">
-                Examples: 13:00:00 (1 PM), 18:00:00 (6 PM), 20:00:00 (8 PM)
-                <br />
-                Must be between 12:30 PM and 8:00 PM
-              </p>
-            </div>
-            
-            <div className="flex space-x-3">
-              <button
-                onClick={handleSaveDeliveryWindow}
-                disabled={isSavingDeliveryWindow}
-                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSavingDeliveryWindow ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Save Changes</span>
-                  </>
-                )}
-              </button>
-              <button
-                onClick={handleCancelDeliveryWindowEdit}
-                disabled={isSavingDeliveryWindow}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-            </div>
+  {!isEditingDeliveryWindow ? (
+    <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-slate-200">
+      <div className="flex items-center space-x-4">
+        <div className="text-3xl font-bold text-emerald-600">
+          {deliveryTimeWindow ? formatTimeDisplay(deliveryTimeWindow) : 'Not Set'}
+        </div>
+        {deliveryTimeWindow && (
+          <div className="text-sm text-slate-500">
+            Default delivery time
           </div>
         )}
       </div>
+      <button
+        onClick={() => {
+          setIsEditingDeliveryWindow(true);
+          // Parse current time for dropdowns
+          if (deliveryTimeWindow) {
+            const [hours, minutes] = deliveryTimeWindow.split(':');
+            setTempDeliveryWindow(`${hours}:${minutes}`);
+          } else {
+            setTempDeliveryWindow('13:00'); // Default to 1 PM
+          }
+        }}
+        className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center space-x-2"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        <span>Edit</span>
+      </button>
+    </div>
+  ) : (
+    <div className="bg-white rounded-lg p-6 border border-slate-200 space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-3">
+          Select Delivery Time
+        </label>
+        
+        {/* Time Picker UI */}
+        <div className="flex items-center space-x-3">
+          {/* Hour Selector - 12:30 PM (12) to 8:00 PM (20) */}
+          <div className="flex-1">
+            <label className="block text-xs text-slate-500 mb-1">Hour</label>
+            <select
+              value={tempDeliveryWindow?.split(':')[0] || '13'}
+              onChange={(e) => {
+                const minutes = tempDeliveryWindow?.split(':')[1] || '00';
+                setTempDeliveryWindow(`${e.target.value}:${minutes}`);
+              }}
+              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg font-semibold appearance-none bg-white cursor-pointer"
+            >
+              {Array.from({ length: 9 }, (_, i) => i + 12).map((hour) => {
+                // Skip 12 AM hour, only show 12 PM onwards
+                if (hour > 20) return null;
+                const hourStr = hour.toString().padStart(2, '0');
+                return (
+                  <option key={hour} value={hourStr}>
+                    {hour === 12 ? '12 PM' : `${hour - 12} PM`}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          <span className="text-2xl font-bold text-slate-400 pt-6">:</span>
+
+          {/* Minute Selector */}
+          <div className="flex-1">
+            <label className="block text-xs text-slate-500 mb-1">Minute</label>
+            <select
+              value={tempDeliveryWindow?.split(':')[1] || '00'}
+              onChange={(e) => {
+                const hours = tempDeliveryWindow?.split(':')[0] || '13';
+                setTempDeliveryWindow(`${hours}:${e.target.value}`);
+              }}
+              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg font-semibold appearance-none bg-white cursor-pointer"
+            >
+              {['00', '15', '30', '45'].map((minute) => (
+                <option key={minute} value={minute}>
+                  {minute}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-500 mt-3 flex items-start space-x-2">
+          <svg className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Orders will be delivered at this time. Must be between 12:00 PM and 8:00 PM</span>
+        </p>
+      </div>
+      
+      <div className="flex space-x-3">
+        <button
+          onClick={() => {
+            const [hours, minutes] = tempDeliveryWindow.split(':');
+            handleSaveDeliveryWindow(`${hours}:${minutes}:00`);
+          }}
+          disabled={isSavingDeliveryWindow}
+          className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSavingDeliveryWindow ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              <span>Saving...</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Save Changes</span>
+            </>
+          )}
+        </button>
+        <button
+          onClick={handleCancelDeliveryWindowEdit}
+          disabled={isSavingDeliveryWindow}
+          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )}
+</div>
 
       {/* Info Section */}
       <div className="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4">
