@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { Menu } from "@deemlol/next-icons";
+import { ShoppingCart, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
@@ -52,94 +53,13 @@ function NavbarAction({
       >
         MANAGER
       </button>
-
-      {isAuthenticated ? (
-        <>
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="btn btn-md bg-primary hover:bg-primary/90 rounded-md text-white border-0 font-semibold text-base px-6"
-          >
-            LOGOUT
-          </button>
-
-          {/* Profile Icon */}
-          <button
-            onClick={() => {
-              router.push("/profile");
-              if (onLinkClick) onLinkClick();
-            }}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex items-center justify-center transition-all hover:shadow-lg"
-            aria-label="Profile"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-6 h-6 text-white"
-            >
-              <path
-                fillRule="evenodd"
-                d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-        </>
-      ) : (
-        <button
-          onClick={() => {
-            onLoginClick();
-            if (onLinkClick) onLinkClick();
-          }}
-          className="btn btn-md bg-primary hover:bg-primary/90 rounded-md text-white border-0 font-semibold text-base px-6"
-        >
-          LOGIN
-        </button>
-      )}
-      {/* <button
-        className="w-10 h-10 rounded-full text-white bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex items-center justify-center transition-all hover:shadow-lg"
-        aria-label="Profile"
-      > */}
       <div className="relative">
         <button
           onClick={() => router.push("/checkout")}
           className="w-10 h-10 rounded-full text-black flex items-center justify-center transition-all cursor-pointer"
-          aria-label="Profile"
+          aria-label="Cart"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-            role="img"
-            aria-label="Shopping cart"
-            focusable="false"
-          >
-            <g
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M3 3h2l1.5 9h11l2-6H8.5" />
-              <circle
-                cx="10"
-                cy="19"
-                r="1.4"
-                fill="currentColor"
-                stroke="none"
-              />
-              <circle
-                cx="18"
-                cy="19"
-                r="1.4"
-                fill="currentColor"
-                stroke="none"
-              />
-            </g>
-          </svg>
+          <ShoppingCart className="w-6 h-6" />
         </button>
         {cartItemCount > 0 && (
           <span
@@ -150,6 +70,43 @@ function NavbarAction({
           </span>
         )}
       </div>
+      {isAuthenticated ? (
+        <>
+          {/* Logout Button */}
+          {/* <button
+            onClick={handleLogout}
+            className="btn btn-md bg-primary hover:bg-primary/90 rounded-md text-white border-0 font-semibold text-base px-6"
+          >
+            LOGOUT
+          </button> */}
+
+          {/* Profile Icon */}
+          <button
+            onClick={() => {
+              router.push("/profile");
+              if (onLinkClick) onLinkClick();
+            }}
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer"
+            aria-label="Profile"
+          >
+            <User className="w-6 h-6 text-black" />
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() => {
+            onLoginClick();
+            if (onLinkClick) onLinkClick();
+          }}
+          className="btn btn-md bg-primary hover:bg-primary/90 rounded-md text-white border-0 font-semibold text-base px-6  cursor-pointer"
+        >
+          LOGIN
+        </button>
+      )}
+      {/* <button
+        className="w-10 h-10 rounded-full text-white bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex items-center justify-center transition-all hover:shadow-lg"
+        aria-label="Profile"
+      > */}
     </div>
   );
 }
