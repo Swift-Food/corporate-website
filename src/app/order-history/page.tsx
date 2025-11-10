@@ -4,12 +4,15 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../../interceptors/auth/authContext";
 import { useRouter } from "next/navigation";
 import { ordersApi } from "@/api/orders";
-import { OrderHistoryResponse, OrderResponse } from "@/types/order";
+import { OrderHistoryResponse } from "@/types/order";
+import { OrderCard } from "@/components/order/OrderCard";
 
 export default function OrderHistoryPage() {
   const { corporateUser, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
-  const [orderHistory, setOrderHistory] = useState<OrderHistoryResponse | null>(null);
+  const [orderHistory, setOrderHistory] = useState<OrderHistoryResponse | null>(
+    null
+  );
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,7 +20,17 @@ export default function OrderHistoryPage() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      // Dispatch event to open login modal instead of routing
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("open-login-modal", {
+            detail: {
+              message: "Please log in to view your order history.",
+            },
+          })
+        );
+      }
+      router.push("/");
     }
   }, [isLoading, isAuthenticated, router]);
 
@@ -33,12 +46,14 @@ export default function OrderHistoryPage() {
     setLoadingOrders(true);
     setError("");
     try {
-      const data = await ordersApi.getMyOrderHistory(
+      const response = await ordersApi.getMyOrderHistory(
         corporateUser.id,
         currentPage,
         itemsPerPage
       );
-      setOrderHistory(data);
+      console.log("Data in order history: ", response);
+      // The API returns { data: { orders: [...], pagination: {...} } }
+      setOrderHistory(response);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to load order history");
     } finally {
@@ -69,64 +84,6 @@ export default function OrderHistoryPage() {
   if (!isAuthenticated || !corporateUser) {
     return null;
   }
-
-  const renderOrderCard = (order: OrderResponse) => (
-    <div key={order.id} className="card bg-base-100 rounded-xl mb-4 border border-base-200">
-      <div className="card-body p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <p className="font-semibold text-lg">Order #{order.id.slice(0, 8)}</p>
-            <p className="text-sm text-base-content/70">
-              {new Date(order.createdAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="badge badge-primary badge-lg px-4 py-2 capitalize">
-              {order.status}
-            </div>
-            <p className="text-lg font-bold mt-1">
-              ${Number(order.totalAmount).toFixed(2)}
-            </p>
-          </div>
-        </div>
-
-        {/* Restaurant Orders */}
-        <div className="space-y-3">
-          {order.restaurantOrders.map((restOrder, idx) => (
-            <div key={idx} className="bg-base-200 rounded-lg p-3">
-              <p className="font-semibold mb-2">{restOrder.restaurantName}</p>
-              <div className="space-y-1">
-                {restOrder.menuItems.map((item, itemIdx) => (
-                  <div
-                    key={itemIdx}
-                    className="flex justify-between text-sm"
-                  >
-                    <span className="text-base-content/80">
-                      {item.quantity}x {item.name}
-                    </span>
-                    <span className="font-semibold">
-                      ${item.totalPrice.toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              {restOrder.specialInstructions && (
-                <p className="text-xs text-base-content/60 mt-2 italic">
-                  Note: {restOrder.specialInstructions}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 
   const renderPagination = () => {
     if (!orderHistory?.pagination) return null;
@@ -184,7 +141,9 @@ export default function OrderHistoryPage() {
                 1
               </button>
               {startPage > 2 && (
-                <button className="join-item btn btn-sm btn-disabled">...</button>
+                <button className="join-item btn btn-sm btn-disabled">
+                  ...
+                </button>
               )}
             </>
           )}
@@ -202,7 +161,9 @@ export default function OrderHistoryPage() {
           {endPage < totalPages && (
             <>
               {endPage < totalPages - 1 && (
-                <button className="join-item btn btn-sm btn-disabled">...</button>
+                <button className="join-item btn btn-sm btn-disabled">
+                  ...
+                </button>
               )}
               <button
                 className="join-item btn btn-sm"
@@ -222,7 +183,7 @@ export default function OrderHistoryPage() {
         </div>
 
         <div className="text-sm text-base-content/70">
-          Showing {((page - 1) * itemsPerPage) + 1} to{" "}
+          Showing {(page - 1) * itemsPerPage + 1} to{" "}
           {Math.min(page * itemsPerPage, orderHistory.pagination.totalItems)} of{" "}
           {orderHistory.pagination.totalItems} orders
         </div>
@@ -290,7 +251,7 @@ export default function OrderHistoryPage() {
             <div className="flex justify-center py-12">
               <div className="loading loading-spinner loading-lg text-primary"></div>
             </div>
-          ) : !orderHistory?.orders || orderHistory.orders.length === 0 ? (
+          ) : !orderHistory?.data || orderHistory.data.length === 0 ? (
             <div className="card bg-base-100 rounded-xl border border-base-200">
               <div className="card-body text-center py-12">
                 <svg
@@ -323,7 +284,9 @@ export default function OrderHistoryPage() {
             </div>
           ) : (
             <>
-              {orderHistory.orders.map(renderOrderCard)}
+              {orderHistory.data.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
               {renderPagination()}
             </>
           )}

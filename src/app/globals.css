@@ -34,10 +34,12 @@
   --color-base-content: #282828; /* Dark text */
 
   /* Status colors */
-  --color-info: #94daf0; /* Light blue (your existing) */
+  --color-info: #4395fa; /* Light blue (your existing) */
   --color-success: #4ade80; /* Green */
   --color-warning: #ffcd5e; /* Yellow */
   --color-error: #f87171; /* Red */
+
+  --color-swift-blue: #4395fa;
 }
 
 /* Additional custom color classes for direct use */

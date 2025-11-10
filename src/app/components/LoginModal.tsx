@@ -14,7 +14,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       {/* Main Modal Content */}
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto flex flex-col lg:flex-row relative">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl overflow-hidden flex flex-col lg:flex-row relative max-h-[90vh]">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -37,7 +37,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </button>
 
         {/* Image - Top on mobile, Left on desktop */}
-        <div className="w-full lg:w-1/2 relative bg-base-200 h-48 lg:min-h-[600px]">
+        <div className="w-full lg:w-1/2 relative bg-base-200 h-48 lg:h-[600px] flex-shrink-0">
           <Image
             src="/home page illustration.jpg"
             alt="Swift Food Illustration"
@@ -48,7 +48,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </div>
 
         {/* Forms Container - Bottom on mobile, Right on desktop */}
-        <div className="w-full lg:w-1/2 bg-base-100 relative flex-1">
+        <div className="w-full lg:w-1/2 bg-base-100 relative lg:h-[600px] flex-shrink-0">
           <div className="h-full overflow-y-auto overflow-x-hidden px-8 py-8">
             <LoginForm onClose={onClose} />
           </div>

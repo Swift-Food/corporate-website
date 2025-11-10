@@ -1,5 +1,9 @@
-import apiClient from './client';
-import { CreateEmployeeOrderDto, OrderResponse, OrderHistoryResponse } from '@/types/order';
+import apiClient from "./client";
+import {
+  CreateEmployeeOrderDto,
+  OrderResponse,
+  OrderHistoryResponse,
+} from "@/types/order";
 
 export const ordersApi = {
   /**
@@ -32,7 +36,9 @@ export const ordersApi = {
    * Get employee's active orders
    * GET /corporate-orders/employee/:employeeId/active
    */
-  getEmployeeActiveOrders: async (employeeId: string): Promise<OrderResponse[]> => {
+  getEmployeeActiveOrders: async (
+    employeeId: string
+  ): Promise<OrderResponse[]> => {
     const response = await apiClient.get(
       `/corporate-orders/employee/${employeeId}/active`
     );
@@ -89,7 +95,11 @@ export const ordersApi = {
    * Reject a sub-order (for managers)
    * POST /corporate-orders/sub-orders/:subOrderId/reject
    */
-  rejectSubOrder: async (subOrderId: string, managerId: string, reason?: string) => {
+  rejectSubOrder: async (
+    subOrderId: string,
+    managerId: string,
+    reason?: string
+  ) => {
     const response = await apiClient.post(
       `/corporate-orders/sub-orders/${subOrderId}/reject`,
       { managerId, reason }
@@ -116,6 +126,7 @@ export const ordersApi = {
   /**
    * Get employee's order history
    * GET /corporate-orders/my-orders/history/:employeeId?page=1&limit=10
+   * Returns sub-orders with pagination wrapped in a data property
    */
   getMyOrderHistory: async (
     employeeId: string,
@@ -125,8 +136,19 @@ export const ordersApi = {
     const response = await apiClient.get(
       `/corporate-orders/my-orders/history/${employeeId}`,
       {
-        params: { page, limit }
+        params: { page, limit },
       }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get specific sub-order details
+   * GET /corporate-orders/sub-order/:id
+   */
+  getOrderById: async (orderId: string): Promise<OrderResponse> => {
+    const response = await apiClient.get(
+      `/corporate-orders/sub-order/${orderId}`
     );
     return response.data;
   },
