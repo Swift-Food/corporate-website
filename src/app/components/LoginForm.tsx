@@ -347,7 +347,9 @@ export default function LoginForm({ onClose }: LoginFormProps) {
           <RegisterForm
             onSuccess={() => {
               setIsSignUp(false);
-              alert("Registration successful! Please sign in.");
+              alert(
+                "Registration successful! You may sign in once your manager has approved your account."
+              );
             }}
             onSwitchToLogin={() => {
               setIsSignUp(false);
