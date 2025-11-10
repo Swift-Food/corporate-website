@@ -130,11 +130,42 @@ export default function RegisterForm({
     <div className="w-full">
       {/* Title */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-neutral mb-2">
-          {step === "check" && "Create Account"}
-          {step === "register" && "Complete Registration"}
-          {step === "verify" && "Verify Your Email"}
-        </h2>
+        <div className="flex items-center gap-3 mb-2">
+          {(step === "register" || step === "verify") && (
+            <button
+              type="button"
+              onClick={() => {
+                if (step === "register") {
+                  setStep("check");
+                } else if (step === "verify") {
+                  setStep("register");
+                }
+              }}
+              className="text-base-content/70 hover:text-base-content transition-colors p-1 -ml-1"
+              disabled={isLoading}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                />
+              </svg>
+            </button>
+          )}
+          <h2 className="text-2xl font-bold text-neutral">
+            {step === "check" && "Create Account"}
+            {step === "register" && "Complete Registration"}
+            {step === "verify" && "Verify Your Email"}
+          </h2>
+        </div>
         <p className="text-sm text-base-content/70">
           {step === "check" && "Check your company email to get started"}
           {step === "register" &&
