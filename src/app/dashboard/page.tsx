@@ -204,7 +204,6 @@ function DashboardContent() {
           requestedDeliveryTime: order.requestedDeliveryTime,
           totalEmployees: activeSubOrders.length,
           subtotal: Number(order.subtotal),
-          taxAmount: Number(order.taxAmount),
           deliveryFee: Number(order.deliveryFee),
           totalAmount: Number(order.totalAmount),
           requiresApproval: order.requiresApproval,

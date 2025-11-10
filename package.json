@@ -6,17 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@deemlol/next-icons": "^0.1.9",
     "@stripe/react-stripe-js": "^5.3.0",
     "@stripe/stripe-js": "^8.2.0",
     "axios": "^1.12.2",
+    "expo": "^54.0.23",
     "lucide-react": "^0.552.0",
     "next": "16.0.0",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "react-native": "0.81.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.16",

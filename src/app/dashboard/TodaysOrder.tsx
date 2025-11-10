@@ -160,9 +160,9 @@ export function TodaysOrder({ order, onApprove, organizationId, managerId, onRej
             <p className="text-2xl font-bold text-blue-700">£{order.subtotal.toFixed(2)}</p>
           </div>
           <div className="bg-amber-50 rounded-lg p-4">
-            <p className="text-xs text-amber-600 mb-1">Tax + Delivery</p>
+            <p className="text-xs text-amber-600 mb-1">Delivery</p>
             <p className="text-2xl font-bold text-amber-700">
-              £{(order.taxAmount + order.deliveryFee).toFixed(2)}
+              £{(order.deliveryFee).toFixed(2)}
             </p>
           </div>
           <div className="bg-emerald-50 rounded-lg p-4">

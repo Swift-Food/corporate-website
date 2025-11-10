@@ -418,10 +418,10 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span>£{getTotalPrice().toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-base-content">
+                {/* <div className="flex justify-between text-base-content">
                   <span>Delivery Fee</span>
                   <span>£0.00</span>
-                </div>
+                </div> */}
                 <div className="border-t border-base-300 pt-3 flex justify-between text-xl font-bold text-base-content">
                   <span>Total</span>
                   <span>£{getTotalPrice().toFixed(2)}</span>

@@ -1,0 +1,8 @@
+{
+  "android": {
+    "package": "com.fooddeliveryjack.corporatewebsite"
+  },
+  "ios": {
+    "bundleIdentifier": "com.fooddeliveryjack.corporatewebsite"
+  }
+}
