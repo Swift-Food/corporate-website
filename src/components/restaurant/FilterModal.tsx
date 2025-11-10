@@ -7,16 +7,15 @@ interface FilterModalProps {
   onClose: () => void;
 }
 
-export default function FilterModal({
-  isOpen,
-  onClose,
-}: FilterModalProps) {
+export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
   const mobileModalRef = useRef<HTMLDivElement>(null);
   const desktopDropdownRef = useRef<HTMLDivElement>(null);
   const { filters, setFilters } = useFilters();
 
   // Local state for temporary selections (before Apply)
-  const [selectedAllergens, setSelectedAllergens] = useState<string[]>(filters.allergens);
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>(
+    filters.allergens
+  );
   const [selectedDietaryRestrictions, setSelectedDietaryRestrictions] =
     useState<DietaryFilter[]>(filters.dietaryRestrictions);
 
@@ -158,6 +157,12 @@ export default function FilterModal({
     );
   };
 
+  // Clear both allergens and dietary restrictions
+  const clearFilters = () => {
+    setSelectedAllergens([]);
+    setSelectedDietaryRestrictions([]);
+  };
+
   const clearAllergens = () => {
     setSelectedAllergens([]);
   };
@@ -218,6 +223,17 @@ export default function FilterModal({
               </svg>
             </button>
           </div>
+
+          {/* Clear Filter Button (mobile) */}
+          {(selectedAllergens.length > 0 ||
+            selectedDietaryRestrictions.length > 0) && (
+            <button
+              onClick={clearFilters}
+              className="mb-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-full text-sm transition-colors"
+            >
+              Clear Filter
+            </button>
+          )}
 
           {/* Allergens */}
           <div className="mb-5">
@@ -314,6 +330,17 @@ export default function FilterModal({
             </svg>
           </button>
         </div>
+
+        {/* Clear Filter Button (desktop) */}
+        {(selectedAllergens.length > 0 ||
+          selectedDietaryRestrictions.length > 0) && (
+          <button
+            onClick={clearFilters}
+            className="mb-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-full text-sm transition-colors"
+          >
+            Clear Filter
+          </button>
+        )}
 
         {/* Allergens */}
         <div className="mb-5">
