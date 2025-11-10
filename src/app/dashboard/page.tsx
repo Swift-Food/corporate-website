@@ -37,7 +37,7 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const { corporateUser, user, organizationId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'approvals' | 'job-titles' | 'orders' | 'approved-orders' | 'catering-orders' | 'wallet' | 'contact' | 'report'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'employees' | 'job-titles' | 'orders' | 'approved-orders' | 'catering-orders' | 'wallet' | 'contact' | 'report'>('overview');
   const [employees, setEmployees] = useState<CorporateUser[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<CorporateUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,9 +62,8 @@ function DashboardContent() {
   useEffect(() => {
     if (activeTab === 'employees' && organizationId && corporateUser?.id) {
       loadEmployees();
-    } else if (activeTab === 'approvals' && organizationId) {
       loadPendingApprovals();
-      loadOrganizationSettings();
+      loadOrganizationSettings();   
     } else if (activeTab === 'job-titles' && organizationId) {
       loadJobTitles();
     } else if (activeTab === 'orders' && organizationId && corporateUser?.id) {
@@ -457,7 +456,7 @@ function DashboardContent() {
           {/* Tabs - Horizontal scroll on mobile */}
           <div className="mt-8 sm:mt-6 border-b border-slate-200 -mx-4 sm:-mx-6 px-4 sm:px-6">
             <nav className="flex space-x-4 sm:space-x-8 overflow-x-auto scrollbar-hide">
-              {(['overview', 'employees', 'approvals', 'job-titles', 'orders', 'approved-orders', 'catering-orders', 'wallet', 'contact', 'report'] as const).map((tab) => (
+              {(['overview', 'employees', 'job-titles', 'orders', 'approved-orders', 'catering-orders', 'wallet', 'contact', 'report'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -479,14 +478,17 @@ function DashboardContent() {
                   {tab === 'employees' && employees.length > 0 && (
                     <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
                       {employees.length}
+                      {pendingApprovals.length > 0 && (
+                        <span className="ml-1 text-amber-600">+{pendingApprovals.length}</span>
+                      )}
                     </span>
                   )}
                   
-                  {tab === 'approvals' && pendingApprovals.length > 0 && (
+                  {/* {tab === 'approvals' && pendingApprovals.length > 0 && (
                     <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs">
                       {pendingApprovals.length}
                     </span>
-                  )}
+                  )} */}
                   {tab === 'approved-orders' && approvedOrders.length > 0 && (
                     <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full text-xs">
                       {approvedOrders.length}
@@ -526,10 +528,16 @@ function DashboardContent() {
             onRefresh={loadEmployees}
             onDeactivate={handleDeactivateEmployee}
             onReactivate={handleReactivateEmployee}
+            pendingApprovals={pendingApprovals}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            autoApproveEmployees={autoApproveEmployees}
+            onToggleAutoApprove={handleToggleAutoApprove}
+            onRefreshApprovals={loadPendingApprovals}
           />
         )}
 
-        {activeTab === 'approvals' && (
+        {/* {activeTab === 'approvals' && (
           <ApprovalsTab
             pendingApprovals={pendingApprovals}
             isLoading={isLoading}
@@ -540,7 +548,7 @@ function DashboardContent() {
             autoApproveEmployees={autoApproveEmployees}
             onToggleAutoApprove={handleToggleAutoApprove}
           />
-        )}
+        )} */}
 
         {activeTab === 'job-titles' && (
           <JobTitlesTab
