@@ -25,6 +25,14 @@ export default function LoginForm({ onClose }: LoginFormProps) {
   const [needsVerification, setNeedsVerification] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
 
+  // Forgot password state
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordStep, setForgotPasswordStep] = useState<"email" | "reset">("email");
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [forgotPasswordError, setForgotPasswordError] = useState("");
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -86,6 +94,59 @@ export default function LoginForm({ onClose }: LoginFormProps) {
     }
   };
 
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordError("");
+    setIsLoading(true);
+
+    try {
+      const { authApi } = await import("../../../interceptors/auth");
+      await authApi.forgotPassword(forgotPasswordEmail);
+
+      setForgotPasswordStep("reset");
+    } catch (err: any) {
+      setForgotPasswordError(
+        err.response?.data?.message || "Failed to send reset code"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordError("");
+
+    if (newPassword.length < 6) {
+      setForgotPasswordError("Password must be at least 6 characters");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { authApi } = await import("../../../interceptors/auth");
+      await authApi.resetPassword(forgotPasswordEmail, resetCode, newPassword);
+
+      // Reset all forgot password state
+      setShowForgotPassword(false);
+      setForgotPasswordStep("email");
+      setForgotPasswordEmail("");
+      setResetCode("");
+      setNewPassword("");
+      setForgotPasswordError("");
+
+      // Show success message
+      alert("Password reset successful! Please log in with your new password.");
+    } catch (err: any) {
+      setForgotPasswordError(
+        err.response?.data?.message || "Failed to reset password"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
       {/* Verification Modal */}
@@ -132,6 +193,128 @@ export default function LoginForm({ onClose }: LoginFormProps) {
                 Back to login
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
+            {forgotPasswordStep === "email" ? (
+              <>
+                <h2 className="text-2xl font-bold text-neutral mb-4">
+                  Forgot Password
+                </h2>
+                <p className="text-sm text-base-content/70 mb-6">
+                  Enter your email address and we'll send you a code to reset your password.
+                </p>
+                <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white"
+                      placeholder="you@company.com"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  {forgotPasswordError && (
+                    <div className="bg-error/10 border border-error/20 text-error text-sm p-3 rounded-lg">
+                      {forgotPasswordError}
+                    </div>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-content font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isLoading ? "Sending..." : "Send Reset Code"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setForgotPasswordStep("email");
+                      setForgotPasswordEmail("");
+                      setForgotPasswordError("");
+                    }}
+                    className="w-full text-sm text-base-content/70 hover:text-base-content"
+                  >
+                    Back to login
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold text-neutral mb-4">
+                  Reset Password
+                </h2>
+                <p className="text-sm text-base-content/70 mb-6">
+                  Enter the code we sent to {forgotPasswordEmail} and your new password.
+                </p>
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral mb-2">
+                      Reset Code
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      required
+                      value={resetCode}
+                      onChange={(e) => setResetCode(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white text-center text-2xl tracking-widest"
+                      placeholder="000000"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral mb-2">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white"
+                      placeholder="••••••••"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  {forgotPasswordError && (
+                    <div className="bg-error/10 border border-error/20 text-error text-sm p-3 rounded-lg">
+                      {forgotPasswordError}
+                    </div>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-content font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isLoading ? "Resetting..." : "Reset Password"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotPasswordStep("email");
+                      setResetCode("");
+                      setNewPassword("");
+                      setForgotPasswordError("");
+                    }}
+                    className="w-full text-sm text-base-content/70 hover:text-base-content"
+                  >
+                    Back
+                  </button>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -249,23 +432,15 @@ export default function LoginForm({ onClose }: LoginFormProps) {
               </div>
             </div>
 
-            {/* <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-primary border-base-300 rounded focus:ring-primary"
-                />
-                <span className="ml-2 text-sm text-base-content/70">
-                  Remember me
-                </span>
-              </label>
-              <a
-                href="#"
+            <div className="flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
                 className="text-sm text-primary hover:text-primary/80 font-medium"
               >
                 Forgot password?
-              </a>
-            </div> */}
+              </button>
+            </div>
 
             {error && !needsVerification && (
               <div className="bg-error/10 border border-error/20 text-error text-sm p-3 rounded-lg">
