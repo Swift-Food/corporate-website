@@ -189,8 +189,8 @@ export default function CheckoutPage() {
       clearCart();
       localStorage.setItem("corporate_order_submitted", "true");
 
-      // Redirect to success page or orders page
-      router.push("/order"); // You can create a success page later
+      // Redirect to order details page
+      router.push(`/order/${response.id}`);
     } catch (err: any) {
       console.error("Error creating order:", err);
       setError(

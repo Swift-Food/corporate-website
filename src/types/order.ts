@@ -38,10 +38,42 @@ export interface CreateEmployeeOrderDto {
 // Response type for created order
 export interface OrderResponse {
   id: string;
-  employeeId: string;
+  employeeId?: string;
+  organizationId: string;
   status: string;
-  totalAmount: number;
+  orderDate: string;
+  requestedDeliveryTime: string;
+  estimatedDeliveryTime: string | null;
+  actualDeliveryTime: string | null;
+  deliveryAddressId: string;
+  deliveryInstructions: string | null;
+  subtotal: string | number;
+  taxAmount: string | number;
+  deliveryFee: string | number;
+  discount: string | number;
+  totalAmount: string | number;
+  totalEmployees: number;
+  paymentMethod: string;
+  paymentSource: string;
+  paymentIntentId: string | null;
+  paymentCompleted: boolean;
+  isPaid: boolean;
+  paidAt: string | null;
+  restaurantAccepted: boolean;
+  restaurantAcceptedAt: string | null;
+  restaurantRejectedAt: string | null;
+  restaurantRejectionReason: string | null;
+  approvedAt: string | null;
+  approvedBy: string | null;
+  rejectedAt: string | null;
+  rejectedBy: string | null;
+  rejectionReason: string | null;
+  cutoffTime: string;
+  driverId: string | null;
+  trackingUrl: string | null;
+  metadata: any | null;
   restaurantOrders: RestaurantOrder[];
+  subOrders?: any[];
   createdAt: string;
   updatedAt: string;
 }

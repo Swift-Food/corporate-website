@@ -258,7 +258,10 @@ export default function ProfilePage() {
                 </p>
               </div>
             ) : (
-              <div className="border border-base-300 rounded-lg p-4">
+              <div
+                className="border border-base-300 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => router.push(`/order/${todayOrder.id}`)}
+              >
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <p className="font-semibold text-lg">
@@ -316,6 +319,25 @@ export default function ProfilePage() {
                       )}
                     </div>
                   ))}
+                </div>
+
+                {/* View Details Indicator */}
+                <div className="flex items-center justify-end mt-3 text-primary text-sm font-semibold">
+                  <span>View Details</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 ml-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
                 </div>
               </div>
             )}
