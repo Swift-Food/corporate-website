@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
 // import { Menu } from "@deemlol/next-icons";
-import { ShoppingCart, User, ShieldUser } from "lucide-react";
+import { ShoppingCart, User, ShieldUser, Utensils } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
 
 import styles from "./navbar.module.css";
@@ -27,10 +27,16 @@ function NavbarAction({
   isManager,
 }: NavbarActionProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleManagerClick = () => {
     if (isAuthenticated) {
-      router.push("/dashboard");
+      // If already on dashboard, go back to home, otherwise go to dashboard
+      if (pathname === "/dashboard") {
+        router.push("/");
+      } else {
+        router.push("/dashboard");
+      }
       if (onLinkClick) onLinkClick();
     } else {
       onLoginClick();
@@ -42,16 +48,22 @@ function NavbarAction({
   const { cartItems = [] } = useCart();
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Check if we're on the dashboard page
+  const isOnDashboard = pathname === "/dashboard";
+
   return (
     <div className="flex gap-2 md:gap-4 items-center text-black">
       {isManager && (
         <button
           onClick={handleManagerClick}
           className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all cursor-pointer"
+          aria-label={isOnDashboard ? "Go to Order" : "Manager Dashboard"}
         >
-          <ShieldUser className="w-5 h-5 md:w-6 md:h-6" />
-          {/* <span className="hidden sm:inline">MANAGER</span>
-          <span className="sm:hidden">MGR</span> */}
+          {isOnDashboard ? (
+            <Utensils className="w-5 h-5 md:w-6 md:h-6" />
+          ) : (
+            <ShieldUser className="w-5 h-5 md:w-6 md:h-6" />
+          )}
         </button>
       )}
       <div className="relative">
