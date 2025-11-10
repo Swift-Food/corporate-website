@@ -223,7 +223,7 @@ export default function OrderDetailsPage() {
                   ${Number(order.subtotal).toFixed(2)}
                 </span>
               </div>
-              <div className="flex justify-between text-base">
+              {/* <div className="flex justify-between text-base">
                 <span className="text-base-content/70">Tax</span>
                 <span className="font-semibold">
                   ${Number(order.taxAmount).toFixed(2)}
@@ -234,7 +234,7 @@ export default function OrderDetailsPage() {
                 <span className="font-semibold">
                   ${Number(order.deliveryFee).toFixed(2)}
                 </span>
-              </div>
+              </div> */}
               {Number(order.discount) > 0 && (
                 <div className="flex justify-between text-base text-success">
                   <span>Discount</span>
@@ -377,22 +377,6 @@ export default function OrderDetailsPage() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Actions */}
-        <div className="mt-8 flex gap-4 justify-end">
-          <button
-            className="btn btn-outline"
-            onClick={() => router.push("/order-history")}
-          >
-            View All Orders
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={() => router.push("/RestaurantCatalogue")}
-          >
-            Order Again
-          </button>
         </div>
       </div>
     </div>
