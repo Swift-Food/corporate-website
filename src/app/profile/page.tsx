@@ -175,12 +175,12 @@ export default function ProfilePage() {
         </div>
 
         {/* Orders Navigation Card */}
-        <div className="card bg-base-100 shadow-xl mb-6">
+        <div className="card bg-base-100 rounded-xl mb-6 px-4 py-4 border border-base-200">
           <div className="card-body">
             <h2 className="card-title text-2xl mb-4">Orders</h2>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                className="btn btn-primary flex-1"
+                className="btn flex-1 shadow-none border-none"
                 onClick={() => router.push("/orders")}
               >
                 <svg
@@ -204,7 +204,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Active Orders Section */}
-        <div className="card bg-base-100 shadow-xl">
+        <div className="card bg-base-100 rounded-xl mb-6 px-4 py-4 border border-base-200">
           <div className="card-body">
             <h2 className="card-title text-2xl mb-4">Active Orders</h2>
             {loadingOrders ? (
