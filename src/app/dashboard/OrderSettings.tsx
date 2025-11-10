@@ -131,8 +131,12 @@ export function OrderSettings({
   };
 
   const handleCancelDeliveryWindowEdit = () => {
-    setTempDeliveryWindow(deliveryTimeWindow);
     setIsEditingDeliveryWindow(false);
+    setError(''); // Clear error
+    if (deliveryTimeWindow) {
+      const [hours, minutes] = deliveryTimeWindow.split(':');
+      setTempDeliveryWindow(`${hours}:${minutes}`);
+    }
   };
 
   return (
@@ -189,26 +193,40 @@ export function OrderSettings({
       <span>Edit</span>
     </button>
   </div>
-) : (
-  <div className="bg-white rounded-lg p-6 border border-slate-200 space-y-4">
-    <div>
-      <label className="block text-sm font-medium text-slate-700 mb-3">
-        Select Cutoff Time
-      </label>
+  ) : (
+    <div className="bg-white rounded-lg p-6 border border-slate-200 space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-3">
+          Select Cutoff Time
+        </label>
+        
+        {/* Time Picker UI */}
+        <div className="flex items-center space-x-3">
+          {/* Hour Selector */}
+          <div className="flex-1">
+            <label className="block text-xs text-slate-500 mb-1">Hour</label>
+            <select
+    value={tempCutoffTime.split(':')[0] || '11'}
+    onChange={(e) => {
+      const minutes = tempCutoffTime.split(':')[1] || '00';
+      const newTime = `${e.target.value}:${minutes}`;
+      setTempCutoffTime(newTime);
       
-      {/* Time Picker UI */}
-      <div className="flex items-center space-x-3">
-        {/* Hour Selector */}
-        <div className="flex-1">
-          <label className="block text-xs text-slate-500 mb-1">Hour</label>
-          <select
-            value={tempCutoffTime.split(':')[0] || '11'}
-            onChange={(e) => {
-              const minutes = tempCutoffTime.split(':')[1] || '00';
-              setTempCutoffTime(`${e.target.value}:${minutes}`);
-            }}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold appearance-none bg-white cursor-pointer"
-          >
+      // Real-time validation
+      const hours = parseInt(e.target.value);
+      const mins = parseInt(minutes);
+      const timeInMinutes = hours * 60 + mins;
+      
+      if (timeInMinutes < 9 * 60) {
+        setError('Cutoff time must be after 9:00 AM');
+      } else if (timeInMinutes >= 18 * 60) {
+        setError('Cutoff time must be before 6:00 PM');
+      } else {
+        setError('');
+      }
+    }}
+    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold appearance-none bg-white cursor-pointer"
+  >
             {Array.from({ length: 9 }, (_, i) => i + 10).map((hour) => {
               const hourStr = hour.toString().padStart(2, '0');
               return (
@@ -226,13 +244,27 @@ export function OrderSettings({
         <div className="flex-1">
           <label className="block text-xs text-slate-500 mb-1">Minute</label>
           <select
-            value={tempCutoffTime.split(':')[1] || '00'}
-            onChange={(e) => {
-              const hours = tempCutoffTime.split(':')[0] || '11';
-              setTempCutoffTime(`${hours}:${e.target.value}`);
-            }}
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold appearance-none bg-white cursor-pointer"
-          >
+  value={tempCutoffTime.split(':')[1] || '00'}
+  onChange={(e) => {
+    const hours = tempCutoffTime.split(':')[0] || '11';
+    const newTime = `${hours}:${e.target.value}`;
+    setTempCutoffTime(newTime);
+    
+    // Real-time validation
+    const hrs = parseInt(hours);
+    const mins = parseInt(e.target.value);
+    const timeInMinutes = hrs * 60 + mins;
+    
+    if (timeInMinutes < 9 * 60) {
+      setError('Cutoff time must be after 9:00 AM');
+    } else if (timeInMinutes >= 18 * 60) {
+      setError('Cutoff time must be before 6:00 PM');
+    } else {
+      setError('');
+    }
+  }}
+  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold appearance-none bg-white cursor-pointer"
+>
             {['00', '15', '30', '45'].map((minute) => (
               <option key={minute} value={minute}>
                 {minute}
@@ -241,6 +273,14 @@ export function OrderSettings({
           </select>
         </div>
       </div>
+      {error && (
+        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-2">
+          <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          <span className="text-sm text-red-700 font-medium">{error}</span>
+        </div>
+      )}
 
     
       <p className="text-xs text-slate-500 mt-3 flex items-start space-x-2">
@@ -257,7 +297,7 @@ export function OrderSettings({
           const [hours, minutes] = tempCutoffTime.split(':');
           handleSaveCutoffTime(`${hours}:${minutes}:00`);
         }}
-        disabled={isSavingCutoff}
+        // disabled={isSavingCutoff}
         className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSavingCutoff ? (
@@ -276,7 +316,7 @@ export function OrderSettings({
       </button>
       <button
         onClick={handleCancelEdit}
-        disabled={isSavingCutoff}
+        // disabled={isSavingCutoff}
         className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Cancel
@@ -388,7 +428,16 @@ export function OrderSettings({
               ))}
             </select>
           </div>
+
         </div>
+        {error && (
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-2">
+            <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <span className="text-sm text-red-700 font-medium">{error}</span>
+          </div>
+        )}
 
         <p className="text-xs text-slate-500 mt-3 flex items-start space-x-2">
           <svg className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -399,14 +448,14 @@ export function OrderSettings({
       </div>
       
       <div className="flex space-x-3">
-        <button
-          onClick={() => {
-            const [hours, minutes] = tempDeliveryWindow.split(':');
-            handleSaveDeliveryWindow(`${hours}:${minutes}:00`);
-          }}
-          disabled={isSavingDeliveryWindow}
-          className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+          <button
+            onClick={() => {
+              const [hours, minutes] = tempDeliveryWindow.split(':');
+              handleSaveDeliveryWindow(`${hours}:${minutes}:00`);
+            }}
+            // disabled={isSavingDeliveryWindow || !!error}
+            className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
           {isSavingDeliveryWindow ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
@@ -423,7 +472,7 @@ export function OrderSettings({
         </button>
         <button
           onClick={handleCancelDeliveryWindowEdit}
-          disabled={isSavingDeliveryWindow}
+          // disabled={isSavingDeliveryWindow}
           className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancel
