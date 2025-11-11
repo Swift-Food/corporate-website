@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useCart } from "../../context/CartContext";
 // import { Menu } from "@deemlol/next-icons";
-import { ShoppingCart, User, Utensils } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
@@ -110,7 +110,13 @@ function NavbarAction({
             aria-label={isOnDashboard ? "Go to Order" : "Manager Dashboard"}
           >
             {isOnDashboard ? (
-              <Utensils className="w-5 h-5 md:w-6 md:h-6" />
+              <Image
+                src="/icons/navbar/market.svg"
+                alt="Market"
+                width={24}
+                height={24}
+                className="w-5 h-5 md:w-6 md:h-6"
+              />
             ) : (
               <>
                 <span className="text-black font-semibold text-xs md:text-sm md:hidden hover:text-white">
@@ -139,7 +145,13 @@ function NavbarAction({
           className="w-8 h-8 md:w-10 md:h-10 rounded-full text-black flex items-center justify-center transition-all cursor-pointer"
           aria-label="Cart"
         >
-          <ShoppingCart className="w-5 h-5 md:w-6 md:h-6" />
+          <Image
+            src="/icons/navbar/co-cart.svg"
+            alt="Cart"
+            width={24}
+            height={24}
+            className="w-5 h-5 md:w-6 md:h-6"
+          />
         </button>
         {cartItemCount > 0 && (
           <span
@@ -213,7 +225,13 @@ function NavbarAction({
           className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all cursor-pointer"
           aria-label="Profile"
         >
-          <User className="w-5 h-5 md:w-6 md:h-6 text-black" />
+          <Image
+            src="/icons/navbar/co-profile.svg"
+            alt="Profile"
+            width={24}
+            height={24}
+            className="w-5 h-5 md:w-6 md:h-6"
+          />
         </button>
         {/* Tooltip */}
         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-neutral text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 shadow-lg z-50">
