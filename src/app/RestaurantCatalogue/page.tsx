@@ -433,7 +433,7 @@ function RestaurantCatalogueContent() {
                     {(filterExpanded || filterModalOpen) && (
                       <>
                         <span
-                          className={`text-sm font-medium whitespace-nowrapx`}
+                          className={`text-sm font-medium whitespace-nowrapx text-center flex-1`}
                         >
                           Filters
                         </span>
@@ -444,8 +444,8 @@ function RestaurantCatalogueContent() {
                             closeButtonClickedRef.current = true;
                             setFilterModalOpen(false);
                           }}
-                          className={`filter-close-btn rounded-full h-8 w-8 bg-white text-black flex justify-center items-center cursor-pointer ${
-                            filterModalOpen ? "visible" : "invisible"
+                          className={`filter-close-btn rounded-full h-8 w-8 bg-white text-black justify-center items-center cursor-pointer ${
+                            filterModalOpen ? "flex" : "hidden"
                           }`}
                         >
                           <svg
