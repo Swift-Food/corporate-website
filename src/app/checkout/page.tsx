@@ -39,7 +39,7 @@ function CheckoutPageNoFilterContext() {
     null
   );
   const [isWithinBudget, setIsWithinBudget] = useState(true);
-  const [orderAction, setOrderAction] = useState<"replace" | "add">("replace");
+  const [orderAction, setOrderAction] = useState<"replace" | "add" | null>("replace");
   const [isCheckingOrder, setIsCheckingOrder] = useState(true);
   const [cutoffTime, setCutoffTime] = useState<string>("11:00:00");
 
@@ -574,7 +574,7 @@ function CheckoutPageNoFilterContext() {
             {/* Cart Items by Restaurant */}
             <div className="bg-base-100 rounded-xl p-6 border border-base-300">
               <h2 className="text-2xl font-bold text-base-content mb-4">
-                {existingOrder
+                {existingOrder && orderAction
                   ? orderAction === "replace"
                     ? "New Order (Replacing Existing)"
                     : "Combined Order (Existing + New)"
@@ -850,7 +850,7 @@ function CheckoutPageNoFilterContext() {
                   ? "Orders Closed"
                   : isSubmitting
                   ? "Placing Order..."
-                  : existingOrder
+                  : existingOrder && orderAction
                   ? orderAction === "replace"
                     ? "Replace & Place Order"
                     : "Add & Place Order"
