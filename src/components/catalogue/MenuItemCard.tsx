@@ -357,7 +357,7 @@ const MenuItemCard = React.forwardRef<HTMLDivElement, MenuItemCardProps>(
 
                   {/* Right Side - Image */}
                   {item.image && (
-                    <div className="w-[140px] md:w-[200px] h-full bg-gray-200 flex-shrink-0 relative">
+                    <div className="h-full aspect-[8/7] bg-gray-200 flex-shrink-0 relative">
                       <Image
                         src={item.image}
                         alt={item.name}

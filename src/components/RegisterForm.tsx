@@ -30,6 +30,23 @@ export default function RegisterForm({
   const [successMessage, setSuccessMessage] = useState("");
   const [domainInfo, setDomainInfo] = useState<any>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
+  // Password validation helper
+  const validatePassword = (password: string) => {
+    const requirements = {
+      minLength: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
+
+    const allMet = Object.values(requirements).every((req) => req);
+    return { requirements, allMet };
+  };
+
+  const passwordValidation = validatePassword(formData.password);
 
   // Step 1: Check domain eligibility
   const handleCheckDomain = async (e: React.FormEvent) => {
@@ -60,8 +77,10 @@ export default function RegisterForm({
     e.preventDefault();
     setError("");
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
+    // Validate password meets all requirements
+    if (!passwordValidation.allMet) {
+      setError("Password does not meet all requirements");
+      setPasswordTouched(true);
       return;
     }
 
@@ -111,6 +130,7 @@ export default function RegisterForm({
       });
       setVerificationCode("");
       setDomainInfo(null);
+      setPasswordTouched(false);
       setStep("check");
 
       if (onSuccess) {
@@ -165,6 +185,7 @@ export default function RegisterForm({
               onClick={() => {
                 if (step === "register") {
                   setStep("check");
+                  setPasswordTouched(false);
                 } else if (step === "verify") {
                   setStep("register");
                 }
@@ -344,6 +365,7 @@ export default function RegisterForm({
                 required
                 value={formData.password}
                 onChange={handleChange}
+                onFocus={() => setPasswordTouched(true)}
                 className="w-full px-4 py-3 pr-12 border-2 border-base-300 rounded-lg focus:outline-none focus:border-primary bg-white transition-colors"
                 placeholder="••••••••"
                 disabled={isLoading}
@@ -391,6 +413,217 @@ export default function RegisterForm({
                 )}
               </button>
             </div>
+
+            {/* Password Requirements */}
+            {passwordTouched && (
+              <div className="mt-3 space-y-2">
+                <p className="text-xs font-medium text-base-content/70">
+                  Password must contain:
+                </p>
+                <div className="grid grid-cols-1 gap-1.5">
+                  <div className="flex items-center gap-2">
+                    {passwordValidation.requirements.minLength ? (
+                      <svg
+                        className="w-4 h-4 text-success flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-4 h-4 text-base-content/30 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    )}
+                    <span
+                      className={`text-xs ${
+                        passwordValidation.requirements.minLength
+                          ? "text-success"
+                          : "text-base-content/50"
+                      }`}
+                    >
+                      At least 8 characters
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {passwordValidation.requirements.hasUpperCase ? (
+                      <svg
+                        className="w-4 h-4 text-success flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-4 h-4 text-base-content/30 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    )}
+                    <span
+                      className={`text-xs ${
+                        passwordValidation.requirements.hasUpperCase
+                          ? "text-success"
+                          : "text-base-content/50"
+                      }`}
+                    >
+                      One uppercase letter (A-Z)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {passwordValidation.requirements.hasLowerCase ? (
+                      <svg
+                        className="w-4 h-4 text-success flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-4 h-4 text-base-content/30 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    )}
+                    <span
+                      className={`text-xs ${
+                        passwordValidation.requirements.hasLowerCase
+                          ? "text-success"
+                          : "text-base-content/50"
+                      }`}
+                    >
+                      One lowercase letter (a-z)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {passwordValidation.requirements.hasNumber ? (
+                      <svg
+                        className="w-4 h-4 text-success flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-4 h-4 text-base-content/30 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    )}
+                    <span
+                      className={`text-xs ${
+                        passwordValidation.requirements.hasNumber
+                          ? "text-success"
+                          : "text-base-content/50"
+                      }`}
+                    >
+                      One number (0-9)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {passwordValidation.requirements.hasSpecialChar ? (
+                      <svg
+                        className="w-4 h-4 text-success flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-4 h-4 text-base-content/30 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    )}
+                    <span
+                      className={`text-xs ${
+                        passwordValidation.requirements.hasSpecialChar
+                          ? "text-success"
+                          : "text-base-content/50"
+                      }`}
+                    >
+                      One special character (!@#$%^&*...)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <button
