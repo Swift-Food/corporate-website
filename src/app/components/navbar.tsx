@@ -36,7 +36,12 @@ function NavbarAction({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Use the custom hook for cart context
-  const { cartItems = [], removeFromCart, updateCartQuantity, addToCart } = useCart();
+  const {
+    cartItems = [],
+    removeFromCart,
+    updateCartQuantity,
+    addToCart,
+  } = useCart();
 
   const handleCartMouseEnter = () => {
     // Clear any existing timeout
@@ -99,19 +104,19 @@ function NavbarAction({
         <div className="relative group">
           <button
             onClick={handleManagerClick}
-            className={`px-2 py-1 md:px-3 md:py-1.5 ${
-              isOnDashboard ? "bg-transparent" : "bg-white"
-            } rounded flex items-center justify-center transition-all cursor-pointer`}
+            className={`px-2 py-1 md:px-3 md:py-1.5 bg-transparent ${
+              isOnDashboard ? "" : "hover:bg-primary"
+            } rounded-2xl flex items-center justify-center transition-all cursor-pointer`}
             aria-label={isOnDashboard ? "Go to Order" : "Manager Dashboard"}
           >
             {isOnDashboard ? (
               <Utensils className="w-5 h-5 md:w-6 md:h-6" />
             ) : (
               <>
-                <span className="text-black font-semibold text-xs md:text-sm md:hidden">
+                <span className="text-black font-semibold text-xs md:text-sm md:hidden hover:text-white">
                   MGR
                 </span>
-                <span className="text-black font-semibold text-sm hidden md:inline">
+                <span className="text-black font-semibold text-sm hidden md:inline hover:text-white">
                   MANAGER
                 </span>
               </>
@@ -253,7 +258,7 @@ export default function Navbar() {
 
       // Only open login modal if NOT in RestaurantCatalogue pages
       // Login modal should only open automatically on checkout page when session expires
-      if (!pathname.includes('/RestaurantCatalogue')) {
+      if (!pathname.includes("/RestaurantCatalogue")) {
         setIsLoginModalOpen(true);
       }
       // You can use customEvent.detail.message if needed for displaying a message
