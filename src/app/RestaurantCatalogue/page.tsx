@@ -17,7 +17,7 @@ import { FilterProvider, useFilters } from "@/contexts/FilterContext";
 
 function RestaurantCatalogueContent() {
   const router = useRouter();
-  const { corporateUser } = useAuth();
+  const { corporateUser, isAuthenticated } = useAuth();
   const { filters } = useFilters();
 
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -276,7 +276,7 @@ function RestaurantCatalogueContent() {
                     className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
                   /> */}
                   <p className="text-sm text-gray-600">
-                    {getDeliveryDisplayText(cutoffTime, "short")}
+                    {isAuthenticated ? getDeliveryDisplayText(cutoffTime, "short") : "Login To View"}
                   </p>
                 </div>
                 <div className="flex-1">
@@ -483,7 +483,7 @@ function RestaurantCatalogueContent() {
                     />
                   </svg>
                   <span className="text-base text-base-content font-medium">
-                    {getDeliveryDisplayText(cutoffTime, "short")}
+                    {isAuthenticated ? getDeliveryDisplayText(cutoffTime, "short") : "Login To View"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-1 rounded-lg px-4 py-3">
