@@ -290,8 +290,8 @@ function RestaurantDetailContent() {
               ))}
             </div>
 
-            {/* Search and Filter - Right Side */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Search and Filter - Right Side - Desktop Only */}
+            <div className="hidden md:flex items-center gap-2 flex-shrink-0">
               {/* Search Button/Bar */}
               <div
                 className="group flex items-center"
@@ -445,20 +445,14 @@ function RestaurantDetailContent() {
             </div>
           </div>
         </div>
-
-        {/* Filter Modal */}
-        <FilterModal
-          isOpen={filterModalOpen}
-          onClose={() => setFilterModalOpen(false)}
-        />
       </div>
 
-      {/* OLD Search and Filter Bar - Sticky - COMMENTED OUT */}
-      {/* <div className="sticky top-[136px] md:top-[144px] z-30">
-        <div className="px-4 md:px-8 py-3">
-          <div className="flex items-center gap-2 w-full max-w-7xl mx-auto">
+      {/* Search and Filter Bar - Mobile Only */}
+      <div className="md:hidden sticky top-[136px] z-30">
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-2 w-full">
             <div className="flex-1">
-              <div className="flex items-center bg-white rounded-full h-12 px-3 w-full border border-base-200">
+              <div className="flex items-center bg-white rounded-full h-12 px-3 w-full border border-base-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -503,88 +497,57 @@ function RestaurantDetailContent() {
                 )}
               </div>
             </div>
-            <div
-              onMouseEnter={() => setFilterExpanded(true)}
-              onMouseLeave={() => setFilterExpanded(false)}
+            <button
+              onClick={() => {
+                if (closeButtonClickedRef.current) {
+                  closeButtonClickedRef.current = false;
+                  return;
+                }
+                if (!filterModalOpen) {
+                  setFilterModalOpen(true);
+                }
+              }}
+              className={`rounded-full border border-base-300 transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-12 overflow-hidden ${
+                filterModalOpen
+                  ? "w-32 px-4 gap-2"
+                  : "w-12 justify-center"
+              } ${
+                filters.allergens.length > 0 ||
+                filters.dietaryRestrictions.length > 0 ||
+                filterModalOpen
+                  ? "bg-primary text-white"
+                  : "bg-white"
+              }`}
             >
-              <button
-                onClick={() => {
-                  if (closeButtonClickedRef.current) {
-                    closeButtonClickedRef.current = false;
-                    return;
-                  }
-                  if (!filterModalOpen) {
-                    setFilterModalOpen(true);
-                  }
-                }}
-                className={`rounded-full border border-base-200 transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-12 overflow-hidden ${
-                  filterModalOpen || filterExpanded
-                    ? "w-36 px-4 gap-2 justify-between"
-                    : "w-12 justify-center"
-                } ${
-                  filters.allergens.length > 0 ||
-                  filters.dietaryRestrictions.length > 0 ||
-                  filterModalOpen
-                    ? "bg-primary text-white"
-                    : "bg-white"
-                }`}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5 flex-shrink-0"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className={`w-5 h-5 flex-shrink-0`}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-                  />
-                </svg>
-                {(filterModalOpen || filterExpanded) && (
-                  <>
-                    <span className={`text-sm font-medium whitespace-nowrap`}>
-                      Filters
-                    </span>
-                    <div
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        closeButtonClickedRef.current = true;
-                        setFilterModalOpen(false);
-                      }}
-                      className={`filter-close-btn rounded-full h-8 w-8 bg-white text-black flex justify-center items-center cursor-pointer ${
-                        filterModalOpen ? "visible" : "invisible"
-                      }`}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                        <line x1="6" y1="18" x2="18" y2="6" />
-                      </svg>
-                    </div>
-                  </>
-                )}
-              </button>
-            </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                />
+              </svg>
+              {filterModalOpen && (
+                <span className="text-sm font-medium whitespace-nowrap text-white">
+                  Filters
+                </span>
+              )}
+            </button>
           </div>
         </div>
+      </div>
 
-        <FilterModal
-          isOpen={filterModalOpen}
-          onClose={() => setFilterModalOpen(false)}
-        />
-      </div> */}
+      {/* Filter Modal - Shared between mobile and desktop */}
+      <FilterModal
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+      />
 
       {/* Main Content Container */}
       <div className="flex gap-6 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 mx-auto">
