@@ -95,6 +95,15 @@ export const authApi = {
   },
 
   /**
+   * Get current user's profile (validates token)
+   */
+  getProfile: async (): Promise<any> => {
+    const response = await apiClient.get<any>("/auth/profile");
+    console.log("Getting profile: ", response)
+    return response.data;
+  },
+
+  /**
    * Get current user's corporate profile
    */
   getCorporateProfile: async (email: string): Promise<CorporateUser> => {

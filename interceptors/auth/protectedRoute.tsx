@@ -16,43 +16,54 @@ export function ProtectedRoute({
   requireManager = false,
   requireAdmin = false,
 }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, corporateUser } = useAuth();
+  const { isAuthenticated, isLoading, corporateUser, validateProfile } = useAuth();
   const router = useRouter();
   const hasShownAlert = useRef(false);
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        router.push("/RestaurantCatalogue");
-        return;
-      }
-
-      // Check role requirements
-      if (
-        requireAdmin &&
-        corporateUser?.corporateRole !== CorporateUserRole.ADMIN
-      ) {
-        if (!hasShownAlert.current) {
-          hasShownAlert.current = true;
-          alert("You don't have authorization to access this page. Admin access required.");
+    const checkAuth = async () => {
+      if (!isLoading) {
+        if (!isAuthenticated) {
           router.push("/RestaurantCatalogue");
+          return;
         }
-        return;
-      }
 
-      if (
-        requireManager &&
-        corporateUser?.corporateRole !== CorporateUserRole.MANAGER &&
-        corporateUser?.corporateRole !== CorporateUserRole.ADMIN
-      ) {
-        if (!hasShownAlert.current) {
-          hasShownAlert.current = true;
-          alert("You don't have authorization to access this page. Manager access required.");
-          router.push("/RestaurantCatalogue");
+        // Validate profile with backend
+        const isValid = await validateProfile();
+        if (!isValid) {
+          // User will be logged out by validateProfile
+          return;
         }
-        return;
+
+        // Check role requirements
+        if (
+          requireAdmin &&
+          corporateUser?.corporateRole !== CorporateUserRole.ADMIN
+        ) {
+          if (!hasShownAlert.current) {
+            hasShownAlert.current = true;
+            alert("You don't have authorization to access this page. Admin access required.");
+            router.push("/RestaurantCatalogue");
+          }
+          return;
+        }
+
+        if (
+          requireManager &&
+          corporateUser?.corporateRole !== CorporateUserRole.MANAGER &&
+          corporateUser?.corporateRole !== CorporateUserRole.ADMIN
+        ) {
+          if (!hasShownAlert.current) {
+            hasShownAlert.current = true;
+            alert("You don't have authorization to access this page. Manager access required.");
+            router.push("/RestaurantCatalogue");
+          }
+          return;
+        }
       }
-    }
+    };
+
+    checkAuth();
   }, [
     isLoading,
     isAuthenticated,
@@ -60,6 +71,7 @@ export function ProtectedRoute({
     requireManager,
     requireAdmin,
     router,
+    validateProfile,
   ]);
 
   if (isLoading) {

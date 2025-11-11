@@ -38,6 +38,21 @@ function RestaurantCatalogueContent() {
   const [filterExpanded, setFilterExpanded] = useState(false);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const closeButtonClickedRef = useRef(false);
+  const [logoutMessage, setLogoutMessage] = useState<string | null>(null);
+
+  // Check for logout message
+  useEffect(() => {
+    const message = sessionStorage.getItem("logout_message");
+    if (message) {
+      setLogoutMessage(message);
+      sessionStorage.removeItem("logout_message");
+
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        setLogoutMessage(null);
+      }, 5000);
+    }
+  }, []);
 
   useEffect(() => {
     fetchRestaurants();
@@ -195,6 +210,48 @@ function RestaurantCatalogueContent() {
 
   return (
     <div className="w-full bg-base-100">
+      {/* Logout Message Notification */}
+      {logoutMessage && (
+        <div className="fixed top-20 md:top-24 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+          <div className="bg-error/90 backdrop-blur-sm text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 max-w-md">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6 flex-shrink-0"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+              />
+            </svg>
+            <p className="text-sm font-medium">{logoutMessage}</p>
+            <button
+              onClick={() => setLogoutMessage(null)}
+              className="ml-2 hover:bg-white/20 rounded-full p-1 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto">
         <div className="flex-1">
           {/* Desktop Sticky Search/Filter Section */}

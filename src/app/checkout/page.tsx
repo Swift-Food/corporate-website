@@ -20,7 +20,7 @@ import { FilterProvider, useFilters } from "@/contexts/FilterContext";
 function CheckoutPageNoFilterContext() {
   const router = useRouter();
   const { cartItems, getTotalPrice, clearCart } = useCart();
-  const { corporateUser, isAuthenticated } = useAuth();
+  const { corporateUser, isAuthenticated, validateProfile } = useAuth();
   const { filters } = useFilters();
   const employeeId = corporateUser?.id; //user?.id || corporateUser?.id;
 
@@ -246,6 +246,12 @@ function CheckoutPageNoFilterContext() {
     setError(null);
 
     try {
+      // Validate profile before creating order
+      const isValid = await validateProfile();
+      if (!isValid) {
+        // User will be logged out by validateProfile
+        return;
+      }
       // Get items based on selected action
       const itemsToOrder = getItemsForOrder();
 

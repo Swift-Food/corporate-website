@@ -21,6 +21,7 @@ import {
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  validateProfile: () => Promise<boolean>;
   isManager: boolean;
   isAdmin: boolean;
   organizationId: string | null;
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize auth state from localStorage
   useEffect(() => {
-    const initAuth = () => {
+    const initAuth = async () => {
       try {
         const token = localStorage.getItem("auth_token");
         const storedUserData = localStorage.getItem("user_data");
@@ -73,6 +74,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isLoading: false,
           isAuthenticated: true,
         });
+
+        // Validate profile with backend
+        try {
+          await authApi.getProfile();
+        } catch (profileError: any) {
+          console.error("Profile validation failed:", profileError);
+
+          let message = "Your session has expired. Please log in again.";
+
+          if (profileError.response?.status === 403) {
+            message =
+              "Your account is not active. Please contact your manager.";
+          } else if (profileError.response?.status === 401) {
+            message = "Your session has expired. Please log in again.";
+          } else if (profileError.response?.data?.message) {
+            message = profileError.response.data.message;
+          }
+
+          // Clear auth data and show message
+          localStorage.removeItem("auth_token");
+          localStorage.removeItem("user_data");
+          sessionStorage.setItem("logout_message", message);
+
+          setState({
+            user: null,
+            corporateUser: null,
+            token: null,
+            isLoading: false,
+            isAuthenticated: false,
+          });
+        }
       } catch (error) {
         console.error("Auth initialization failed:", error);
         // Clear invalid auth data
@@ -147,23 +179,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [router]
   );
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user_data");
-    setState({
-      user: null,
-      corporateUser: null,
-      token: null,
-      isLoading: false,
-      isAuthenticated: false,
-    });
-    router.push("/RestaurantCatalogue");
-  }, [router]);
+  const logout = useCallback(
+    (message?: string) => {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user_data");
+      setState({
+        user: null,
+        corporateUser: null,
+        token: null,
+        isLoading: false,
+        isAuthenticated: false,
+      });
+
+      if (message) {
+        // Store the message to show after redirect
+        sessionStorage.setItem("logout_message", message);
+      }
+
+      router.push("/RestaurantCatalogue");
+    },
+    [router]
+  );
+
+  const validateProfile = useCallback(async (): Promise<boolean> => {
+    try {
+      if (!state.token) {
+        return false;
+      }
+
+      // Validate profile with backend
+      await authApi.getProfile();
+      return true;
+    } catch (error: any) {
+      console.error("Profile validation failed:", error);
+
+      // Determine the error message
+      let message = "Your session has expired. Please log in again.";
+
+      if (error.response?.status === 403) {
+        message = "Your account is not active. Please contact your manager.";
+      } else if (error.response?.status === 401) {
+        message = "Your session has expired. Please log in again.";
+      } else if (error.response?.data?.message) {
+        message = error.response.data.message;
+      }
+
+      logout(message);
+      return false;
+    }
+  }, [state.token, logout]);
 
   const value: AuthContextType = {
     ...state,
     login,
     logout,
+    validateProfile,
     isManager:
       state.corporateUser?.corporateRole === CorporateUserRole.MANAGER ||
       state.corporateUser?.corporateRole === CorporateUserRole.ADMIN,
