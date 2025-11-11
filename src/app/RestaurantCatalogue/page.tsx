@@ -264,9 +264,9 @@ function RestaurantCatalogueContent() {
           <div className="hidden md:block md:sticky top-16 md:top-20 z-40 md:-mx-4 md:px-4 md:py-6 mb-[-1px] overflow-visible relative">
             {/* Desktop Layout */}
             <div className="flex items-center justify-center gap-4 relative w-full">
-              {/* Date/Time Inputs */}
-              <div className="flex items-center gap-3 bg-white rounded-full px-8 h-16 max-w-2xl flex-1 border border-base-200">
-                <div className="flex-1 border-r border-gray-200 pr-3">
+              {/* Date/Time/Budget Inputs */}
+              <div className="flex items-center gap-3 bg-white rounded-full px-8 h-16 border border-base-200">
+                <div className="border-r border-gray-200 pr-6">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Date
                   </label>
@@ -276,18 +276,26 @@ function RestaurantCatalogueContent() {
                     onChange={(e) => setWhen(e.target.value)}
                     className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
                   /> */}
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 whitespace-nowrap">
                     {isAuthenticated
                       ? getDeliveryDisplayText(cutoffTime, "short")
                       : "Login To View"}
                   </p>
                 </div>
-                <div className="flex-1">
+                <div className="border-r border-gray-200 pr-6">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Time
                   </label>
-                  <p className="text-sm text-gray-600 placeholder-gray-400">
+                  <p className="text-sm text-gray-600 placeholder-gray-400 whitespace-nowrap">
                     {time ? time : "Login To View"}
+                  </p>
+                </div>
+                <div className="pr-3">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Budget
+                  </label>
+                  <p className="text-sm text-gray-600 whitespace-nowrap">
+                    {isAuthenticated ? "$0.00" : "Login To View"}
                   </p>
                 </div>
               </div>
