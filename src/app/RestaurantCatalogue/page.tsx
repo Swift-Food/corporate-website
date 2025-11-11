@@ -576,8 +576,14 @@ function RestaurantCatalogueContent() {
                 onClick={() => setFilterModalOpen(!filterModalOpen)}
                 className={`rounded-full transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-12 overflow-hidden border-1 border-base-200 ${
                   filterModalOpen
-                    ? "w-32 px-4 gap-2 bg-primary text-white"
-                    : "w-12 bg-white"
+                    ? "w-32 px-4 gap-2"
+                    : "w-12"
+                } ${
+                  filters.allergens.length > 0 ||
+                  filters.dietaryRestrictions.length > 0 ||
+                  filterModalOpen
+                    ? "bg-primary text-white"
+                    : "bg-white"
                 }`}
               >
                 <svg
@@ -586,9 +592,7 @@ function RestaurantCatalogueContent() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className={`w-5 h-5 flex-shrink-0 ${
-                    filterModalOpen ? "text-white" : "text-gray-700"
-                  }`}
+                  className={`w-5 h-5 flex-shrink-0`}
                 >
                   <path
                     strokeLinecap="round"

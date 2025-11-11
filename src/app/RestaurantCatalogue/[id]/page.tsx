@@ -360,7 +360,13 @@ function RestaurantDetailContent() {
                   filterModalOpen || filterExpanded
                     ? "w-36 px-4 gap-2 justify-between"
                     : "w-12 justify-center"
-                } ${filterModalOpen ? "bg-primary text-white" : "bg-white"}`}
+                } ${
+                  filters.allergens.length > 0 ||
+                  filters.dietaryRestrictions.length > 0 ||
+                  filterModalOpen
+                    ? "bg-primary text-white"
+                    : "bg-white"
+                }`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -368,9 +374,7 @@ function RestaurantDetailContent() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className={`w-5 h-5 flex-shrink-0 ${
-                    filterModalOpen ? "text-white" : "text-gray-700"
-                  }`}
+                  className={`w-5 h-5 flex-shrink-0`}
                 >
                   <path
                     strokeLinecap="round"
@@ -380,11 +384,7 @@ function RestaurantDetailContent() {
                 </svg>
                 {(filterModalOpen || filterExpanded) && (
                   <>
-                    <span
-                      className={`text-sm font-medium whitespace-nowrap ${
-                        filterModalOpen ? "text-white" : "text-gray-700"
-                      }`}
-                    >
+                    <span className={`text-sm font-medium whitespace-nowrap`}>
                       Filters
                     </span>
                     <div
