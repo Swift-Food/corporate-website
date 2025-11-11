@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useCart } from "../../context/CartContext";
 // import { Menu } from "@deemlol/next-icons";
 import { ShoppingCart, User, Utensils } from "lucide-react";
@@ -10,6 +10,7 @@ import { useAuth } from "../../../interceptors/auth/authContext";
 
 import styles from "./navbar.module.css";
 import LoginModal from "./LoginModal";
+import CartHoverPreview from "@/components/cart/CartHoverPreview";
 
 interface NavbarActionProps {
   onLinkClick?: () => void;
@@ -28,6 +29,33 @@ function NavbarAction({
 }: NavbarActionProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [showCartPreview, setShowCartPreview] = useState(false);
+  const cartCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleCartMouseEnter = () => {
+    // Clear any existing timeout
+    if (cartCloseTimeoutRef.current) {
+      clearTimeout(cartCloseTimeoutRef.current);
+      cartCloseTimeoutRef.current = null;
+    }
+    setShowCartPreview(true);
+  };
+
+  const handleCartMouseLeave = () => {
+    // Set a delay before closing
+    cartCloseTimeoutRef.current = setTimeout(() => {
+      setShowCartPreview(false);
+    }, 300); // 300ms delay
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (cartCloseTimeoutRef.current) {
+        clearTimeout(cartCloseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleManagerClick = () => {
     if (isAuthenticated) {
@@ -82,7 +110,11 @@ function NavbarAction({
           </div>
         </div>
       )}
-      <div className="relative group">
+      <div
+        className="relative"
+        onMouseEnter={handleCartMouseEnter}
+        onMouseLeave={handleCartMouseLeave}
+      >
         <button
           onClick={() => router.push("/checkout")}
           className="w-8 h-8 md:w-10 md:h-10 rounded-full text-black flex items-center justify-center transition-all cursor-pointer"
@@ -98,11 +130,14 @@ function NavbarAction({
             {cartItemCount}
           </span>
         )}
-        {/* Tooltip */}
-        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-neutral text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 shadow-lg z-50">
-          {cartItemCount > 0 ? `Cart (${cartItemCount} items)` : "Cart"}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 bg-neutral rotate-45"></div>
-        </div>
+
+        {/* Cart Preview on Hover */}
+        {showCartPreview && (
+          <CartHoverPreview
+            onMouseEnter={handleCartMouseEnter}
+            onMouseLeave={handleCartMouseLeave}
+          />
+        )}
       </div>
 
       <div className="relative group">
