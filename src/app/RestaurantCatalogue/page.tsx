@@ -575,9 +575,7 @@ function RestaurantCatalogueContent() {
               <button
                 onClick={() => setFilterModalOpen(!filterModalOpen)}
                 className={`rounded-full transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-12 overflow-hidden border-1 border-base-200 ${
-                  filterModalOpen
-                    ? "w-32 px-4 gap-2"
-                    : "w-12"
+                  filterModalOpen ? "w-32 px-4 gap-2" : "w-12"
                 } ${
                   filters.allergens.length > 0 ||
                   filters.dietaryRestrictions.length > 0 ||

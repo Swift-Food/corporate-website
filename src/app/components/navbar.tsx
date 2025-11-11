@@ -139,6 +139,7 @@ export default function Navbar() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   // const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, logout, isManager } = useAuth();
+  const pathname = usePathname();
 
   // const closeMenu = () => {
   //   setIsMenuOpen(false);
@@ -160,7 +161,12 @@ export default function Navbar() {
   useEffect(() => {
     const handleOpenLoginModal = (event: Event) => {
       const customEvent = event as CustomEvent;
-      setIsLoginModalOpen(true);
+
+      // Only open login modal if NOT in RestaurantCatalogue pages
+      // Login modal should only open automatically on checkout page when session expires
+      if (!pathname.includes('/RestaurantCatalogue')) {
+        setIsLoginModalOpen(true);
+      }
       // You can use customEvent.detail.message if needed for displaying a message
     };
 
@@ -169,7 +175,7 @@ export default function Navbar() {
     return () => {
       window.removeEventListener("open-login-modal", handleOpenLoginModal);
     };
-  }, []);
+  }, [pathname]);
 
   return (
     <>
