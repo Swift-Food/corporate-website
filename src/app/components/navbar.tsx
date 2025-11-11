@@ -105,7 +105,7 @@ function NavbarAction({
           <button
             onClick={handleManagerClick}
             className={`px-2 py-1 md:px-3 md:py-1.5 bg-transparent ${
-              isOnDashboard ? "" : "hover:bg-primary"
+              isOnDashboard ? "text-black" : "hover:bg-primary hover:text-white"
             } rounded-2xl flex items-center justify-center transition-all cursor-pointer`}
             aria-label={isOnDashboard ? "Go to Order" : "Manager Dashboard"}
           >
@@ -119,10 +119,10 @@ function NavbarAction({
               />
             ) : (
               <>
-                <span className="text-black font-semibold text-xs md:text-sm md:hidden hover:text-white">
+                <span className="font-semibold text-xs md:text-sm md:hidden">
                   MGR
                 </span>
-                <span className="text-black font-semibold text-sm hidden md:inline hover:text-white">
+                <span className="font-semibold text-sm hidden md:inline">
                   MANAGER
                 </span>
               </>
