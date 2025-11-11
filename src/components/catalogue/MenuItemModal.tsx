@@ -48,11 +48,20 @@ export default function MenuItemModal({
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [hasModifiedQuantity, setHasModifiedQuantity] = useState(false);
   const [initialModalQuantity, setInitialModalQuantity] = useState(0);
+  const [isAllergenExpanded, setIsAllergenExpanded] = useState(false);
 
   const price = parseFloat(item.price?.toString() || "0");
   const discountPrice = parseFloat(item.discountPrice?.toString() || "0");
   const displayPrice =
     item.isDiscount && discountPrice > 0 ? discountPrice : price;
+
+  // Format allergen names for better display
+  const formatAllergen = (allergen: string) => {
+    return allergen
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
   // Derive addon groups from item.addons using useMemo
   const addonGroups = useMemo(() => {
@@ -136,6 +145,7 @@ export default function MenuItemModal({
     if (!isOpen) {
       prevItemIdRef.current = null;
       setActiveTooltip(null);
+      setIsAllergenExpanded(false);
     }
   }, [item.id, isOpen, quantity, initialSelectedOptions]);
 
@@ -297,6 +307,20 @@ export default function MenuItemModal({
 
         {/* Modal Body */}
         <div className="p-6">
+          {item.image && (
+            <div
+              className="w-full h-full flex-shrink-0 mb-3"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full h-full object-cover rounded-2xl"
+              />
+            </div>
+          )}
           <h2 className="font-bold text-xl md:text-2xl text-base-content mb-4 pr-8">
             {item.name}
           </h2>
@@ -377,30 +401,51 @@ export default function MenuItemModal({
               </div>
             )}
 
-            {item.allergens && item.allergens.length > 0 ? (
-              <div>
-                <h3 className="font-semibold text-sm text-base-content mb-2">
-                  Allergens
-                </h3>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {item.allergens.map((allergen: string, index: number) => (
-                    <span
-                      key={index}
-                      className="bg-warning/20 text-warning-content px-3 py-1 rounded-full text-xs font-medium"
-                    >
-                      {allergen}
+            {item.allergens && item.allergens.length > 0 && (
+              <div className="bg-warning/5 border border-warning/20 rounded-lg p-4">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsAllergenExpanded(!isAllergenExpanded);
+                  }}
+                  className="w-full text-left hover:opacity-80 transition-opacity"
+                >
+                  <h3 className="font-semibold text-sm text-base-content flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2">
+                      <span className="text-warning text-base">⚠️</span>
+                      Allergens
                     </span>
-                  ))}
-                </div>
-                <p className="text-xs text-base-content/50 italic bg-base-200 p-3 rounded">
-                  ⚠️ This is approximate. For full allergen info, contact the
-                  restaurant or our team.
-                </p>
+                    <span className="text-xs text-base-content/60 font-normal">
+                      {isAllergenExpanded ? "▲ Hide" : "▼ Show"}
+                    </span>
+                  </h3>
+                </button>
+                {isAllergenExpanded && (
+                  <>
+                    <div className="flex flex-wrap gap-2 my-3">
+                      {item.allergens.map((allergen: string, index: number) => (
+                        <span
+                          key={index}
+                          className="bg-warning text-warning-content px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm"
+                        >
+                          {formatAllergen(allergen)}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-base-content/60 italic leading-relaxed">
+                      This is approximate. For full allergen information, please
+                      contact the restaurant.
+                    </p>
+                  </>
+                )}
               </div>
-            ) : (
-              <div className="bg-base-200 p-3 rounded">
+            )}
+            {(!item.allergens || item.allergens.length === 0) && (
+              <div className="bg-base-200 border border-base-300 rounded-lg p-3">
                 <p className="text-xs text-base-content/60 italic">
-                  ⚠️ Disclaimer: Allergen info not available. Please contact the
+                  ⚠️ Allergen information not available. Please contact the
                   restaurant directly.
                 </p>
               </div>
