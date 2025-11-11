@@ -11,6 +11,7 @@ import { useAuth } from "../../../interceptors/auth/authContext";
 import styles from "./navbar.module.css";
 import LoginModal from "./LoginModal";
 import CartHoverPreview from "@/components/cart/CartHoverPreview";
+import MenuItemModal from "@/components/catalogue/MenuItemModal";
 
 interface NavbarActionProps {
   onLinkClick?: () => void;
@@ -31,6 +32,11 @@ function NavbarAction({
   const pathname = usePathname();
   const [showCartPreview, setShowCartPreview] = useState(false);
   const cartCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Use the custom hook for cart context
+  const { cartItems = [], removeFromCart, updateCartQuantity, addToCart } = useCart();
 
   const handleCartMouseEnter = () => {
     // Clear any existing timeout
@@ -72,8 +78,6 @@ function NavbarAction({
     }
   };
 
-  // Use the custom hook for cart context
-  const { cartItems = [] } = useCart();
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   // Check if we're on the dashboard page
@@ -136,9 +140,48 @@ function NavbarAction({
           <CartHoverPreview
             onMouseEnter={handleCartMouseEnter}
             onMouseLeave={handleCartMouseLeave}
+            onEditItem={(index) => {
+              setEditingIndex(index);
+              setIsModalOpen(true);
+            }}
           />
         )}
       </div>
+
+      {/* Edit Modal */}
+      {editingIndex !== null && cartItems[editingIndex] && (
+        <MenuItemModal
+          item={cartItems[editingIndex].item}
+          isOpen={isModalOpen}
+          quantity={cartItems[editingIndex].quantity}
+          cartIndex={editingIndex}
+          existingSelectedAddons={cartItems[editingIndex].selectedAddons}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingIndex(null);
+          }}
+          onAddItem={(item, quantity, selectedAddons) => {
+            // Remove the old item first, then add the updated one
+            removeFromCart(editingIndex);
+            addToCart(item, quantity, selectedAddons);
+            setIsModalOpen(false);
+            setEditingIndex(null);
+          }}
+          onUpdateQuantity={(itemId, cartIndex, newQuantity) => {
+            updateCartQuantity(cartIndex, newQuantity);
+            if (newQuantity === 0) {
+              setIsModalOpen(false);
+              setEditingIndex(null);
+            }
+          }}
+          onRemoveItem={(itemId, cartIndex) => {
+            removeFromCart(cartIndex);
+            setIsModalOpen(false);
+            setEditingIndex(null);
+          }}
+          isEditMode={true}
+        />
+      )}
 
       <div className="relative group">
         <button

@@ -1,25 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
-import MenuItemModal from "@/components/catalogue/MenuItemModal";
 
 interface CartHoverPreviewProps {
   maxItems?: number;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onEditItem?: (index: number) => void;
 }
 
 export default function CartHoverPreview({
   maxItems = 3,
   onMouseEnter,
   onMouseLeave,
+  onEditItem,
 }: CartHoverPreviewProps) {
-  const { cartItems, removeFromCart, updateCartQuantity, getTotalPrice, addToCart } = useCart();
+  const { cartItems, removeFromCart, updateCartQuantity, getTotalPrice } = useCart();
   const router = useRouter();
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (cartItems.length === 0) {
     return (
@@ -115,8 +113,9 @@ export default function CartHoverPreview({
                     <div className="flex flex-col gap-1">
                       <button
                         onClick={() => {
-                          setEditingIndex(index);
-                          setIsModalOpen(true);
+                          if (onEditItem) {
+                            onEditItem(index);
+                          }
                         }}
                         className="text-primary hover:opacity-80 text-xs"
                       >
@@ -150,41 +149,6 @@ export default function CartHoverPreview({
           View Cart & Checkout
         </button>
       </div>
-
-      {/* Edit Modal */}
-      {editingIndex !== null && cartItems[editingIndex] && (
-        <MenuItemModal
-          item={cartItems[editingIndex].item}
-          isOpen={isModalOpen}
-          quantity={cartItems[editingIndex].quantity}
-          cartIndex={editingIndex}
-          existingSelectedAddons={cartItems[editingIndex].selectedAddons}
-          onClose={() => {
-            setIsModalOpen(false);
-            setEditingIndex(null);
-          }}
-          onAddItem={(item, quantity, selectedAddons) => {
-            // Remove the old item first, then add the updated one
-            removeFromCart(editingIndex);
-            addToCart(item, quantity, selectedAddons);
-            setIsModalOpen(false);
-            setEditingIndex(null);
-          }}
-          onUpdateQuantity={(itemId, cartIndex, newQuantity) => {
-            updateCartQuantity(cartIndex, newQuantity);
-            if (newQuantity === 0) {
-              setIsModalOpen(false);
-              setEditingIndex(null);
-            }
-          }}
-          onRemoveItem={(itemId, cartIndex) => {
-            removeFromCart(cartIndex);
-            setIsModalOpen(false);
-            setEditingIndex(null);
-          }}
-          isEditMode={true}
-        />
-      )}
     </>
   );
 }
