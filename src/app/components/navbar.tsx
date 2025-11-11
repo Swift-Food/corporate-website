@@ -54,6 +54,16 @@ function NavbarAction({
     }, 300); // 300ms delay
   };
 
+  const handleCartClick = () => {
+    // On mobile, toggle cart preview
+    // On desktop, route to checkout
+    if (window.innerWidth < 768) {
+      setShowCartPreview(!showCartPreview);
+    } else {
+      router.push("/checkout");
+    }
+  };
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -120,7 +130,7 @@ function NavbarAction({
         onMouseLeave={handleCartMouseLeave}
       >
         <button
-          onClick={() => router.push("/checkout")}
+          onClick={handleCartClick}
           className="w-8 h-8 md:w-10 md:h-10 rounded-full text-black flex items-center justify-center transition-all cursor-pointer"
           aria-label="Cart"
         >
@@ -144,6 +154,7 @@ function NavbarAction({
               setEditingIndex(index);
               setIsModalOpen(true);
             }}
+            onClose={() => setShowCartPreview(false)}
           />
         )}
       </div>
