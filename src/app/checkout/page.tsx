@@ -14,8 +14,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../interceptors/auth/authContext";
 import LoginModal from "../components/LoginModal";
-import { getNextWorkingDayISO } from "@/util/catalogue";
+import { getNextWorkingDayISO, getDeliveryInfo, getDeliveryDisplayText } from "@/util/catalogue";
 import { FilterProvider, useFilters } from "@/contexts/FilterContext";
+import { organizationApi } from "@/api/organization";
 
 function CheckoutPageNoFilterContext() {
   const router = useRouter();
@@ -40,6 +41,7 @@ function CheckoutPageNoFilterContext() {
   const [isWithinBudget, setIsWithinBudget] = useState(true);
   const [orderAction, setOrderAction] = useState<"replace" | "add">("replace");
   const [isCheckingOrder, setIsCheckingOrder] = useState(true);
+  const [cutoffTime, setCutoffTime] = useState<string>("11:00:00");
 
   // Load delivery date and time from localStorage
   useEffect(() => {
@@ -49,6 +51,26 @@ function CheckoutPageNoFilterContext() {
     if (savedDate) setDeliveryDate(savedDate);
     if (savedTime) setDeliveryTime(savedTime);
   }, []);
+
+  // Fetch cutoff time from organization
+  useEffect(() => {
+    const fetchCutoffTime = async () => {
+      if (!corporateUser?.organizationId) return;
+
+      try {
+        const organizationData = await organizationApi.fetchOrganizationById(
+          corporateUser.organizationId
+        );
+        const fetchedCutoffTime = organizationData.orderCutoffTime ?? "11:00:00";
+        setCutoffTime(fetchedCutoffTime);
+      } catch (err) {
+        console.error("Failed to fetch organization cutoff time: ", err);
+        setCutoffTime("11:00:00");
+      }
+    };
+
+    fetchCutoffTime();
+  }, [corporateUser?.organizationId]);
 
   // Fetch existing active order
   useEffect(() => {
@@ -116,11 +138,13 @@ function CheckoutPageNoFilterContext() {
 
   // Helper function to create ISO date string from date and time
   const getRequestedDeliveryTime = (): string => {
-    if (deliveryDate && deliveryTime) {
-      // Combine date and time into ISO format
-      // const dateTimeString = `${deliveryDate}T${deliveryTime}`;
-      // Use getNextWorkingDayISO for ISO date string
-      const dateTimeString = `${getNextWorkingDayISO()}T${deliveryTime}`;
+    // Get delivery info based on cutoff time
+    const deliveryInfo = getDeliveryInfo(cutoffTime);
+
+    if (deliveryTime) {
+      // Use the delivery date from deliveryInfo (which respects cutoff time)
+      const deliveryDateISO = deliveryInfo.deliveryDate.toISOString().split("T")[0];
+      const dateTimeString = `${deliveryDateISO}T${deliveryTime}`;
       const date = new Date(dateTimeString);
 
       // Check if date is valid
@@ -129,8 +153,10 @@ function CheckoutPageNoFilterContext() {
       }
     }
 
-    // Fallback to 1 hour from now if no date/time selected
-    return new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    // Fallback: use delivery date from deliveryInfo at noon
+    const fallbackDate = new Date(deliveryInfo.deliveryDate);
+    fallbackDate.setHours(12, 0, 0, 0);
+    return fallbackDate.toISOString();
   };
 
   // Group cart items by restaurant
@@ -231,6 +257,13 @@ function CheckoutPageNoFilterContext() {
   const handleSubmitOrder = async () => {
     if (cartItems.length === 0) {
       setError("Your cart is empty");
+      return;
+    }
+
+    // Check if past cutoff time
+    const deliveryInfo = getDeliveryInfo(cutoffTime);
+    if (!deliveryInfo.canOrder) {
+      setError(`Orders are currently closed. The cut-off time for today (${deliveryInfo.formattedCutoffTime}) has passed. Please come back tomorrow to place your order.`);
       return;
     }
 
@@ -715,32 +748,44 @@ function CheckoutPageNoFilterContext() {
               </div>
 
               {/* Delivery Date and Time */}
-              {deliveryDate && deliveryTime && (
-                <div className="mb-6 p-4 bg-base-200 rounded-lg">
-                  <h3 className="text-sm font-semibold text-base-content/60 mb-2">
-                    Delivery Time
-                  </h3>
-                  <p className="text-base font-medium text-base-content">
-                    {new Date(
-                      `${deliveryDate}T${deliveryTime}`
-                    ).toLocaleDateString("en-GB", {
-                      weekday: "short",
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
-                  <p className="text-base font-medium text-base-content">
-                    {new Date(
-                      `${deliveryDate}T${deliveryTime}`
-                    ).toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                      hour12: true,
-                    })}
-                  </p>
-                </div>
-              )}
+              {(() => {
+                const deliveryInfo = getDeliveryInfo(cutoffTime);
+                return (
+                  <div className={`mb-6 p-4 rounded-lg ${deliveryInfo.canOrder ? 'bg-base-200' : 'bg-error/10 border border-error'}`}>
+                    <h3 className={`text-sm font-semibold mb-2 ${deliveryInfo.canOrder ? 'text-base-content/60' : 'text-error'}`}>
+                      {deliveryInfo.canOrder ? 'Delivery Time' : 'Order Status'}
+                    </h3>
+                    {deliveryInfo.canOrder ? (
+                      <>
+                        <p className="text-base font-medium text-base-content">
+                          {getDeliveryDisplayText(cutoffTime, "long")}
+                        </p>
+                        {deliveryTime && (
+                          <p className="text-base font-medium text-base-content">
+                            {deliveryTime}
+                          </p>
+                        )}
+                        <p className="text-xs text-base-content/60 mt-2">
+                          Order by {deliveryInfo.formattedCutoffTime} on {deliveryInfo.cutoffDateTime.toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-base font-medium text-error mb-2">
+                          {getDeliveryDisplayText(cutoffTime, "short")}
+                        </p>
+                        <p className="text-sm text-error/80">
+                          Orders are currently closed. Please come back tomorrow to place your order.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Budget Information */}
               {/* {existingOrder && (
@@ -798,10 +843,12 @@ function CheckoutPageNoFilterContext() {
 
               <button
                 onClick={handleSubmitOrder}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !getDeliveryInfo(cutoffTime).canOrder}
                 className="w-full bg-primary hover:opacity-90 text-white py-4 rounded-lg font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting
+                {!getDeliveryInfo(cutoffTime).canOrder
+                  ? "Orders Closed"
+                  : isSubmitting
                   ? "Placing Order..."
                   : existingOrder
                   ? orderAction === "replace"

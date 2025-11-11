@@ -12,7 +12,7 @@ import { searchApi } from "@/api/search";
 import SearchResults from "@/components/restaurant/SearchResults";
 import RestaurantCard from "@/components/restaurant/RestaurantCard";
 import FilterModal from "@/components/restaurant/FilterModal";
-import { getNextWorkingDayFormatted } from "@/util/catalogue";
+import { getDeliveryDisplayText } from "@/util/catalogue";
 import { FilterProvider, useFilters } from "@/contexts/FilterContext";
 
 function RestaurantCatalogueContent() {
@@ -24,6 +24,7 @@ function RestaurantCatalogueContent() {
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
   const [when, setWhen] = useState("");
   const [time, setTime] = useState<string | null>("");
+  const [cutoffTime, setCutoffTime] = useState<string>("11:00:00");
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -112,11 +113,15 @@ function RestaurantCatalogueContent() {
 
     try {
       const fetchedOrgTime = organizationData.defaultDeliveryTimeWindow ?? null;
+      const fetchedCutoffTime = organizationData.orderCutoffTime ?? "11:00:00";
       setTime(fetchedOrgTime);
+      setCutoffTime(fetchedCutoffTime);
       console.log("Fetched org time: ", fetchedOrgTime);
+      console.log("Fetched cutoff time: ", fetchedCutoffTime);
     } catch (err) {
       console.error("Failed to fetch organization delivery time window: ", err);
       setTime(null);
+      setCutoffTime("11:00:00");
     }
   };
 
@@ -271,7 +276,7 @@ function RestaurantCatalogueContent() {
                     className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
                   /> */}
                   <p className="text-sm text-gray-600">
-                    {getNextWorkingDayFormatted("short")}
+                    {getDeliveryDisplayText(cutoffTime, "short")}
                   </p>
                 </div>
                 <div className="flex-1">
@@ -478,7 +483,7 @@ function RestaurantCatalogueContent() {
                     />
                   </svg>
                   <span className="text-base text-base-content font-medium">
-                    {getNextWorkingDayFormatted("short")}
+                    {getDeliveryDisplayText(cutoffTime, "short")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-1 rounded-lg px-4 py-3">
