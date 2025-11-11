@@ -277,7 +277,9 @@ function RestaurantCatalogueContent() {
                     className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
                   /> */}
                   <p className="text-sm text-gray-600">
-                    {isAuthenticated ? getDeliveryDisplayText(cutoffTime, "short") : "Login To View"}
+                    {isAuthenticated
+                      ? getDeliveryDisplayText(cutoffTime, "short")
+                      : "Login To View"}
                   </p>
                 </div>
                 <div className="flex-1">
@@ -394,9 +396,14 @@ function RestaurantCatalogueContent() {
                       filterExpanded || filterModalOpen
                         ? "w-40 px-4 gap-2 justify-between"
                         : "w-16 justify-center"
-                    } ${
-                      filterModalOpen ? "bg-primary text-white" : "bg-white"
-                    }`}
+                    } 
+                     ${
+                       filters.allergens.length > 0 ||
+                       filters.dietaryRestrictions.length > 0 ||
+                       filterModalOpen
+                         ? "bg-primary text-white"
+                         : "bg-white"
+                     }`}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -404,9 +411,7 @@ function RestaurantCatalogueContent() {
                       viewBox="0 0 24 24"
                       strokeWidth={1.5}
                       stroke="currentColor"
-                      className={`w-5 h-5  flex-shrink-0 ${
-                        filterModalOpen ? "text-white" : "text-gray-700"
-                      }`}
+                      className={`w-5 h-5  flex-shrink-0`}
                     >
                       <path
                         strokeLinecap="round"
@@ -417,9 +422,7 @@ function RestaurantCatalogueContent() {
                     {(filterExpanded || filterModalOpen) && (
                       <>
                         <span
-                          className={`text-sm font-medium whitespace-nowrap ${
-                            filterModalOpen ? "text-white" : "text-gray-700"
-                          }`}
+                          className={`text-sm font-medium whitespace-nowrapx`}
                         >
                           Filters
                         </span>
@@ -484,7 +487,9 @@ function RestaurantCatalogueContent() {
                     />
                   </svg>
                   <span className="text-base text-base-content font-medium">
-                    {isAuthenticated ? getDeliveryDisplayText(cutoffTime, "short") : "Login To View"}
+                    {isAuthenticated
+                      ? getDeliveryDisplayText(cutoffTime, "short")
+                      : "Login To View"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-1 rounded-lg px-4 py-3">
