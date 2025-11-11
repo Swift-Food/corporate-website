@@ -12,22 +12,22 @@ export default function RestaurantCard({
   return (
     <div
       onClick={() => onClick(restaurant)}
-      className="rounded-lg overflow-hidden transition-transform duration-300 border-2 border-gray-200 cursor-pointer"
+      className="rounded-md overflow-hidden transition-transform duration-300 border-2 border-gray-200 cursor-pointer"
     >
-      <div className="relative w-full aspect-[16/9] overflow-hidden">
+      <div className="relative w-full aspect-[16/12] overflow-hidden">
         <img
           src={restaurant.images?.[0] || "/placeholder.jpg"}
           alt={restaurant.restaurant_name}
           className="w-full h-full object-cover"
         />
       </div>
-      <div className="px-4 py-2">
-        <h4 className="font-bold text-md text-base-content mb-1 line-clamp-1">
+      <div className="px-4 pt-2 pb-1">
+        <h4 className="font-bold text-md text-base-content line-clamp-1">
           {restaurant.restaurant_name}
         </h4>
         <div className="flex items-center gap-1">
-          <span className="text-yellow-500 text-base">★</span>
-          <span className="text-sm text-base-content/70">
+          <span className="text-green-700 text-base">★</span>
+          <span className="text-sm text-green-700">
             {restaurant.averageRating || "No rating"}
           </span>
         </div>

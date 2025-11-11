@@ -466,9 +466,9 @@ function RestaurantCatalogueContent() {
           </div>
           {/* Mobile Layout - Date/Time (Not Sticky) */}
           <section className="md:hidden">
-            <label className="mb-4 font-bold text-base-content">
+            {/* <label className="mb-4 font-bold text-base-content">
               Delivery Details
-            </label>
+            </label> */}
             <div className="mt-3 bg-white rounded-xl border-1 border-base-200">
               <div className="flex items-center gap-2 px-2">
                 <div className="flex items-center gap-2 flex-1 px-4 py-1 border-r-1 border-gray-200">
@@ -632,7 +632,7 @@ function RestaurantCatalogueContent() {
                   Loading restaurants...
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-1 md:px-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-4 gap-1 md:px-12">
                   {restaurants.map((restaurant) => (
                     <RestaurantCard
                       key={restaurant.id}

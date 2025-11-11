@@ -253,20 +253,20 @@ export default function OrderDetailsPage() {
             </div>
 
             {/* Payment Status */}
-            <div className="mt-4 flex items-center gap-2">
+            {/* <div className="mt-4 px-4 flex items-center gap-2">
               <div
                 className={`badge ${
                   order.isPaid ? "badge-success" : "badge-warning"
-                } badge-lg`}
+                } badge-lg px-4`}
               >
-                {order.isPaid ? "Paid" : "Pending Payment"}
+                {order.isPaid ? "Paid" : "Pending Approval"}
               </div>
               {order.paymentCompleted && (
                 <div className="badge badge-info badge-lg">
                   Payment Completed
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* Rejection Reason */}
             {order.rejectionReason && (

@@ -23,6 +23,10 @@ export function StatsOverview({ organizationId }: StatsOverviewProps) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const formatNumber = (num: number): string => {
+    return num.toLocaleString('en-GB');
+  };
+
   useEffect(() => {
     loadStats();
   }, [organizationId]);
@@ -77,7 +81,7 @@ export function StatsOverview({ organizationId }: StatsOverviewProps) {
         {/* Average Order Value */}
         <StatCard
           title="Avg Order Value"
-          value={`£${currentMonth.averageOrderValue.toFixed(2)}`}
+          value={`£${formatNumber(Number(currentMonth.averageOrderValue.toFixed(2)))}`}
           icon={<ShoppingBag className="w-6 h-6" />}
           color="emerald"
           subtitle="per order"
@@ -95,7 +99,7 @@ export function StatsOverview({ organizationId }: StatsOverviewProps) {
         {/* Wallet Balance */}
         <StatCard
           title="Wallet Balance"
-          value={`£${organization.walletBalance.toFixed(2)}`}
+          value={`£${formatNumber(Number(organization.walletBalance.toFixed(2)))}`}
           icon={<Wallet className="w-6 h-6" />}
           color="amber"
           
