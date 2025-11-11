@@ -26,6 +26,8 @@ export default function RegisterForm({
   const [verificationCode, setVerificationCode] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [domainInfo, setDomainInfo] = useState<any>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -124,6 +126,32 @@ export default function RegisterForm({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (error) setError("");
+  };
+
+  // Resend verification code
+  const handleResendCode = async () => {
+    setError("");
+    setSuccessMessage("");
+    setIsResending(true);
+
+    try {
+      await authApi.registerCorporate({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
+        department: formData.department,
+      });
+
+      // Show success message
+      setSuccessMessage("Verification code resent successfully!");
+    } catch (err: any) {
+      console.error("Resend code error: ", err);
+      setError(err.response?.data?.message || "Failed to resend code");
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
@@ -422,6 +450,16 @@ export default function RegisterForm({
               disabled={isLoading}
             />
           </div>
+          {successMessage && (
+            <div className="bg-success/10 border border-success/20 text-success text-sm p-3 rounded-lg">
+              {successMessage}
+            </div>
+          )}
+          {error && (
+            <div className="bg-error/10 border border-error/20 text-error text-sm p-3 rounded-lg">
+              {error}
+            </div>
+          )}
           <button
             type="submit"
             disabled={isLoading}
@@ -455,13 +493,23 @@ export default function RegisterForm({
               "Verify Email"
             )}
           </button>
-          <button
-            type="button"
-            onClick={() => setStep("register")}
-            className="w-full text-sm text-base-content/70 hover:text-base-content"
-          >
-            Back to registration
-          </button>
+          <div className="flex flex-col gap-2">
+            {/* <button
+              type="button"
+              onClick={() => setStep("register")}
+              className="w-full text-sm text-base-content/70 hover:text-base-content"
+            >
+              Back to registration
+            </button> */}
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={isResending}
+              className="w-full text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-50"
+            >
+              {isResending ? "Resending..." : "Resend Code"}
+            </button>
+          </div>
         </form>
       )}
 
