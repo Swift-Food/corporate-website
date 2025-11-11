@@ -264,197 +264,194 @@ function RestaurantDetailContent() {
       )}
 
       {/* Group Tabs Navigation with Search and Filter */}
-      {!loading && orderedGroups.length > 0 && (
-        <div className="border-b border-base-300 bg-base-100 sticky top-16 md:top-20 z-40 shadow-sm">
-          <div className="px-4 md:px-8">
-            <div className="flex items-center justify-between gap-4">
-              {/* Group Tabs - Left Side */}
+      <div className="border-b border-base-300 bg-base-100 sticky top-16 md:top-20 z-40 shadow-sm">
+        <div className="px-4 md:px-8">
+          <div className="flex items-center justify-between gap-4 min-h-[61px]">
+            {/* Group Tabs - Left Side */}
+            <div
+              ref={tabContainerRef}
+              className="flex gap-2 overflow-x-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
+              {orderedGroups.length > 0 && orderedGroups.map((group) => (
+                <button
+                  key={group}
+                  ref={(el) => {
+                    tabRefs.current[group] = el;
+                  }}
+                  onClick={() => scrollToSection(group)}
+                  className={`py-4 px-4 font-medium text-sm md:text-base whitespace-nowrap border-b-2 transition-colors ${
+                    activeGroup === group
+                      ? "border-primary text-primary"
+                      : "border-transparent text-base-content/60 hover:text-base-content"
+                  }`}
+                >
+                  {group}
+                </button>
+              ))}
+            </div>
+
+            {/* Search and Filter - Right Side */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Search Button/Bar */}
               <div
-                ref={tabContainerRef}
-                className="flex gap-2 overflow-x-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                className="group flex items-center"
+                onMouseEnter={() => {
+                  setSearchExpanded(true);
+                  setSearchHovered(true);
+                }}
+                onMouseLeave={() => {
+                  setSearchHovered(false);
+                  if (!searchQuery && !searchFocused) setSearchExpanded(false);
+                }}
               >
-                {orderedGroups.map((group) => (
-                  <button
-                    key={group}
-                    ref={(el) => {
-                      tabRefs.current[group] = el;
-                    }}
-                    onClick={() => scrollToSection(group)}
-                    className={`py-4 px-4 font-medium text-sm md:text-base whitespace-nowrap border-b-2 transition-colors ${
-                      activeGroup === group
-                        ? "border-primary text-primary"
-                        : "border-transparent text-base-content/60 hover:text-base-content"
-                    }`}
-                  >
-                    {group}
-                  </button>
-                ))}
-              </div>
-
-              {/* Search and Filter - Right Side */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {/* Search Button/Bar */}
                 <div
-                  className="group flex items-center"
-                  onMouseEnter={() => {
-                    setSearchExpanded(true);
-                    setSearchHovered(true);
-                  }}
-                  onMouseLeave={() => {
-                    setSearchHovered(false);
-                    if (!searchQuery && !searchFocused)
-                      setSearchExpanded(false);
-                  }}
+                  className={`flex items-center bg-white rounded-full transition-all duration-300 ease-in-out overflow-hidden h-12 border border-base-300 ${
+                    searchExpanded
+                      ? "w-[280px] px-3 gap-2"
+                      : "w-12 justify-center"
+                  }`}
                 >
-                  <div
-                    className={`flex items-center bg-white rounded-full transition-all duration-300 ease-in-out overflow-hidden h-12 border border-base-300 ${
-                      searchExpanded
-                        ? "w-[280px] px-3 gap-2"
-                        : "w-12 justify-center"
-                    }`}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5 text-gray-400 flex-shrink-0"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5 text-gray-400 flex-shrink-0"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                    />
+                  </svg>
+                  {searchExpanded && (
+                    <>
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => setSearchFocused(true)}
+                        onBlur={() => {
+                          setSearchFocused(false);
+                          if (!searchHovered && !searchQuery) {
+                            setSearchExpanded(false);
+                          }
+                        }}
+                        placeholder="Search menu..."
+                        className="flex-1 text-base text-gray-600 placeholder-gray-400 focus:outline-none"
                       />
-                    </svg>
-                    {searchExpanded && (
-                      <>
-                        <input
-                          type="text"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onFocus={() => setSearchFocused(true)}
-                          onBlur={() => {
-                            setSearchFocused(false);
-                            if (!searchHovered && !searchQuery) {
-                              setSearchExpanded(false);
-                            }
-                          }}
-                          placeholder="Search menu..."
-                          className="flex-1 text-sm text-gray-600 placeholder-gray-400 focus:outline-none"
-                        />
-                        {searchQuery && (
-                          <button
-                            onClick={clearSearch}
-                            className="text-gray-400 hover:text-gray-600 flex-shrink-0"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={1.5}
-                              stroke="currentColor"
-                              className="w-5 h-5"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Filter Button */}
-                <div
-                  onMouseEnter={() => setFilterExpanded(true)}
-                  onMouseLeave={() => setFilterExpanded(false)}
-                >
-                  <button
-                    onClick={() => {
-                      if (closeButtonClickedRef.current) {
-                        closeButtonClickedRef.current = false;
-                        return;
-                      }
-                      if (!filterModalOpen) {
-                        setFilterModalOpen(true);
-                      }
-                    }}
-                    className={`rounded-full border border-base-300 transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-12 overflow-hidden ${
-                      filterExpanded || filterModalOpen
-                        ? "w-36 px-4 gap-2 justify-between"
-                        : "w-12 justify-center"
-                    } ${
-                      filters.allergens.length > 0 ||
-                      filters.dietaryRestrictions.length > 0 ||
-                      filterModalOpen
-                        ? "bg-primary text-white"
-                        : "bg-white"
-                    }`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5 flex-shrink-0"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-                      />
-                    </svg>
-                    {(filterExpanded || filterModalOpen) && (
-                      <>
-                        <span className="text-sm font-medium whitespace-nowrap">
-                          Filters
-                        </span>
-                        <div
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            closeButtonClickedRef.current = true;
-                            setFilterModalOpen(false);
-                          }}
-                          className={`filter-close-btn rounded-full h-8 w-8 bg-white text-black flex justify-center items-center cursor-pointer ${
-                            filterModalOpen ? "visible" : "invisible"
-                          }`}
+                      {searchQuery && (
+                        <button
+                          onClick={clearSearch}
+                          className="text-gray-400 hover:text-gray-600 flex-shrink-0"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
                             fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
                             stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                            className="w-5 h-5"
                           >
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                            <line x1="6" y1="18" x2="18" y2="6" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
-                        </div>
-                      </>
-                    )}
-                  </button>
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
+              </div>
+
+              {/* Filter Button */}
+              <div
+                onMouseEnter={() => setFilterExpanded(true)}
+                onMouseLeave={() => setFilterExpanded(false)}
+              >
+                <button
+                  onClick={() => {
+                    if (closeButtonClickedRef.current) {
+                      closeButtonClickedRef.current = false;
+                      return;
+                    }
+                    if (!filterModalOpen) {
+                      setFilterModalOpen(true);
+                    }
+                  }}
+                  className={`rounded-full border border-base-300 transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-12 overflow-hidden ${
+                    filterExpanded || filterModalOpen
+                      ? "w-36 px-4 gap-2 justify-between"
+                      : "w-12 justify-center"
+                  } ${
+                    filters.allergens.length > 0 ||
+                    filters.dietaryRestrictions.length > 0 ||
+                    filterModalOpen
+                      ? "bg-primary text-white"
+                      : "bg-white"
+                  }`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5 flex-shrink-0"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                    />
+                  </svg>
+                  {(filterExpanded || filterModalOpen) && (
+                    <>
+                      <span className="text-sm font-medium whitespace-nowrap">
+                        Filters
+                      </span>
+                      <div
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          closeButtonClickedRef.current = true;
+                          setFilterModalOpen(false);
+                        }}
+                        className={`filter-close-btn rounded-full h-8 w-8 bg-white text-black flex justify-center items-center cursor-pointer ${
+                          filterModalOpen ? "visible" : "invisible"
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                          <line x1="6" y1="18" x2="18" y2="6" />
+                        </svg>
+                      </div>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
-
-          {/* Filter Modal */}
-          <FilterModal
-            isOpen={filterModalOpen}
-            onClose={() => setFilterModalOpen(false)}
-          />
         </div>
-      )}
+
+        {/* Filter Modal */}
+        <FilterModal
+          isOpen={filterModalOpen}
+          onClose={() => setFilterModalOpen(false)}
+        />
+      </div>
 
       {/* OLD Search and Filter Bar - Sticky - COMMENTED OUT */}
       {/* <div className="sticky top-[136px] md:top-[144px] z-30">
