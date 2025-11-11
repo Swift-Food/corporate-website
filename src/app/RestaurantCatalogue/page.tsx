@@ -472,7 +472,7 @@ function RestaurantCatalogueContent() {
               onClose={() => setFilterModalOpen(false)}
             />
           </div>
-          {/* Mobile Layout - Date/Time (Not Sticky) */}
+          {/* Mobile Layout - Date/Time/Budget (Not Sticky) */}
           <section className="md:hidden">
             {/* <label className="mb-4 font-bold text-base-content">
               Delivery Details
@@ -500,7 +500,7 @@ function RestaurantCatalogueContent() {
                       : "Login To View"}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 flex-1 rounded-lg px-4 py-3">
+                <div className="flex items-center gap-2 flex-1 px-4 py-1 border-r-1 border-gray-200">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -517,6 +517,25 @@ function RestaurantCatalogueContent() {
                   </svg>
                   <span className="text-base text-gray-800 font-medium">
                     {time ? time : "Login To View"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-1 rounded-lg px-4 py-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5 text-gray-600"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z"
+                    />
+                  </svg>
+                  <span className="text-base text-gray-800 font-medium">
+                    {isAuthenticated ? "$0.00" : "Login To View"}
                   </span>
                 </div>
               </div>
