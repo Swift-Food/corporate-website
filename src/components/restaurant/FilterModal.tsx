@@ -182,7 +182,7 @@ export default function FilterModal({ isOpen, onClose }: FilterModalProps) {
   const handleApply = () => {
     setFilters({
       dietaryRestrictions: selectedDietaryRestrictions,
-      allergens: selectedAllergens,
+      allergens: selectedAllergens as Allergens[],
     });
     onClose();
   };

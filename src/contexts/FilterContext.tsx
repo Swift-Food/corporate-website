@@ -1,11 +1,11 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { DietaryFilter } from "@/types/menuItem";
+import { Allergens, DietaryFilter } from "@/types/menuItem";
 
 export interface FilterState {
   dietaryRestrictions: DietaryFilter[];
-  allergens: string[];
+  allergens: Allergens[];
 }
 
 interface FilterContextType {

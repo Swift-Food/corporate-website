@@ -19,6 +19,8 @@ export const searchApi = {
       params.append("maxPrice", filters.maxPrice.toString());
     if (filters?.dietaryFilters)
       params.append("dietaryFilters", filters.dietaryFilters.join(","));
+    if (filters?.allergens)
+      params.append("excludeAllergens", filters.allergens.join(","));
 
     console.log("Search payload: ", params);
     const response = await apiClient.get(

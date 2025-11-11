@@ -152,6 +152,7 @@ function RestaurantCatalogueContent() {
         page: 1,
         limit: 50,
         dietaryFilters: filters.dietaryRestrictions,
+        allergens: filters.allergens,
       });
 
       const menuItems = response.menuItems || [];
