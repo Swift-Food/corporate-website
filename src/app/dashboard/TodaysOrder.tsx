@@ -1,7 +1,7 @@
 // components/dashboard/TodaysOrder.tsx
 import apiClient from '@/api/client';
 import { PaymentSelectionModal } from '@/modals/paymentSelectModal';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface TodaysOrderProps {
   order: any;
@@ -18,6 +18,7 @@ export function TodaysOrder({ order, onApprove, organizationId, managerId, onRej
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState('');
+
 
   const handleSelectAll = () => {
     if (selectedSubOrders.size === order.employeeOrders?.length) {
@@ -64,6 +65,7 @@ export function TodaysOrder({ order, onApprove, organizationId, managerId, onRej
       setIsValidating(false);
     }
   };
+
 
   const handlePaymentComplete = (
     paymentMethod: 'wallet' | 'stripe_direct',
@@ -125,7 +127,8 @@ export function TodaysOrder({ order, onApprove, organizationId, managerId, onRej
                 </>
               )}
             </div>
-          </div>
+      </div>
+      
 
           {/* Show validation error if any */}
           {validationError && (
