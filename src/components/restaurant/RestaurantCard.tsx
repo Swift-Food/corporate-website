@@ -1,7 +1,7 @@
 import { Restaurant } from "@/types/restaurant";
 import { Address } from "@/types/address";
 import { useEffect, useState } from "react";
-import { Pin } from "lucide-react";
+// import { MapPin } from "lucide-react";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -52,8 +52,8 @@ export default function RestaurantCard({
           {restaurant.restaurant_description}
         </h2> */}
         <div className="flex flex-row justify-start items-center">
-          {/* <Pin size={18} className="text-gray-400 mr-1" /> */}
-          <h2 className="font-light text-sm text-gray-500 line-clamp-2">
+          {/* <MapPin size={16} className="text-gray-400 mr-1" /> */}
+          <h2 className="font-light text-sm text-gray-500 line-clamp-1">
             {addressDetails?.addressLine1
               ? addressDetails.addressLine1.replace(/, London.*$/i, "")
               : ""}
