@@ -175,7 +175,10 @@ export default function CartHoverPreview({
 
         <button
           className="w-full bg-primary hover:opacity-90 text-white py-3 px-4 rounded-lg font-bold text-sm transition-all flex-shrink-0"
-          onClick={() => router.push("/checkout")}
+          onClick={() => {
+            if (onClose) onClose();
+            router.push("/checkout");
+          }}
         >
           View Cart & Checkout
         </button>
