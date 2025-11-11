@@ -272,22 +272,23 @@ function RestaurantDetailContent() {
               ref={tabContainerRef}
               className="flex gap-2 overflow-x-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
             >
-              {orderedGroups.length > 0 && orderedGroups.map((group) => (
-                <button
-                  key={group}
-                  ref={(el) => {
-                    tabRefs.current[group] = el;
-                  }}
-                  onClick={() => scrollToSection(group)}
-                  className={`py-4 px-4 font-medium text-sm md:text-base whitespace-nowrap border-b-2 transition-colors ${
-                    activeGroup === group
-                      ? "border-primary text-primary"
-                      : "border-transparent text-base-content/60 hover:text-base-content"
-                  }`}
-                >
-                  {group}
-                </button>
-              ))}
+              {orderedGroups.length > 0 &&
+                orderedGroups.map((group) => (
+                  <button
+                    key={group}
+                    ref={(el) => {
+                      tabRefs.current[group] = el;
+                    }}
+                    onClick={() => scrollToSection(group)}
+                    className={`py-4 px-4 font-medium text-sm md:text-base whitespace-nowrap border-b-2 transition-colors ${
+                      activeGroup === group
+                        ? "border-primary text-primary"
+                        : "border-transparent text-base-content/60 hover:text-base-content"
+                    }`}
+                  >
+                    {group}
+                  </button>
+                ))}
             </div>
 
             {/* Search and Filter - Right Side - Desktop Only */}
@@ -508,9 +509,7 @@ function RestaurantDetailContent() {
                 }
               }}
               className={`rounded-full border border-base-300 transition-all duration-300 ease-in-out flex-shrink-0 flex items-center h-12 overflow-hidden ${
-                filterModalOpen
-                  ? "w-32 px-4 gap-2"
-                  : "w-12 justify-center"
+                filterModalOpen ? "w-32 px-4 gap-2" : "w-12 justify-center"
               } ${
                 filters.allergens.length > 0 ||
                 filters.dietaryRestrictions.length > 0 ||
@@ -541,13 +540,12 @@ function RestaurantDetailContent() {
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Filter Modal - Shared between mobile and desktop */}
-      <FilterModal
-        isOpen={filterModalOpen}
-        onClose={() => setFilterModalOpen(false)}
-      />
+        <FilterModal
+          isOpen={filterModalOpen}
+          onClose={() => setFilterModalOpen(false)}
+        />
+      </div>
 
       {/* Main Content Container */}
       <div className="flex gap-6 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 mx-auto">
@@ -580,7 +578,7 @@ function RestaurantDetailContent() {
 
         {/* Cart Sidebar - Desktop */}
         <CartSidebar
-          topOffset="top-54"
+          topOffset="top-40"
           maxHeightOffset="14rem"
           widthPercentage={25}
           onCheckout={handleCheckout}
