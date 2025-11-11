@@ -215,7 +215,7 @@ function RestaurantCatalogueContent() {
   };
 
   return (
-    <div className="w-full bg-base-100">
+    <div className="w-full min-h-screen bg-base-100">
       {/* Logout Message Notification */}
       {logoutMessage && (
         <div className="fixed top-20 md:top-24 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
