@@ -206,6 +206,32 @@ function RestaurantDetailContent() {
             alt={restaurant.restaurant_name}
             className="w-full h-full object-cover"
           />
+
+          {/* Back Button */}
+          <button
+            onClick={() => router.push("/RestaurantCatalogue")}
+            className="absolute top-4 left-4 md:top-6 md:left-6 z-10 flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full shadow-lg transition-all duration-200 hover:shadow-xl group"
+            aria-label="Back to restaurant catalogue"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5 text-neutral group-hover:-translate-x-0.5 transition-transform duration-200"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+              />
+            </svg>
+            <span className="text-sm md:text-base font-medium text-neutral hidden sm:inline">
+              Back
+            </span>
+          </button>
+
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
             <div className="w-full px-4 md:px-8 py-6">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
@@ -334,7 +360,13 @@ function RestaurantDetailContent() {
                   filterModalOpen || filterExpanded
                     ? "w-36 px-4 gap-2 justify-between"
                     : "w-12 justify-center"
-                } ${filterModalOpen ? "bg-primary text-white" : "bg-white"}`}
+                } ${
+                  filters.allergens.length > 0 ||
+                  filters.dietaryRestrictions.length > 0 ||
+                  filterModalOpen
+                    ? "bg-primary text-white"
+                    : "bg-white"
+                }`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -342,9 +374,7 @@ function RestaurantDetailContent() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className={`w-5 h-5 flex-shrink-0 ${
-                    filterModalOpen ? "text-white" : "text-gray-700"
-                  }`}
+                  className={`w-5 h-5 flex-shrink-0`}
                 >
                   <path
                     strokeLinecap="round"
@@ -354,11 +384,7 @@ function RestaurantDetailContent() {
                 </svg>
                 {(filterModalOpen || filterExpanded) && (
                   <>
-                    <span
-                      className={`text-sm font-medium whitespace-nowrap ${
-                        filterModalOpen ? "text-white" : "text-gray-700"
-                      }`}
-                    >
+                    <span className={`text-sm font-medium whitespace-nowrap`}>
                       Filters
                     </span>
                     <div

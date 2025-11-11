@@ -26,6 +26,8 @@ export default function RegisterForm({
   const [verificationCode, setVerificationCode] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [domainInfo, setDomainInfo] = useState<any>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -126,15 +128,72 @@ export default function RegisterForm({
     if (error) setError("");
   };
 
+  // Resend verification code
+  const handleResendCode = async () => {
+    setError("");
+    setSuccessMessage("");
+    setIsResending(true);
+
+    try {
+      await authApi.registerCorporate({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
+        department: formData.department,
+      });
+
+      // Show success message
+      setSuccessMessage("Verification code resent successfully!");
+    } catch (err: any) {
+      console.error("Resend code error: ", err);
+      setError(err.response?.data?.message || "Failed to resend code");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <div className="w-full">
       {/* Title */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-neutral mb-2">
-          {step === "check" && "Create Account"}
-          {step === "register" && "Complete Registration"}
-          {step === "verify" && "Verify Your Email"}
-        </h2>
+        <div className="flex items-center gap-3 mb-2">
+          {(step === "register" || step === "verify") && (
+            <button
+              type="button"
+              onClick={() => {
+                if (step === "register") {
+                  setStep("check");
+                } else if (step === "verify") {
+                  setStep("register");
+                }
+              }}
+              className="text-base-content/70 hover:text-base-content transition-colors p-1 -ml-1"
+              disabled={isLoading}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                />
+              </svg>
+            </button>
+          )}
+          <h2 className="text-2xl font-bold text-neutral">
+            {step === "check" && "Create Account"}
+            {step === "register" && "Complete Registration"}
+            {step === "verify" && "Verify Your Email"}
+          </h2>
+        </div>
         <p className="text-sm text-base-content/70">
           {step === "check" && "Check your company email to get started"}
           {step === "register" &&
@@ -391,6 +450,16 @@ export default function RegisterForm({
               disabled={isLoading}
             />
           </div>
+          {successMessage && (
+            <div className="bg-success/10 border border-success/20 text-success text-sm p-3 rounded-lg">
+              {successMessage}
+            </div>
+          )}
+          {error && (
+            <div className="bg-error/10 border border-error/20 text-error text-sm p-3 rounded-lg">
+              {error}
+            </div>
+          )}
           <button
             type="submit"
             disabled={isLoading}
@@ -424,13 +493,23 @@ export default function RegisterForm({
               "Verify Email"
             )}
           </button>
-          <button
-            type="button"
-            onClick={() => setStep("register")}
-            className="w-full text-sm text-base-content/70 hover:text-base-content"
-          >
-            Back to registration
-          </button>
+          <div className="flex flex-col gap-2">
+            {/* <button
+              type="button"
+              onClick={() => setStep("register")}
+              className="w-full text-sm text-base-content/70 hover:text-base-content"
+            >
+              Back to registration
+            </button> */}
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={isResending}
+              className="w-full text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-50"
+            >
+              {isResending ? "Resending..." : "Resend Code"}
+            </button>
+          </div>
         </form>
       )}
 

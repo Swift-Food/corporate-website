@@ -1,4 +1,4 @@
-import { DietaryFilter } from "./menuItem";
+import { Allergens, DietaryFilter } from "./menuItem";
 
 export interface SearchResult {
   type: "restaurant" | "menu_item";
@@ -74,4 +74,5 @@ export interface SearchFilters {
   minRating?: number;
   maxPrice?: number;
   dietaryFilters: DietaryFilter[]
+  allergens: Allergens[]
 }

@@ -69,6 +69,41 @@ export const authApi = {
   },
 
   /**
+   * Request password reset code
+   */
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>(
+      "/auth/forgot-password",
+      { email }
+    );
+    return response.data;
+  },
+
+  /**
+   * Reset password with code
+   */
+  resetPassword: async (
+    email: string,
+    code: string,
+    newPassword: string
+  ): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>(
+      "/auth/reset-password",
+      { email, code, newPassword }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get current user's profile (validates token)
+   */
+  getProfile: async (): Promise<any> => {
+    const response = await apiClient.get<any>("/auth/profile");
+    console.log("Getting profile: ", response)
+    return response.data;
+  },
+
+  /**
    * Get current user's corporate profile
    */
   getCorporateProfile: async (email: string): Promise<CorporateUser> => {

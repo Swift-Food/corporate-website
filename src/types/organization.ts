@@ -3,6 +3,7 @@ export interface OrganizationResponseDto {
   name: string;
   domain: string;
   defaultDeliveryTimeWindow?: string;
+  orderCutoffTime?: string;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -12,18 +12,19 @@ import { searchApi } from "@/api/search";
 import SearchResults from "@/components/restaurant/SearchResults";
 import RestaurantCard from "@/components/restaurant/RestaurantCard";
 import FilterModal from "@/components/restaurant/FilterModal";
-import { getNextWorkingDayFormatted } from "@/util/catalogue";
+import { getDeliveryDisplayText } from "@/util/catalogue";
 import { FilterProvider, useFilters } from "@/contexts/FilterContext";
 
 function RestaurantCatalogueContent() {
   const router = useRouter();
-  const { corporateUser } = useAuth();
+  const { corporateUser, isAuthenticated } = useAuth();
   const { filters } = useFilters();
 
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [restaurantsLoading, setRestaurantsLoading] = useState(true);
   const [when, setWhen] = useState("");
   const [time, setTime] = useState<string | null>("");
+  const [cutoffTime, setCutoffTime] = useState<string>("11:00:00");
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -38,6 +39,21 @@ function RestaurantCatalogueContent() {
   const [filterExpanded, setFilterExpanded] = useState(false);
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const closeButtonClickedRef = useRef(false);
+  const [logoutMessage, setLogoutMessage] = useState<string | null>(null);
+
+  // Check for logout message
+  useEffect(() => {
+    const message = sessionStorage.getItem("logout_message");
+    if (message) {
+      setLogoutMessage(message);
+      sessionStorage.removeItem("logout_message");
+
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        setLogoutMessage(null);
+      }, 5000);
+    }
+  }, []);
 
   useEffect(() => {
     fetchRestaurants();
@@ -97,11 +113,15 @@ function RestaurantCatalogueContent() {
 
     try {
       const fetchedOrgTime = organizationData.defaultDeliveryTimeWindow ?? null;
+      const fetchedCutoffTime = organizationData.orderCutoffTime ?? "11:00:00";
       setTime(fetchedOrgTime);
+      setCutoffTime(fetchedCutoffTime);
       console.log("Fetched org time: ", fetchedOrgTime);
+      console.log("Fetched cutoff time: ", fetchedCutoffTime);
     } catch (err) {
       console.error("Failed to fetch organization delivery time window: ", err);
       setTime(null);
+      setCutoffTime("11:00:00");
     }
   };
 
@@ -132,6 +152,7 @@ function RestaurantCatalogueContent() {
         page: 1,
         limit: 50,
         dietaryFilters: filters.dietaryRestrictions,
+        allergens: filters.allergens,
       });
 
       const menuItems = response.menuItems || [];
@@ -195,7 +216,49 @@ function RestaurantCatalogueContent() {
 
   return (
     <div className="w-full bg-base-100">
-      <div className="flex gap-6 px-4 pb-24 lg:pb-6 mx-auto">
+      {/* Logout Message Notification */}
+      {logoutMessage && (
+        <div className="fixed top-20 md:top-24 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+          <div className="bg-error/90 backdrop-blur-sm text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 max-w-md">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6 flex-shrink-0"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+              />
+            </svg>
+            <p className="text-sm font-medium">{logoutMessage}</p>
+            <button
+              onClick={() => setLogoutMessage(null)}
+              className="ml-2 hover:bg-white/20 rounded-full p-1 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto">
         <div className="flex-1">
           {/* Desktop Sticky Search/Filter Section */}
           <div className="hidden md:block md:sticky top-16 md:top-20 z-40 md:-mx-4 md:px-4 md:py-6 mb-[-1px] overflow-visible relative">
@@ -214,7 +277,9 @@ function RestaurantCatalogueContent() {
                     className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
                   /> */}
                   <p className="text-sm text-gray-600">
-                    {getNextWorkingDayFormatted("short")}
+                    {isAuthenticated
+                      ? getDeliveryDisplayText(cutoffTime, "short")
+                      : "Login To View"}
                   </p>
                 </div>
                 <div className="flex-1">
@@ -331,9 +396,14 @@ function RestaurantCatalogueContent() {
                       filterExpanded || filterModalOpen
                         ? "w-40 px-4 gap-2 justify-between"
                         : "w-16 justify-center"
-                    } ${
-                      filterModalOpen ? "bg-primary text-white" : "bg-white"
-                    }`}
+                    } 
+                     ${
+                       filters.allergens.length > 0 ||
+                       filters.dietaryRestrictions.length > 0 ||
+                       filterModalOpen
+                         ? "bg-primary text-white"
+                         : "bg-white"
+                     }`}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -341,9 +411,7 @@ function RestaurantCatalogueContent() {
                       viewBox="0 0 24 24"
                       strokeWidth={1.5}
                       stroke="currentColor"
-                      className={`w-5 h-5  flex-shrink-0 ${
-                        filterModalOpen ? "text-white" : "text-gray-700"
-                      }`}
+                      className={`w-5 h-5  flex-shrink-0`}
                     >
                       <path
                         strokeLinecap="round"
@@ -354,9 +422,7 @@ function RestaurantCatalogueContent() {
                     {(filterExpanded || filterModalOpen) && (
                       <>
                         <span
-                          className={`text-sm font-medium whitespace-nowrap ${
-                            filterModalOpen ? "text-white" : "text-gray-700"
-                          }`}
+                          className={`text-sm font-medium whitespace-nowrapx`}
                         >
                           Filters
                         </span>
@@ -421,7 +487,9 @@ function RestaurantCatalogueContent() {
                     />
                   </svg>
                   <span className="text-base text-base-content font-medium">
-                    {getNextWorkingDayFormatted("short")}
+                    {isAuthenticated
+                      ? getDeliveryDisplayText(cutoffTime, "short")
+                      : "Login To View"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-1 rounded-lg px-4 py-3">
@@ -508,8 +576,14 @@ function RestaurantCatalogueContent() {
                 onClick={() => setFilterModalOpen(!filterModalOpen)}
                 className={`rounded-full transition-all duration-300 ease-in-out flex-shrink-0 flex items-center justify-center h-12 overflow-hidden border-1 border-base-200 ${
                   filterModalOpen
-                    ? "w-32 px-4 gap-2 bg-primary text-white"
-                    : "w-12 bg-white"
+                    ? "w-32 px-4 gap-2"
+                    : "w-12"
+                } ${
+                  filters.allergens.length > 0 ||
+                  filters.dietaryRestrictions.length > 0 ||
+                  filterModalOpen
+                    ? "bg-primary text-white"
+                    : "bg-white"
                 }`}
               >
                 <svg
@@ -518,9 +592,7 @@ function RestaurantCatalogueContent() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className={`w-5 h-5 flex-shrink-0 ${
-                    filterModalOpen ? "text-white" : "text-gray-700"
-                  }`}
+                  className={`w-5 h-5 flex-shrink-0`}
                 >
                   <path
                     strokeLinecap="round"

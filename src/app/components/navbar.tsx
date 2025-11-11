@@ -54,28 +54,35 @@ function NavbarAction({
   return (
     <div className="flex gap-2 md:gap-4 items-center text-black">
       {isManager && (
-        <button
-          onClick={handleManagerClick}
-          className={`px-2 py-1 md:px-3 md:py-1.5 ${
-            isOnDashboard ? "bg-transparent" : "bg-white"
-          } rounded flex items-center justify-center transition-all cursor-pointer`}
-          aria-label={isOnDashboard ? "Go to Order" : "Manager Dashboard"}
-        >
-          {isOnDashboard ? (
-            <Utensils className="w-5 h-5 md:w-6 md:h-6" />
-          ) : (
-            <>
-              <span className="text-black font-semibold text-xs md:text-sm md:hidden">
-                MGR
-              </span>
-              <span className="text-black font-semibold text-sm hidden md:inline">
-                MANAGER
-              </span>
-            </>
-          )}
-        </button>
+        <div className="relative group">
+          <button
+            onClick={handleManagerClick}
+            className={`px-2 py-1 md:px-3 md:py-1.5 ${
+              isOnDashboard ? "bg-transparent" : "bg-white"
+            } rounded flex items-center justify-center transition-all cursor-pointer`}
+            aria-label={isOnDashboard ? "Go to Order" : "Manager Dashboard"}
+          >
+            {isOnDashboard ? (
+              <Utensils className="w-5 h-5 md:w-6 md:h-6" />
+            ) : (
+              <>
+                <span className="text-black font-semibold text-xs md:text-sm md:hidden">
+                  MGR
+                </span>
+                <span className="text-black font-semibold text-sm hidden md:inline">
+                  MANAGER
+                </span>
+              </>
+            )}
+          </button>
+          {/* Tooltip */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-neutral text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 shadow-lg z-50">
+            {isOnDashboard ? "Restaurant Catalogue" : "Manager Dashboard"}
+            <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 bg-neutral rotate-45"></div>
+          </div>
+        </div>
       )}
-      <div className="relative">
+      <div className="relative group">
         <button
           onClick={() => router.push("/checkout")}
           className="w-8 h-8 md:w-10 md:h-10 rounded-full text-black flex items-center justify-center transition-all cursor-pointer"
@@ -91,23 +98,35 @@ function NavbarAction({
             {cartItemCount}
           </span>
         )}
+        {/* Tooltip */}
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-neutral text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 shadow-lg z-50">
+          {cartItemCount > 0 ? `Cart (${cartItemCount} items)` : "Cart"}
+          <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 bg-neutral rotate-45"></div>
+        </div>
       </div>
 
-      <button
-        onClick={() => {
-          if (isAuthenticated) {
-            router.push("/profile");
-            if (onLinkClick) onLinkClick();
-          } else {
-            onLoginClick();
-            if (onLinkClick) onLinkClick();
-          }
-        }}
-        className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all cursor-pointer"
-        aria-label="Profile"
-      >
-        <User className="w-5 h-5 md:w-6 md:h-6 text-black" />
-      </button>
+      <div className="relative group">
+        <button
+          onClick={() => {
+            if (isAuthenticated) {
+              router.push("/profile");
+              if (onLinkClick) onLinkClick();
+            } else {
+              onLoginClick();
+              if (onLinkClick) onLinkClick();
+            }
+          }}
+          className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all cursor-pointer"
+          aria-label="Profile"
+        >
+          <User className="w-5 h-5 md:w-6 md:h-6 text-black" />
+        </button>
+        {/* Tooltip */}
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-1.5 bg-neutral text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 shadow-lg z-50">
+          {isAuthenticated ? "My Profile" : "Login"}
+          <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 bg-neutral rotate-45"></div>
+        </div>
+      </div>
       {/* <button
         className="w-10 h-10 rounded-full text-white bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 flex items-center justify-center transition-all hover:shadow-lg"
         aria-label="Profile"
