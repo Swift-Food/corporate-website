@@ -264,7 +264,7 @@ function RestaurantDetailContent() {
       )}
 
       {/* Group Tabs Navigation with Search and Filter */}
-      <div className="border-b border-base-300 bg-base-100 sticky top-16 md:top-20 z-40 shadow-sm">
+      <div className="border-b border-base-300 bg-base-100 sticky top-16 md:top-20 z-40 shadow-sm relative">
         <div className="px-4 md:px-8">
           <div className="flex items-center justify-between gap-4 min-h-[61px]">
             {/* Group Tabs - Left Side */}
@@ -446,6 +446,12 @@ function RestaurantDetailContent() {
             </div>
           </div>
         </div>
+
+        {/* Filter Modal - Rendered within sticky bar */}
+        <FilterModal
+          isOpen={filterModalOpen}
+          onClose={() => setFilterModalOpen(false)}
+        />
       </div>
 
       {/* Search and Filter Bar - Mobile Only */}
@@ -540,11 +546,6 @@ function RestaurantDetailContent() {
             </button>
           </div>
         </div>
-
-        <FilterModal
-          isOpen={filterModalOpen}
-          onClose={() => setFilterModalOpen(false)}
-        />
       </div>
 
       {/* Main Content Container */}
