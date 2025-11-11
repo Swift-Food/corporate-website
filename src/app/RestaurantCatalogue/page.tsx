@@ -263,7 +263,7 @@ function RestaurantCatalogueContent() {
         </div>
       )}
 
-      <div className="flex gap-6 px-4 py-6 pb-24 lg:pb-6 mx-auto">
+      <div className="flex gap-6 px-4 py-[1px] pb-24 lg:pb-6 mx-auto">
         <div className="flex-1">
           {/* Desktop Sticky Search/Filter Section */}
           <div className="hidden md:block md:sticky top-16 md:top-20 z-40 md:-mx-4 md:px-4 md:py-6 mb-[-1px] overflow-visible relative">
