@@ -6,4 +6,5 @@ export interface OrganizationResponseDto {
   orderCutoffTime?: string;
   createdAt?: string;
   updatedAt?: string;
+  defaultDailyBudget?: string;
 }

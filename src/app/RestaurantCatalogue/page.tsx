@@ -25,6 +25,7 @@ function RestaurantCatalogueContent() {
   const [when, setWhen] = useState("");
   const [time, setTime] = useState<string | null>("");
   const [cutoffTime, setCutoffTime] = useState<string>("11:00:00");
+  const [budget, setBudget] = useState<string | null>(null);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -114,14 +115,18 @@ function RestaurantCatalogueContent() {
     try {
       const fetchedOrgTime = organizationData.defaultDeliveryTimeWindow ?? null;
       const fetchedCutoffTime = organizationData.orderCutoffTime ?? "11:00:00";
+      const fetchedBudget = organizationData.defaultDailyBudget ?? null;
       setTime(fetchedOrgTime);
       setCutoffTime(fetchedCutoffTime);
+      setBudget(fetchedBudget);
       console.log("Fetched org time: ", fetchedOrgTime);
       console.log("Fetched cutoff time: ", fetchedCutoffTime);
+      console.log("Fetched budget: ", fetchedBudget);
     } catch (err) {
       console.error("Failed to fetch organization delivery time window: ", err);
       setTime(null);
       setCutoffTime("11:00:00");
+      setBudget(null);
     }
   };
 
@@ -295,7 +300,11 @@ function RestaurantCatalogueContent() {
                     Budget
                   </label>
                   <p className="text-sm text-gray-600 whitespace-nowrap">
-                    {isAuthenticated ? "$0.00" : "Login To View"}
+                    {isAuthenticated
+                      ? budget !== null
+                        ? `$${parseFloat(budget).toFixed(2)}`
+                        : "Not Set"
+                      : "Login To View"}
                   </p>
                 </div>
               </div>
@@ -535,7 +544,11 @@ function RestaurantCatalogueContent() {
                     />
                   </svg>
                   <span className="text-base text-gray-800 font-medium">
-                    {isAuthenticated ? "$0.00" : "Login To View"}
+                    {isAuthenticated
+                      ? budget !== null
+                        ? `$${parseFloat(budget).toFixed(2)}`
+                        : "Not Set"
+                      : "Login To View"}
                   </span>
                 </div>
               </div>
