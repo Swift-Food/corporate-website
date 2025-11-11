@@ -1,6 +1,7 @@
 import { Restaurant } from "@/types/restaurant";
 import { Address } from "@/types/address";
 import { useEffect, useState } from "react";
+import { Pin } from "lucide-react";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -23,6 +24,7 @@ export default function RestaurantCard({
         console.log(res);
         if (res.ok) {
           const data = await res.json();
+          console.log(data);
           setAddressDetails(data);
         }
       } catch {}
@@ -33,9 +35,9 @@ export default function RestaurantCard({
   return (
     <div
       onClick={() => onClick(restaurant)}
-      className="rounded-md overflow-hidden transition-transform duration-300 border-2 border-gray-200 cursor-pointer"
+      className="rounded-xs overflow-hidden transition-transform duration-300 border-1 border-gray-200 cursor-pointer"
     >
-      <div className="relative w-full aspect-[16/12] overflow-hidden">
+      <div className="relative w-full aspect-[16/10] overflow-hidden">
         <img
           src={restaurant.images?.[0] || "/placeholder.jpg"}
           alt={restaurant.restaurant_name}
@@ -49,13 +51,78 @@ export default function RestaurantCard({
         {/* <h2 className="font-light text-md text-gray-500 line-clamp-2">
           {restaurant.restaurant_description}
         </h2> */}
-        <h2 className="font-light text-md text-gray-500 line-clamp-2">
-          {addressDetails?.addressLine1}
-        </h2>
+        <div className="flex flex-row justify-start items-center">
+          {/* <Pin size={18} className="text-gray-400 mr-1" /> */}
+          <h2 className="font-light text-sm text-gray-500 line-clamp-2">
+            {addressDetails?.addressLine1
+              ? addressDetails.addressLine1.replace(/, London.*$/i, "")
+              : ""}
+          </h2>
+        </div>
         <div className="flex items-center gap-1">
-          <span className="text-green-700 text-base">★</span>
-          <span className="text-sm text-green-700">
-            {restaurant.averageRating || "No rating"}
+          <span
+            className="text-base"
+            style={{
+              color: (() => {
+                const ratingNum = Number(restaurant.averageRating);
+                if (!isNaN(ratingNum)) {
+                  if (ratingNum >= 4.5) return "var(--color-rating-4)";
+                  if (ratingNum >= 4.0) return "var(--color-rating-3)";
+                  if (ratingNum >= 3.0) return "var(--color-rating-2)";
+                  if (ratingNum >= 2.0) return "var(--color-rating-1)";
+                  if (ratingNum > 0) return "var(--color-rating-1)";
+                }
+                return undefined;
+              })(),
+            }}
+          >
+            ★
+          </span>
+          <span
+            className="text-sm"
+            style={{
+              color: (() => {
+                const ratingNum = Number(restaurant.averageRating);
+                if (!isNaN(ratingNum)) {
+                  if (ratingNum >= 4.5) return "var(--color-rating-4)";
+                  if (ratingNum >= 4.0) return "var(--color-rating-3)";
+                  if (ratingNum >= 3.0) return "var(--color-rating-2)";
+                  if (ratingNum >= 2.0) return "var(--color-rating-1)";
+                  if (ratingNum > 0) return "var(--color-rating-1)";
+                }
+                return undefined;
+              })(),
+            }}
+          >
+            {restaurant.averageRating || "No ratings yet"}
+          </span>
+          <span
+            className="text-sm ml-1"
+            style={{
+              color: (() => {
+                const ratingNum = Number(restaurant.averageRating);
+                if (!isNaN(ratingNum)) {
+                  if (ratingNum >= 4.5) return "var(--color-rating-4)";
+                  if (ratingNum >= 4.0) return "var(--color-rating-3)";
+                  if (ratingNum >= 3.0) return "var(--color-rating-2)";
+                  if (ratingNum >= 2.0) return "var(--color-rating-1)";
+                  if (ratingNum > 0) return "var(--color-rating-1)";
+                }
+                return undefined;
+              })(),
+            }}
+          >
+            {(() => {
+              const ratingNum = Number(restaurant.averageRating);
+              if (!isNaN(ratingNum)) {
+                if (ratingNum >= 4.5) return "Excellent";
+                if (ratingNum >= 4.0) return "Very Good";
+                if (ratingNum >= 3.0) return "Good";
+                if (ratingNum >= 2.0) return "Fair";
+                if (ratingNum > 0) return "Poor";
+              }
+              return "";
+            })()}
           </span>
         </div>
         {/* Example usage of addressDetails (optional) */}

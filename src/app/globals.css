@@ -40,6 +40,11 @@
   --color-error: #f87171; /* Red */
 
   --color-swift-blue: #4395fa;
+
+  --color-rating-4: #FA43AD;
+  --color-rating-3: #ACC84D;
+  --color-rating-2: #4395F9;
+  --color-rating-1: #FFDD83;
 }
 
 /* Additional custom color classes for direct use */
