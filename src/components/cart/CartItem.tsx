@@ -44,13 +44,16 @@ export default function CartItem({
         showBorder ? " border-b border-base-300" : ""
       }`}
     >
-      {item.image && (
-        <img
-          src={item.image}
-          alt={item.name}
-          className={`${imageSize} object-cover rounded-lg flex-shrink-0`}
-        />
-      )}
+      {/* Always reserve space for image to maintain alignment */}
+      <div className={`${imageSize} flex-shrink-0`}>
+        {item.image && (
+          <img
+            src={item.image}
+            alt={item.name}
+            className={`${imageSize} object-cover rounded-lg`}
+          />
+        )}
+      </div>
       <div className="flex-1 min-w-0">
         <h4 className={`font-semibold ${fontSize} text-base-content mb-1`}>
           {item.name}
