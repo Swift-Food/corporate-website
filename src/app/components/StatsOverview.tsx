@@ -191,20 +191,31 @@ function StatCard({ title, value, icon, color, subtitle }: StatCardProps) {
     amber: "from-amber-500 to-amber-600",
   };
 
+  const bgColors = {
+    blue: "--color-swift-blue",
+    emerald: "--color-swift-green",
+    purple: "--color-swift-pink",
+    amber: "--color-swift-yellow",
+  };
+
   return (
     <div
-      className={`bg-gradient-to-br ${colors[color]} rounded-xl p-6 text-white shadow-lg`}
+      className={`bg-gradient-to-br rounded-xl bg-base-200 pb-6 pt-4 px-4 text-black`}
     >
+      <div
+        className={`${bgColors[color]} h-1 w-full rounded-full mb-4`}
+        style={{ backgroundColor: `var(${bgColors[color]})` }}
+      ></div>
       <div className="flex justify-between items-start mb-4">
         <div>
-          <p className="text-white/80 text-sm font-medium">{title}</p>
+          <p className="text-sm font-medium">{title}</p>
           <p className="text-3xl font-bold mt-1">{value}</p>
         </div>
-        <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+        {/* <div className="w-12 h-12 rounded-lg flex items-center justify-center">
           {icon}
-        </div>
+        </div> */}
       </div>
-      {subtitle && <p className="text-white/70 text-sm">{subtitle}</p>}
+      {subtitle && <p className="text-sm">{subtitle}</p>}
     </div>
   );
 }
