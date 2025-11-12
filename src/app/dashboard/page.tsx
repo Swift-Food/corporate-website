@@ -16,16 +16,13 @@ import { Overview } from "./Overview";
 import { EmployeesTab } from "./EmployeesTab";
 import { ApprovalsTab } from "./ApprovalsTab";
 import { JobTitlesTab } from "./JobTitlesTab";
-import { OrderSettings } from "./OrderSettings";
-import { TodaysOrder } from "./TodaysOrder";
+import { OrdersTab } from "./OrdersTab";
 import { RejectModal } from "@/modals/RejectModal";
 import { ordersApi } from "@/api/orders";
-import { ApprovedOrdersTab } from "./ApprovedOrdersTab";
 import { WalletTab } from "./WalletTab";
 import { ContactTab } from "./ContactTab";
 import { MonthlyReport } from "../components/MonthlyReport";
 import { cateringOrdersApi } from "@/api/catering";
-import { CateringOrdersTab } from "./CateringOrdersTab";
 
 export default function DashboardPage() {
   return (
@@ -42,8 +39,6 @@ function DashboardContent() {
     | "employees"
     | "job-titles"
     | "orders"
-    | "approved-orders"
-    | "catering-orders"
     | "wallet"
     | "contact"
     | "report"
@@ -84,17 +79,7 @@ function DashboardContent() {
     } else if (activeTab === "orders" && organizationId && corporateUser?.id) {
       loadOrganizationSettings();
       loadTodaysOrder();
-    } else if (
-      activeTab === "approved-orders" &&
-      organizationId &&
-      corporateUser?.id
-    ) {
       loadApprovedOrders();
-    } else if (
-      activeTab === "catering-orders" &&
-      organizationId &&
-      corporateUser?.id
-    ) {
       loadCateringOrders();
     }
   }, [activeTab, organizationId, corporateUser?.id]);
@@ -522,8 +507,6 @@ function DashboardContent() {
                   "overview",
                   "employees",
                   "orders",
-                  "approved-orders",
-                  "catering-orders",
                   "wallet",
                   "contact",
                   "report",
@@ -543,13 +526,7 @@ function DashboardContent() {
                       tab.slice(1).replace("-", " ")}
                   </span>
                   <span className="sm:hidden">
-                    {
-                      // tab === 'job-titles' ? 'Jobs' :
-                      tab === "approved-orders"
-                        ? "Approved"
-                        : tab.charAt(0).toUpperCase() +
-                          tab.slice(1).split("-")[0]
-                    }
+                    {tab.charAt(0).toUpperCase() + tab.slice(1).split("-")[0]}
                   </span>
 
                   {tab === "employees" && employees.length > 0 && (
@@ -560,27 +537,6 @@ function DashboardContent() {
                           +{pendingApprovals.length}
                         </span>
                       )}
-                    </span>
-                  )}
-
-                  {/* {tab === 'approvals' && pendingApprovals.length > 0 && (
-                    <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs">
-                      {pendingApprovals.length}
-                    </span>
-                  )} */}
-                  {tab === "approved-orders" && approvedOrders.length > 0 && (
-                    <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full text-xs">
-                      {approvedOrders.length}
-                    </span>
-                  )}
-                  {/* {tab === 'job-titles' && jobTitles.length > 0 && (
-                    <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
-                      {jobTitles.length}
-                    </span>
-                  )} */}
-                  {tab === "catering-orders" && cateringOrders.length > 0 && (
-                    <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full text-xs">
-                      {cateringOrders.length}
                     </span>
                   )}
                 </button>
@@ -663,89 +619,24 @@ function DashboardContent() {
           />
         )}
 
-        {activeTab === "orders" && (
-          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200">
-            <div className="p-4 sm:p-6 border-b border-slate-200">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900">
-                    Order Settings
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                    Configure organization-wide order preferences
-                  </p>
-                </div>
-                <button
-                  onClick={loadOrganizationSettings}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm w-full sm:w-auto"
-                >
-                  Refresh
-                </button>
-              </div>
-            </div>
-
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-12 sm:py-16">
-                <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-4 border-blue-200 border-t-blue-600"></div>
-                <p className="text-slate-500 mt-4 text-sm sm:text-base">
-                  Loading order settings...
-                </p>
-              </div>
-            ) : (
-              <>
-                <OrderSettings
-                  orderCutoffTime={orderCutoffTime}
-                  deliveryTimeWindow={deliveryTimeWindow}
-                  organizationId={organizationId || ""}
-                  onUpdate={loadOrganizationSettings}
-                />
-
-                {todaysOrder?.hasOrder ? (
-                  <TodaysOrder
-                    organizationId={organizationId || ""}
-                    managerId={corporateUser?.id || ""}
-                    order={todaysOrder}
-                    onApprove={handleApproveOrder}
-                    onReject={handleRejectSubOrder}
-                    onBulkReject={handleBulkRejectSubOrders}
-                  />
-                ) : (
-                  !isLoading && (
-                    <div className="mt-4 sm:mt-6 text-center py-8 sm:py-12 bg-slate-50 rounded-lg sm:rounded-xl border border-slate-200 mx-4 sm:mx-6 mb-4 sm:mb-0">
-                      <svg
-                        className="w-12 h-12 sm:w-16 sm:h-16 text-slate-300 mx-auto mb-3 sm:mb-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                        />
-                      </svg>
-                      <p className="text-slate-600 font-medium text-sm sm:text-base">
-                        No orders placed today
-                      </p>
-                      <p className="text-slate-500 text-xs sm:text-sm mt-1 px-4">
-                        Orders will appear here once employees start placing
-                        them
-                      </p>
-                    </div>
-                  )
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {activeTab === "approved-orders" && (
-          <ApprovedOrdersTab
-            orders={approvedOrders}
+        {activeTab === "orders" && corporateUser?.id && organizationId && (
+          <OrdersTab
+            orderCutoffTime={orderCutoffTime}
+            deliveryTimeWindow={deliveryTimeWindow}
+            organizationId={organizationId}
+            todaysOrder={todaysOrder}
             isLoading={isLoading}
+            onUpdateSettings={loadOrganizationSettings}
+            onApproveOrder={handleApproveOrder}
+            onRejectSubOrder={handleRejectSubOrder}
+            onBulkRejectSubOrders={handleBulkRejectSubOrders}
+            approvedOrders={approvedOrders}
+            onRefreshApprovedOrders={loadApprovedOrders}
+            managerId={corporateUser.id}
+            cateringOrders={cateringOrders}
+            cateringSummary={cateringSummary}
+            onRefreshCateringOrders={loadCateringOrders}
             error={error}
-            onRefresh={loadApprovedOrders}
           />
         )}
 
@@ -767,18 +658,6 @@ function DashboardContent() {
             organizationName={organizationName}
           />
         )}
-        {activeTab === "catering-orders" &&
-          corporateUser?.id &&
-          organizationId && (
-            <CateringOrdersTab
-              managerId={corporateUser.id}
-              organizationId={organizationId}
-              isLoading={isLoading}
-              orders={cateringOrders}
-              summary={cateringSummary}
-              onRefresh={loadCateringOrders}
-            />
-          )}
       </main>
 
       {/* Modals */}
