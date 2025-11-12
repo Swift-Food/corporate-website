@@ -110,8 +110,8 @@ export function StatsOverview({ organizationId }: StatsOverviewProps) {
         />
       </div>
       {/* Payment Methods */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="rounded-xl p-6 bg-base-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-slate-900">
               Payment Methods
@@ -125,7 +125,7 @@ export function StatsOverview({ organizationId }: StatsOverviewProps) {
         </div>
 
         {/* Top Restaurants */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="rounded-xl p-6 bg-base-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-slate-900">
               Top Restaurants
@@ -149,10 +149,12 @@ export function StatsOverview({ organizationId }: StatsOverviewProps) {
             )}
           </div>
         </div>
+        <div className="lg:col-span-2">
+          <SpendingTrendsChart trends={stats.spendingTrends} />
+        </div>
       </div>
 
       {/* Spending Trends Chart */}
-      <SpendingTrendsChart trends={stats.spendingTrends} />
     </div>
   );
 }
@@ -213,9 +215,9 @@ interface RestaurantItemProps {
 
 function RestaurantItem({ rank, name, spent, orders }: RestaurantItemProps) {
   return (
-    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+    <div className="flex items-center justify-between p-2 rounded-lg">
       <div className="flex items-center space-x-3">
-        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">
+        <div className="w-8 h-8 rounded-full text-base-content flex items-center justify-center font-semibold text-sm">
           {rank}
         </div>
         <div>
