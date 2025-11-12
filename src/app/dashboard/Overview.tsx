@@ -101,13 +101,12 @@ export function Overview({ corporateUser, user }: OverviewProps) {
           </div>
         </div>
       </div> */}
-
-      {/* Personal Info Card */}
-      <div className="flex flex-row flex-1 flex-between">
+      {/* Personal Info Card */}{" "}
+      <h1 className="text-2xl text-base-content font-bold my-4">
+        Hi {corporateUser?.fullName}
+      </h1>
+      <div className="flex flex-col md:flex-row flex-1 flex-between gap-8">
         <div className="flex-1">
-          <h1 className="text-2xl text-base-content font-bold mb-2">
-            Hi {corporateUser?.fullName}
-          </h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start space-x-3">
               <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
