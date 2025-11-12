@@ -2,6 +2,7 @@ import { Restaurant } from "@/types/restaurant";
 import { Address } from "@/types/address";
 import { useEffect, useState } from "react";
 // import { MapPin } from "lucide-react";
+import { Star } from "lucide-react";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -35,7 +36,7 @@ export default function RestaurantCard({
   return (
     <div
       onClick={() => onClick(restaurant)}
-      className="rounded-sm overflow-hidden transition-transform duration-300 border-1 border-gray-200 cursor-pointer"
+      className="rounded-sm overflow-hidden transition-transform duration-300 border-1 border-gray-200 cursor-pointer pb-2"
     >
       <div className="relative w-full aspect-[16/10] overflow-hidden">
         <img
@@ -45,9 +46,19 @@ export default function RestaurantCard({
         />
       </div>
       <div className="px-4 pt-2 pb-1">
-        <h4 className="font-bold text-md text-base-content line-clamp-1">
-          {restaurant.restaurant_name}
-        </h4>
+        <div className="flex flex-1 flex-row justify-between items-center">
+          <h4 className="font-bold text-md text-base-content line-clamp-1">
+            {restaurant.restaurant_name}
+          </h4>
+          <div className="flex flex-row items-center">
+            <span className="text-primary">
+              <Star size={16} className="mr-1" />
+            </span>
+            <span className="text-primary font-bold text-md">
+              {restaurant.averageRating || "No ratings yet"}
+            </span>
+          </div>
+        </div>
         {/* <h2 className="font-light text-md text-gray-500 line-clamp-2">
           {restaurant.restaurant_description}
         </h2> */}
@@ -59,7 +70,7 @@ export default function RestaurantCard({
               : ""}
           </h2>
         </div>
-        <div className="flex items-center gap-1">
+        {/* <div className="flex items-center gap-1">
           <span
             className="text-base"
             style={{
@@ -124,7 +135,7 @@ export default function RestaurantCard({
               return "";
             })()}
           </span>
-        </div>
+        </div> */}
         {/* Example usage of addressDetails (optional) */}
         {/* addressDetails && (
           <div className="mt-2 text-xs text-gray-600">
