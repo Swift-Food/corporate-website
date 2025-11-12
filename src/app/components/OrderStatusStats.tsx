@@ -17,11 +17,17 @@ function OrderStatusItem({ label, count, color }: OrderStatusItemProps) {
     blue: "bg-blue-100 text-blue-700",
     slate: "bg-slate-100 text-slate-700",
   };
-
+  const bgColors = {
+    blue: "--color-swift-blue",
+    emerald: "--color-swift-green",
+    red: "--color-swift-pink",
+    slate: "--color-swift-yellow",
+  };
   return (
     <div className="text-center">
       <div
-        className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${colors[color]} mb-2`}
+        className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-2`}
+        style={{ backgroundColor: `var(${bgColors[color]})` }}
       >
         <span className="text-2xl font-bold">{count}</span>
       </div>
