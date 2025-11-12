@@ -7,9 +7,7 @@ module.exports = {
   ],
   theme: {
     extend: {
-      colors: {
-        "swift-blue": "var(--color-swift-blue)",
-      },
+      colors: {},
     },
   },
   plugins: [],
