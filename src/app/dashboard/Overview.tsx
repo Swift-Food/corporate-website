@@ -124,9 +124,11 @@ export function Overview({ corporateUser, user }: OverviewProps) {
                   />
                 </svg>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm text-slate-500">Email</p>
-                <p className="font-medium text-slate-900">{user?.email}</p>
+                <p className="font-medium text-slate-900 break-words">
+                  {user?.email}
+                </p>
               </div>
             </div>
 
@@ -146,9 +148,11 @@ export function Overview({ corporateUser, user }: OverviewProps) {
                   />
                 </svg>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm text-slate-500">Company</p>
-                <p className="font-medium text-slate-900">{orgName}</p>
+                <p className="font-medium text-slate-900 break-words">
+                  {orgName}
+                </p>
               </div>
             </div>
 
@@ -168,9 +172,9 @@ export function Overview({ corporateUser, user }: OverviewProps) {
                   />
                 </svg>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm text-slate-500">Department</p>
-                <p className="font-medium text-slate-900">
+                <p className="font-medium text-slate-900 break-words">
                   {corporateUser?.department || "Not assigned"}
                 </p>
               </div>
@@ -192,9 +196,9 @@ export function Overview({ corporateUser, user }: OverviewProps) {
                   />
                 </svg>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm text-slate-500">Employee Code</p>
-                <p className="font-medium text-slate-900">
+                <p className="font-medium text-slate-900 break-words">
                   {corporateUser?.employeeCode || "Not assigned"}
                 </p>
               </div>
