@@ -21,8 +21,8 @@ export function PaymentMethodsChart({
     );
   }
 
-  const walletPercentage = 60; //(walletAmount / total) * 100;
-  const stripePercentage = 40; //(stripeAmount / total) * 100;
+  const walletPercentage = (walletAmount / total) * 100;
+  const stripePercentage = (stripeAmount / total) * 100;
 
   // SVG circle properties
   const size = 200;
@@ -64,7 +64,7 @@ export function PaymentMethodsChart({
               strokeDashoffset={0}
               transform={`rotate(-90 ${center} ${center})`}
               style={{
-                animation: 'growWallet 1s ease-out forwards',
+                animation: "growWallet 1s ease-out forwards",
               }}
             />
           )}
@@ -82,7 +82,7 @@ export function PaymentMethodsChart({
               strokeDashoffset={0}
               transform={`rotate(-90 ${center} ${center})`}
               style={{
-                animation: 'growStripe 1s ease-out 0.3s forwards',
+                animation: "growStripe 1s ease-out 0.3s forwards",
               }}
             />
           )}
