@@ -35,7 +35,7 @@ export default function RestaurantCard({
   return (
     <div
       onClick={() => onClick(restaurant)}
-      className="rounded-xs overflow-hidden transition-transform duration-300 border-1 border-gray-200 cursor-pointer"
+      className="rounded-sm overflow-hidden transition-transform duration-300 border-1 border-gray-200 cursor-pointer"
     >
       <div className="relative w-full aspect-[16/10] overflow-hidden">
         <img
