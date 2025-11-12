@@ -411,7 +411,7 @@ function RestaurantDetailContent() {
                   </svg>
                   {(filterExpanded || filterModalOpen) && (
                     <>
-                      <span className="text-sm font-medium whitespace-nowrap">
+                      <span className="text-sm font-medium whitespace-nowrap text-center flex-1">
                         Filters
                       </span>
                       <div
@@ -421,8 +421,8 @@ function RestaurantDetailContent() {
                           closeButtonClickedRef.current = true;
                           setFilterModalOpen(false);
                         }}
-                        className={`filter-close-btn rounded-full h-8 w-8 bg-white text-black flex justify-center items-center cursor-pointer ${
-                          filterModalOpen ? "visible" : "invisible"
+                        className={`filter-close-btn rounded-full h-8 w-8 bg-white text-black justify-center items-center cursor-pointer ${
+                          filterModalOpen ? "flex" : "hidden"
                         }`}
                       >
                         <svg

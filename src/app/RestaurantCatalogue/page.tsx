@@ -220,7 +220,7 @@ function RestaurantCatalogueContent() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-base-100">
+    <div className="w-full min-h-screen bg-base-100 overflow-x-clip">
       {/* Logout Message Notification */}
       {logoutMessage && (
         <div className="fixed top-20 md:top-24 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
@@ -268,10 +268,10 @@ function RestaurantCatalogueContent() {
           {/* Desktop Sticky Search/Filter Section */}
           <div className="hidden md:block md:sticky top-16 md:top-20 z-40 md:-mx-4 md:px-4 md:py-6 mb-[-1px] overflow-visible relative">
             {/* Desktop Layout */}
-            <div className="flex items-center justify-center gap-4 relative w-full">
+            <div className="flex items-center justify-center gap-4 relative w-full max-w-[100vw]">
               {/* Date/Time/Budget Inputs */}
-              <div className="flex items-center gap-3 bg-white rounded-full px-8 h-16 border border-base-200">
-                <div className="border-r border-gray-200 pr-6">
+              <div className="flex items-center gap-2 md:gap-3 bg-white rounded-full px-4 md:px-8 h-16 border border-base-200 min-w-0 flex-shrink">
+                <div className="border-r border-gray-200 pr-3 md:pr-6 min-w-0 flex-shrink">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Date
                   </label>
@@ -281,25 +281,25 @@ function RestaurantCatalogueContent() {
                     onChange={(e) => setWhen(e.target.value)}
                     className="w-full text-sm text-gray-600 placeholder-gray-400 focus:outline-none cursor-pointer px-2"
                   /> */}
-                  <p className="text-sm text-gray-600 whitespace-nowrap">
+                  <p className="text-sm text-gray-600 whitespace-nowrap truncate">
                     {isAuthenticated
                       ? getDeliveryDisplayText(cutoffTime, "short")
                       : "Login To View"}
                   </p>
                 </div>
-                <div className="border-r border-gray-200 pr-6">
+                <div className="border-r border-gray-200 pr-3 md:pr-6 min-w-0 flex-shrink">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Time
                   </label>
-                  <p className="text-sm text-gray-600 placeholder-gray-400 whitespace-nowrap">
+                  <p className="text-sm text-gray-600 placeholder-gray-400 whitespace-nowrap truncate">
                     {time ? time : "Login To View"}
                   </p>
                 </div>
-                <div className="pr-3">
+                <div className="pr-2 md:pr-3 min-w-0 flex-shrink">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Budget
                   </label>
-                  <p className="text-sm text-gray-600 whitespace-nowrap">
+                  <p className="text-sm text-gray-600 whitespace-nowrap truncate">
                     {isAuthenticated
                       ? budget !== null
                         ? `$${parseFloat(budget).toFixed(2)}`
@@ -310,7 +310,7 @@ function RestaurantCatalogueContent() {
               </div>
 
               {/* Right Side Buttons Container */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-shrink-0">
                 {/* Search Button/Bar */}
                 <div
                   className="group flex items-center"
@@ -326,7 +326,7 @@ function RestaurantCatalogueContent() {
                 >
                   <div
                     className={`flex items-center bg-white rounded-full transition-all duration-300 ease-in-out overflow-hidden h-16 border border-base-200 px-4 gap-3 ${
-                      searchExpanded ? "w-[400px]" : "w-[200px]"
+                      searchExpanded ? "w-[280px] lg:w-[400px]" : "w-[200px]"
                     }`}
                   >
                     <svg
@@ -664,7 +664,7 @@ function RestaurantCatalogueContent() {
                   Loading restaurants...
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-4 gap-1 md:px-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-4 md:px-12">
                   {restaurants.map((restaurant) => (
                     <RestaurantCard
                       key={restaurant.id}
