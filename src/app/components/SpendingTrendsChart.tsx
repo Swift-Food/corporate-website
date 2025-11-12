@@ -137,20 +137,7 @@ export function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
     return years.size > 1;
   }, [displayTrends]);
 
-  if (displayTrends.length === 0) {
-    return (
-      <div className="bg-base-200 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-slate-900 mb-6">
-          Spending Trends
-        </h3>
-        <p className="text-sm text-slate-500 text-center py-8">
-          No spending data available
-        </p>
-      </div>
-    );
-  }
-
-  const maxSpent = Math.max(...displayTrends.map((t) => t.totalSpent));
+  const maxSpent = displayTrends.length > 0 ? Math.max(...displayTrends.map((t) => t.totalSpent)) : 0;
 
   // Month names
   const monthNames = [
@@ -315,8 +302,20 @@ export function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
         </div>
       </div>
 
-      <div className="flex items-end justify-between gap-2 flex-1 w-full">
-        {displayTrends.map((trend, index) => {
+      {displayTrends.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center py-12">
+            <p className="text-lg font-semibold text-slate-700 mb-2">
+              Invalid date range
+            </p>
+            <p className="text-sm text-slate-500">
+              No data available for the selected period
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-end justify-between gap-2 flex-1 w-full">
+          {displayTrends.map((trend, index) => {
           const percentage =
             maxSpent > 0 ? (trend.totalSpent / maxSpent) * 100 : 0;
           const monthName = new Date(
@@ -373,7 +372,8 @@ export function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
