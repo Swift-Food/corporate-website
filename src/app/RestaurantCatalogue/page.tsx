@@ -220,7 +220,7 @@ function RestaurantCatalogueContent() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-base-100">
+    <div className="w-full min-h-screen bg-base-100 overflow-x-clip">
       {/* Logout Message Notification */}
       {logoutMessage && (
         <div className="fixed top-20 md:top-24 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
@@ -310,7 +310,7 @@ function RestaurantCatalogueContent() {
               </div>
 
               {/* Right Side Buttons Container */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-shrink-0">
                 {/* Search Button/Bar */}
                 <div
                   className="group flex items-center"
@@ -326,7 +326,7 @@ function RestaurantCatalogueContent() {
                 >
                   <div
                     className={`flex items-center bg-white rounded-full transition-all duration-300 ease-in-out overflow-hidden h-16 border border-base-200 px-4 gap-3 ${
-                      searchExpanded ? "w-[400px]" : "w-[200px]"
+                      searchExpanded ? "w-[280px] lg:w-[400px]" : "w-[200px]"
                     }`}
                   >
                     <svg
