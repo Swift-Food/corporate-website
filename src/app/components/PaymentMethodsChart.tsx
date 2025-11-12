@@ -60,11 +60,11 @@ export function PaymentMethodsChart({
               fill="none"
               stroke="#ffb3cc"
               strokeWidth={strokeWidth}
-              strokeDasharray={`${walletDash} ${circumference}`}
+              strokeDasharray={`${walletDash} ${circumference - walletDash}`}
+              strokeDashoffset={0}
               transform={`rotate(-90 ${center} ${center})`}
               style={{
-                animation: 'fillWallet 1s ease-out forwards',
-                strokeDashoffset: circumference,
+                animation: 'growWallet 1s ease-out forwards',
               }}
             />
           )}
@@ -78,11 +78,11 @@ export function PaymentMethodsChart({
               fill="none"
               stroke="#ffdd83"
               strokeWidth={strokeWidth}
-              strokeDasharray={`${stripeDash} ${circumference}`}
+              strokeDasharray={`0 ${circumference}`}
+              strokeDashoffset={0}
               transform={`rotate(-90 ${center} ${center})`}
               style={{
-                animation: 'fillStripe 1s ease-out 0.3s forwards',
-                strokeDashoffset: circumference,
+                animation: 'growStripe 1s ease-out 0.3s forwards',
               }}
             />
           )}
@@ -90,20 +90,22 @@ export function PaymentMethodsChart({
       </div>
 
       <style jsx>{`
-        @keyframes fillWallet {
+        @keyframes growWallet {
           from {
-            stroke-dashoffset: ${circumference};
+            stroke-dasharray: 0 ${circumference};
           }
           to {
-            stroke-dashoffset: 0;
+            stroke-dasharray: ${walletDash} ${circumference - walletDash};
           }
         }
 
-        @keyframes fillStripe {
+        @keyframes growStripe {
           from {
-            stroke-dashoffset: ${circumference};
+            stroke-dasharray: 0 ${circumference};
+            stroke-dashoffset: 0;
           }
           to {
+            stroke-dasharray: ${stripeDash} ${circumference - stripeDash};
             stroke-dashoffset: ${-walletDash};
           }
         }
