@@ -132,7 +132,7 @@ export function StatsOverview({ organizationId }: StatsOverviewProps) {
             </h3>
             <Store className="w-5 h-5 text-slate-400" />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-hide">
             {stats.topRestaurants.slice(0, 5).map((restaurant, index) => (
               <RestaurantItem
                 key={restaurant.restaurantId}
