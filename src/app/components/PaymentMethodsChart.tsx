@@ -34,11 +34,13 @@ export function PaymentMethodsChart({
   const walletDash = (walletPercentage / 100) * circumference;
   const stripeDash = (stripePercentage / 100) * circumference;
 
+  const center = size / 2;
+
   return (
     <div className="flex flex-col items-center">
       {/* Donut Chart */}
       <div className="relative mb-6">
-        <svg width={size} height={size} className="transform -rotate-90">
+        <svg width={size} height={size}>
           {/* Background circle */}
           <circle
             cx={size / 2}
@@ -48,6 +50,7 @@ export function PaymentMethodsChart({
             stroke="#f1f5f9"
             strokeWidth={strokeWidth}
           />
+
           {/* Wallet segment (swift-pink) - only render if > 0 */}
           {walletPercentage > 0 && (
             <circle
@@ -58,10 +61,11 @@ export function PaymentMethodsChart({
               stroke="#ffb3cc"
               strokeWidth={strokeWidth}
               strokeDasharray={`${walletDash} ${circumference}`}
-              strokeLinecap="round"
               className="transition-all duration-500"
+              transform={`rotate(-90 ${center} ${center})`}
             />
           )}
+
           {/* Stripe segment (swift-yellow) - only render if > 0 */}
           {stripePercentage > 0 && (
             <circle
@@ -73,8 +77,8 @@ export function PaymentMethodsChart({
               strokeWidth={strokeWidth}
               strokeDasharray={`${stripeDash} ${circumference}`}
               strokeDashoffset={-walletDash}
-              strokeLinecap="round"
               className="transition-all duration-500"
+              transform={`rotate(-90 ${center} ${center})`}
             />
           )}
         </svg>
