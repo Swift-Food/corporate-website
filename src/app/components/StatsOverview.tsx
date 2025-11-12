@@ -15,6 +15,7 @@ import {
   Store,
 } from "lucide-react";
 import { PaymentMethodsChart } from "./PaymentMethodsChart";
+import { SpendingTrendsChart } from "./SpendingTrendsChart";
 
 interface StatsOverviewProps {
   organizationId: string;
@@ -230,59 +231,3 @@ function RestaurantItem({ rank, name, spent, orders }: RestaurantItemProps) {
   );
 }
 
-// Spending Trends Chart
-interface SpendingTrendsChartProps {
-  trends: SpendingTrend[];
-}
-
-function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
-  if (trends.length === 0) {
-    return null;
-  }
-
-  const maxSpent = Math.max(...trends.map((t) => t.totalSpent));
-
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-      <h3 className="text-lg font-semibold text-slate-900 mb-6">
-        Spending Trends
-      </h3>
-      <div className="space-y-4">
-        {trends.map((trend, index) => {
-          const percentage = (trend.totalSpent / maxSpent) * 100;
-          const monthName = new Date(
-            trend.year,
-            trend.month - 1
-          ).toLocaleString("default", {
-            month: "short",
-            year: "numeric",
-          });
-
-          return (
-            <div key={`${trend.year}-${trend.month}`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-700">
-                  {monthName}
-                </span>
-                <div className="text-right">
-                  <span className="text-sm font-semibold text-slate-900">
-                    £{trend.totalSpent.toFixed(2)}
-                  </span>
-                  <span className="text-xs text-slate-500 ml-2">
-                    ({trend.totalOrders} orders)
-                  </span>
-                </div>
-              </div>
-              <div className="w-full bg-slate-200 rounded-full h-3">
-                <div
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all"
-                  style={{ width: `${percentage}%` }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}

@@ -84,3 +84,12 @@ body {
     display: none;
   }
 }
+
+@keyframes growBar {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
