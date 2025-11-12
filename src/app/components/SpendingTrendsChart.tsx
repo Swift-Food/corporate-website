@@ -10,6 +10,7 @@ interface SpendingTrendsChartProps {
 
 export function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
   // Test data - remove this when you have real data
+  console.log(trends);
   const testData: SpendingTrend[] = [
     {
       month: 10,
@@ -77,7 +78,8 @@ export function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
   ];
 
   // Use test data if no real data is available
-  const allTrends = trends.length > 1 ? trends : testData;
+  // const allTrends = trends.length > 0 ? trends : testData;
+  const allTrends = trends;
 
   // Sort trends by date
   const sortedTrends = useMemo(() => {
@@ -137,7 +139,10 @@ export function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
     return years.size > 1;
   }, [displayTrends]);
 
-  const maxSpent = displayTrends.length > 0 ? Math.max(...displayTrends.map((t) => t.totalSpent)) : 0;
+  const maxSpent =
+    displayTrends.length > 0
+      ? Math.max(...displayTrends.map((t) => t.totalSpent))
+      : 0;
 
   // Month names
   const monthNames = [
@@ -316,62 +321,62 @@ export function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
       ) : (
         <div className="flex items-end justify-between gap-2 flex-1 w-full">
           {displayTrends.map((trend, index) => {
-          const percentage =
-            maxSpent > 0 ? (trend.totalSpent / maxSpent) * 100 : 0;
-          const monthName = new Date(
-            trend.year,
-            trend.month - 1
-          ).toLocaleString("default", {
-            month: "short",
-          });
+            const percentage =
+              maxSpent > 0 ? (trend.totalSpent / maxSpent) * 100 : 0;
+            const monthName = new Date(
+              trend.year,
+              trend.month - 1
+            ).toLocaleString("default", {
+              month: "short",
+            });
 
-          return (
-            <div
-              key={`${trend.year}-${trend.month}`}
-              className="flex-1 flex flex-col items-center gap-2 group h-full"
-            >
-              {/* Bar */}
-              <div className="relative w-full flex flex-col justify-end h-full">
-                <div
-                  className="w-full bg-[#ffb3cc] rounded-t-md hover:opacity-80 cursor-pointer"
-                  style={{
-                    height: `${percentage}%`,
-                    transformOrigin: "bottom",
-                    animation: `growBar 1s ease-out ${index * 0.1}s forwards`,
-                  }}
-                >
-                  {/* Tooltip on hover */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    £{trend.totalSpent.toFixed(2)}
-                    <br />
-                    {trend.totalOrders} orders
+            return (
+              <div
+                key={`${trend.year}-${trend.month}`}
+                className="flex-1 flex flex-col items-center gap-2 group h-full"
+              >
+                {/* Bar */}
+                <div className="relative w-full flex flex-col justify-end h-full">
+                  <div
+                    className="w-full bg-[#ffb3cc] rounded-t-md hover:opacity-80 cursor-pointer"
+                    style={{
+                      height: `${percentage}%`,
+                      transformOrigin: "bottom",
+                      animation: `growBar 1s ease-out ${index * 0.1}s forwards`,
+                    }}
+                  >
+                    {/* Tooltip on hover */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      £{trend.totalSpent.toFixed(2)}
+                      <br />
+                      {trend.totalOrders} orders
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Month label */}
-              <div className="flex flex-col items-center min-h-[2.5rem]">
-                <span className="text-xs font-medium text-slate-600">
-                  {monthName}
-                </span>
-                {/* Year label - show for first column or Jan or first month of a new year */}
-                {hasMultipleYears &&
-                (index === 0 ||
-                  trend.month === 1 ||
-                  (index > 0 &&
-                    displayTrends[index - 1].year !== trend.year)) ? (
-                  <span className="text-xs font-semibold text-slate-800 mt-1">
-                    {trend.year}
+                {/* Month label */}
+                <div className="flex flex-col items-center min-h-[2.5rem]">
+                  <span className="text-xs font-medium text-slate-600">
+                    {monthName}
                   </span>
-                ) : (
-                  hasMultipleYears && (
-                    <span className="text-xs mt-1 invisible">0000</span>
-                  )
-                )}
+                  {/* Year label - show for first column or Jan or first month of a new year */}
+                  {hasMultipleYears &&
+                  (index === 0 ||
+                    trend.month === 1 ||
+                    (index > 0 &&
+                      displayTrends[index - 1].year !== trend.year)) ? (
+                    <span className="text-xs font-semibold text-slate-800 mt-1">
+                      {trend.year}
+                    </span>
+                  ) : (
+                    hasMultipleYears && (
+                      <span className="text-xs mt-1 invisible">0000</span>
+                    )
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
         </div>
       )}
     </div>
