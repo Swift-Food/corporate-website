@@ -61,8 +61,11 @@ export function PaymentMethodsChart({
               stroke="#ffb3cc"
               strokeWidth={strokeWidth}
               strokeDasharray={`${walletDash} ${circumference}`}
-              className="transition-all duration-500"
               transform={`rotate(-90 ${center} ${center})`}
+              style={{
+                animation: 'fillWallet 1s ease-out forwards',
+                strokeDashoffset: circumference,
+              }}
             />
           )}
 
@@ -76,13 +79,35 @@ export function PaymentMethodsChart({
               stroke="#ffdd83"
               strokeWidth={strokeWidth}
               strokeDasharray={`${stripeDash} ${circumference}`}
-              strokeDashoffset={-walletDash}
-              className="transition-all duration-500"
               transform={`rotate(-90 ${center} ${center})`}
+              style={{
+                animation: 'fillStripe 1s ease-out 0.3s forwards',
+                strokeDashoffset: circumference,
+              }}
             />
           )}
         </svg>
       </div>
+
+      <style jsx>{`
+        @keyframes fillWallet {
+          from {
+            stroke-dashoffset: ${circumference};
+          }
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+
+        @keyframes fillStripe {
+          from {
+            stroke-dashoffset: ${circumference};
+          }
+          to {
+            stroke-dashoffset: ${-walletDash};
+          }
+        }
+      `}</style>
 
       {/* Legend */}
       <div className="space-y-3 w-full">
