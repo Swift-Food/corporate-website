@@ -230,4 +230,3 @@ function RestaurantItem({ rank, name, spent, orders }: RestaurantItemProps) {
     </div>
   );
 }
-

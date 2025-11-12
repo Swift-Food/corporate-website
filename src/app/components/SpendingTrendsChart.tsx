@@ -73,12 +73,12 @@ export function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
   const maxSpent = Math.max(...displayTrends.map((t) => t.totalSpent));
 
   return (
-    <div className="bg-base-200 rounded-xl p-6 h-full">
+    <div className="bg-base-200 rounded-xl p-6 h-full flex flex-col">
       <h3 className="text-lg font-semibold text-slate-900 mb-6">
         Spending Trends
       </h3>
 
-      <div className="flex items-end justify-between gap-2 h-48">
+      <div className="flex items-end justify-between gap-2 flex-1 w-full">
         {displayTrends.map((trend, index) => {
           const percentage =
             maxSpent > 0 ? (trend.totalSpent / maxSpent) * 100 : 0;
