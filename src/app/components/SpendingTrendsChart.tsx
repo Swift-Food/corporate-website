@@ -10,7 +10,6 @@ interface SpendingTrendsChartProps {
 
 export function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
   // Test data - remove this when you have real data
-  console.log(trends);
   const testData: SpendingTrend[] = [
     {
       month: 10,
@@ -80,6 +79,22 @@ export function SpendingTrendsChart({ trends }: SpendingTrendsChartProps) {
   // Use test data if no real data is available
   // const allTrends = trends.length > 0 ? trends : testData;
   const allTrends = trends;
+
+  // Early return if no data at all
+  if (!allTrends || allTrends.length === 0) {
+    return (
+      <div className="bg-base-200 rounded-xl p-6 h-full flex flex-col min-h-[480px] items-center justify-center">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">
+            No data available yet
+          </h3>
+          <p className="text-sm text-slate-500">
+            Spending trends will appear once orders are placed
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Sort trends by date
   const sortedTrends = useMemo(() => {
