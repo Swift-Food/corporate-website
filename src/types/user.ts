@@ -1,25 +1,24 @@
 // User Roles
 export enum UserRole {
-  CONSUMER = 'CONSUMER',
-  RESTAURANT_USER = 'RESTAURANT_USER',
-  CORPORATE_EMPLOYEE =  'corporate_employee',
-  ADMIN = 'admin',
-  
+  CONSUMER = "CONSUMER",
+  RESTAURANT_USER = "RESTAURANT_USER",
+  CORPORATE_EMPLOYEE = "corporate_employee",
+  ADMIN = "admin",
 }
 
 // Corporate User Roles
 export enum CorporateUserRole {
-  ADMIN = 'admin',
-  MANAGER = 'manager',
-  EMPLOYEE = 'employee',
+  ADMIN = "admin",
+  MANAGER = "manager",
+  EMPLOYEE = "employee",
 }
 
 // Corporate User Status
 export enum CorporateUserStatus {
-  PENDING = 'pending',
-  ACTIVE = 'active',
-  SUSPENDED = 'suspended',
-  INACTIVE = 'inactive',
+  PENDING = "pending",
+  ACTIVE = "active",
+  SUSPENDED = "suspended",
+  INACTIVE = "inactive",
 }
 
 // Base User interface
@@ -43,6 +42,7 @@ export interface CorporateUser {
   employeeCode?: string;
   firstName?: string;
   lastName?: string;
+  fullName?: string;
   department?: string;
   designation?: string;
   dailyBudgetLimit: number;
@@ -71,7 +71,6 @@ export interface CorporateUser {
 export interface LoginDto {
   email: string;
   password: string;
-
 }
 
 export interface LoginResponse {
