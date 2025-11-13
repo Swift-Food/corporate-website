@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ProtectedRoute } from "../../../interceptors/auth/protectedRoute";
 import { useAuth } from "../../../interceptors/auth/authContext";
 import { employeesApi } from "@/api/employees";
@@ -34,7 +35,11 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const { corporateUser, user, organizationId } = useAuth();
-  const [activeTab, setActiveTab] = useState<
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get active tab from URL, default to "overview"
+  const activeTab = (searchParams.get("tab") as
     | "overview"
     | "employees"
     | "job-titles"
@@ -42,7 +47,15 @@ function DashboardContent() {
     | "wallet"
     | "contact"
     | "report"
-  >("overview");
+    | null) || "overview";
+
+  // Function to update the URL with the selected tab
+  const setActiveTab = (tab: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
   const [employees, setEmployees] = useState<CorporateUser[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<CorporateUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);

@@ -1,7 +1,7 @@
 // OrdersTab.tsx - Unified Orders Tab with sub-tabs
 "use client";
 
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { OrderSettings } from "./OrderSettings";
 import { TodaysOrder } from "./TodaysOrder";
 import { ApprovedOrdersTab } from "./ApprovedOrdersTab";
@@ -57,9 +57,22 @@ export function OrdersTab({
   onRefreshCateringOrders,
   error,
 }: OrdersTabProps) {
-  const [activeSubTab, setActiveSubTab] = useState<
-    "orders" | "approved" | "catering"
-  >("orders");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get active sub-tab from URL, default to "orders"
+  const activeSubTab = (searchParams.get("subtab") as
+    | "orders"
+    | "approved"
+    | "catering"
+    | null) || "orders";
+
+  // Function to update the URL with the selected sub-tab
+  const setActiveSubTab = (subtab: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("subtab", subtab);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
   return (
     <div className="space-y-6">
