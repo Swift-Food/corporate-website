@@ -96,9 +96,7 @@ export const employeesApi = {
     await apiClient.post(
       `/corporate-users/${employeeId}/deactivate`,
       {},
-      {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      }
+     
     );
   },
   
@@ -106,9 +104,7 @@ export const employeesApi = {
     await apiClient.post(
       `/corporate-users/${employeeId}/reactivate`,
       {},
-      {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      }
+     
     );
   }
 };

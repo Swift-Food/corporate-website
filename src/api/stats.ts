@@ -1,5 +1,5 @@
 // lib/api/stats.ts
-import { apiClient } from './client';
+import apiClient from './client';
 import { DashboardStats, MonthlyReport, SpendingTrend } from '@/types/stats';
 
 export const statsApi = {

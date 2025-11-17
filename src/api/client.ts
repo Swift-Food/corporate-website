@@ -1,23 +1,41 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+// src/api/client.ts
+import axios from 'axios';
 
-// Create axios instance
-export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
-  timeout: 30000,
 });
 
-// Request interceptor - Add auth token
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("auth_token");
+// Track if we're currently refreshing to avoid multiple refresh calls
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
 
-    if (token && config.headers) {
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
+
+// Request interceptor - add token
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token');
+    
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
+    
     return config;
   },
   (error) => {
@@ -25,30 +43,95 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - Handle errors
+// Response interceptor - handle 401 and refresh token
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
-    // Only auto-logout on 401 if it's an authentication endpoint
-    // This prevents premature logout on temporary network issues
-    if (error.response?.status === 401) {
-      const url = error.config?.url || "";
+  async (error) => {
+    const originalRequest = error.config;
 
-      // Only clear auth and show login modal for auth-related endpoints
-      if (url.includes("/auth/") || url.includes("/corporate-users/email/")) {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("user_data");
+    // If error is 401 and we haven't tried refreshing yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // Skip refresh for login and refresh endpoints
+      if (
+        originalRequest.url?.includes('/auth/login') ||
+        originalRequest.url?.includes('/auth/refresh')
+      ) {
+        return Promise.reject(error);
+      }
 
-        // Dispatch a custom event to open LoginModal and show relogin message
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("open-login-modal", {
-              detail: {
-                message: "Your session has expired. Please log in again.",
-              },
-            })
-          );
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem('refresh_token');
+
+      if (!refreshToken) {
+        // No refresh token, logout
+        isRefreshing = false;
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_data');
+        
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('logout_message', 'Your session has expired. Please log in again.');
+          window.location.href = '/login';
         }
+        
+        return Promise.reject(error);
+      }
+
+      try {
+        // Call refresh endpoint
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/auth/refresh-consumer`,
+          { refresh_token: refreshToken }
+        );
+
+        const { access_token, refresh_token: new_refresh_token } = response.data;
+
+        // Save new tokens
+        localStorage.setItem('auth_token', access_token);
+        localStorage.setItem('refresh_token', new_refresh_token);
+
+        // Update authorization header
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+
+        // Process queued requests
+        processQueue(null, access_token);
+
+        isRefreshing = false;
+
+        // Retry original request with new token
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        // Refresh failed, logout
+        processQueue(refreshError, null);
+        isRefreshing = false;
+
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_data');
+
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('logout_message', 'Your session has expired. Please log in again.');
+          window.location.href = '/login';
+        }
+
+        return Promise.reject(refreshError);
       }
     }
 

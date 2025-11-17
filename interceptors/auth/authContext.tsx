@@ -44,29 +44,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         const token = localStorage.getItem("auth_token");
+        const refreshToken = localStorage.getItem("refresh_token"); // ✅ Add this
         const storedUserData = localStorage.getItem("user_data");
 
-        if (!token || !storedUserData) {
+        if (!token || !storedUserData || !refreshToken) { // ✅ Check refresh token
           setState((prev) => ({ ...prev, isLoading: false }));
           return;
         }
 
-        // Parse stored user data
         const userData = JSON.parse(storedUserData);
-
-        // Decode token to check expiration
         const payload: JWTPayload = authApi.decodeToken(token);
 
         if (!payload || !payload.sub) {
           throw new Error("Invalid token");
         }
 
-        // Check if token is expired
-        // if (payload.exp && payload.exp * 1000 < Date.now()) {
-        //   throw new Error("Token expired");
-        // }
-
-        // Restore auth state from localStorage
+        // Restore auth state
         setState({
           user: userData.user,
           corporateUser: userData.corporateUser,
@@ -75,40 +68,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isAuthenticated: true,
         });
 
-        // Validate profile with backend
+        // Validate profile
         try {
           await authApi.getProfile();
         } catch (profileError: any) {
           console.error("Profile validation failed:", profileError);
-
-          let message = "Your session has expired. Please log in again.";
-
-          if (profileError.response?.status === 403) {
-            message =
-              "Your account is not active. Please contact your manager.";
-          } else if (profileError.response?.status === 401) {
-            message = "Your session has expired. Please log in again.";
-          } else if (profileError.response?.data?.message) {
-            message = profileError.response.data.message;
-          }
-
-          // Clear auth data and show message
-          localStorage.removeItem("auth_token");
-          localStorage.removeItem("user_data");
-          sessionStorage.setItem("logout_message", message);
-
-          setState({
-            user: null,
-            corporateUser: null,
-            token: null,
-            isLoading: false,
-            isAuthenticated: false,
-          });
+          // Error will be handled by interceptor (auto-refresh or logout)
         }
       } catch (error) {
         console.error("Auth initialization failed:", error);
-        // Clear invalid auth data
         localStorage.removeItem("auth_token");
+        localStorage.removeItem("refresh_token"); // ✅ Add this
         localStorage.removeItem("user_data");
         setState({
           user: null,
@@ -123,13 +93,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
   }, []);
 
+  // AuthContext.tsx - Update login function
   const login = useCallback(
     async (email: string, password: string) => {
       try {
-        // Call login API
-        const { access_token } = await authApi.login(email, password);
+        // Get both access and refresh tokens
+        const { access_token, refresh_token } = await authApi.login(email, password);
 
-        // Decode token
         const payload: JWTPayload = authApi.decodeToken(access_token);
 
         const user: User = {
@@ -141,11 +111,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           updatedAt: new Date(),
         };
 
-        // Fetch corporate user profile
         const corporateUser = await authApi.getCorporateProfile(email);
 
-        // Save token and user data to localStorage
+        // Save BOTH tokens
         localStorage.setItem("auth_token", access_token);
+        localStorage.setItem("refresh_token", refresh_token); // ✅ Add this
+
         localStorage.setItem(
           "user_data",
           JSON.stringify({
@@ -162,13 +133,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isAuthenticated: true,
         });
 
-        // Check if there's a redirect URL stored (e.g., from checkout page)
         const redirectUrl = localStorage.getItem("redirect_after_login");
         if (redirectUrl) {
           localStorage.removeItem("redirect_after_login");
           router.push(redirectUrl);
         } else {
-          // Default redirect to restaurant catalogue after successful login
           router.push("/RestaurantCatalogue");
         }
       } catch (error) {
@@ -179,10 +148,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [router]
   );
 
+  // AuthContext.tsx - Update logout function
   const logout = useCallback(
     (message?: string) => {
       localStorage.removeItem("auth_token");
+      localStorage.removeItem("refresh_token"); // ✅ Add this
       localStorage.removeItem("user_data");
+      
       setState({
         user: null,
         corporateUser: null,
@@ -192,7 +164,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (message) {
-        // Store the message to show after redirect
         sessionStorage.setItem("logout_message", message);
       }
 

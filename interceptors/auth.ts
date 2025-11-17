@@ -99,7 +99,6 @@ export const authApi = {
    */
   getProfile: async (): Promise<any> => {
     const response = await apiClient.get<any>("/auth/profile");
-    console.log("Getting profile: ", response)
     return response.data;
   },
 
@@ -131,5 +130,13 @@ export const authApi = {
       console.error("Failed to decode token:", error);
       return null;
     }
+  },
+
+  refreshToken: async (refreshToken: string) => {
+    console.log("refresh called")
+    const response = await apiClient.post('/auth/refresh-corporate', {
+      refresh_token: refreshToken,
+    });
+    return response.data; // Returns { access_token, refresh_token, expires_in, adminMode }
   },
 };
