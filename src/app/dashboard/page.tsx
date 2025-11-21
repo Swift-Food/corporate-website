@@ -24,6 +24,7 @@ import { WalletTab } from "./WalletTab";
 import { ContactTab } from "./ContactTab";
 import { MonthlyReport } from "../components/MonthlyReport";
 import { cateringOrdersApi } from "@/api/catering";
+import { CateringOrdersTab } from "./CateringOrdersTab";
 
 export default function DashboardPage() {
   return (
@@ -47,6 +48,7 @@ function DashboardContent() {
     | "wallet"
     | "contact"
     | "report"
+    | "catering-orders"
     | null) || "overview";
 
   // Function to update the URL with the selected tab
@@ -637,6 +639,7 @@ function DashboardContent() {
             orderCutoffTime={orderCutoffTime}
             deliveryTimeWindow={deliveryTimeWindow}
             organizationId={organizationId}
+            managerId={corporateUser.id}
             todaysOrder={todaysOrder}
             isLoading={isLoading}
             onUpdateSettings={loadOrganizationSettings}
@@ -645,7 +648,6 @@ function DashboardContent() {
             onBulkRejectSubOrders={handleBulkRejectSubOrders}
             approvedOrders={approvedOrders}
             onRefreshApprovedOrders={loadApprovedOrders}
-            managerId={corporateUser.id}
             cateringOrders={cateringOrders}
             cateringSummary={cateringSummary}
             onRefreshCateringOrders={loadCateringOrders}
@@ -669,6 +671,14 @@ function DashboardContent() {
             organizationId={organizationId}
             managerId={corporateUser?.id}
             organizationName={organizationName}
+          />
+        )}
+        {activeTab === 'catering-orders' && corporateUser?.id && organizationId && (
+          <CateringOrdersTab
+            isLoading={isLoading}
+            orders={cateringOrders}
+            summary={cateringSummary}
+            onRefresh={loadCateringOrders}
           />
         )}
       </main>

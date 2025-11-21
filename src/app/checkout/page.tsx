@@ -6,7 +6,6 @@ import { restaurantApi } from "@/api/restaurant";
 import {
   CreateEmployeeOrderDto,
   RestaurantOrder,
-  MenuItem,
   OrderResponse,
 } from "@/types/order";
 import { MenuItemStyle, MenuItemStatus } from "@/types/menuItem";
@@ -159,56 +158,43 @@ function CheckoutPageNoFilterContext() {
     return fallbackDate.toISOString();
   };
 
-  // Group cart items by restaurant
-  const groupedByRestaurant = cartItems.reduce((acc, cartItem) => {
-    const restaurantId = cartItem.item.restaurantId;
-    if (!acc[restaurantId]) {
-      acc[restaurantId] = {
-        restaurantId,
-        restaurantName: restaurantNames[restaurantId] || "Unknown Restaurant",
-        items: [],
-      };
-    }
-    acc[restaurantId].items.push(cartItem);
-    return acc;
-  }, {} as Record<string, { restaurantId: string; restaurantName: string; items: typeof cartItems }>);
 
   // Helper function to get items based on selected action
   const getItemsForOrder = () => {
     let itemsToOrder = [...cartItems];
 
-    // If user chose to add to existing order, merge the items
-    if (orderAction === "add" && existingOrder) {
-      // Convert existing order items back to cart item format
-      existingOrder.restaurantOrders?.forEach((restOrder) => {
-        restOrder.menuItems.forEach((menuItem) => {
-          itemsToOrder.push({
-            item: {
-              id: menuItem.menuItemId,
-              name: menuItem.name,
-              price: menuItem.unitPrice,
-              restaurantId: restOrder.restaurantId,
-              cateringQuantityUnit: menuItem.cateringQuantityUnit || 0,
-              feedsPerUnit: menuItem.feedsPerUnit || 0,
-              isDiscount: false,
-              allergens: [],
-              style: MenuItemStyle.CARD,
-              itemDisplayOrder: 0,
-              prepTime: 0,
-              averageRating: 0,
-              popular: false,
-              isAvailable: true,
-              status: "ACTIVE" as MenuItemStatus,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            quantity: menuItem.quantity,
-            selectedAddons: menuItem.selectedAddons?.map((addon) => ({
-              addonName: addon.groupTitle || "",
-              optionName: addon.name,
-              price: addon.price,
-              quantity: addon.quantity,
-            })),
+    if (orderAction === "add" && existingOrder && existingOrder.subOrders) {
+      existingOrder.subOrders.forEach((subOrder) => {
+        subOrder.restaurants?.forEach((restaurant) => {
+          restaurant.menuItems.forEach((menuItem) => {
+            itemsToOrder.push({
+              item: {
+                id: menuItem.menuItemId,
+                name: menuItem.menuItemName,
+                price: menuItem.customerUnitPrice,
+                restaurantId: restaurant.restaurantId,
+                cateringQuantityUnit: menuItem.cateringQuantityUnit || 0,
+                feedsPerUnit: menuItem.feedsPerUnit || 0,
+                isDiscount: menuItem.isDiscounted,
+                allergens: [],
+                style: MenuItemStyle.CARD,
+                itemDisplayOrder: 0,
+                prepTime: 0,
+                averageRating: 0,
+                popular: false,
+                isAvailable: true,
+                status: "ACTIVE" as MenuItemStatus,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+              quantity: menuItem.quantity,
+              selectedAddons: menuItem.selectedAddons?.map((addon) => ({
+                addonName: addon.groupTitle || "",
+                optionName: addon.name,
+                price: addon.customerUnitPrice,
+                quantity: addon.quantity,
+              })),
+            });
           });
         });
       });
@@ -291,53 +277,22 @@ function CheckoutPageNoFilterContext() {
       // Group items by restaurant
       const groupedItems = getGroupedItems(itemsToOrder);
 
-      // Transform cart items into the backend DTO format
       const restaurantOrders: RestaurantOrder[] = Object.values(
         groupedItems
-      ).map((group) => {
-        const menuItems: MenuItem[] = group.items.map((cartItem) => {
-          const price = parseFloat(cartItem.item.price?.toString() || "0");
-          const discountPrice = parseFloat(
-            cartItem.item.discountPrice?.toString() || "0"
-          );
-          const unitPrice =
-            cartItem.item.isDiscount && discountPrice > 0
-              ? discountPrice
-              : price;
-
-          // Calculate addon price
-          const addonPrice = (cartItem.selectedAddons || []).reduce(
-            (sum, addon) => sum + (addon.price || 0),
-            0
-          );
-
-          const totalItemPrice = (unitPrice + addonPrice) * cartItem.quantity;
-
-          return {
-            menuItemId: cartItem.item.id,
-            name: cartItem.item.name,
-            quantity: cartItem.quantity,
-            unitPrice,
-            totalPrice: totalItemPrice,
-            restaurantPrice: unitPrice,
-            cateringQuantityUnit: cartItem.item.cateringQuantityUnit,
-            feedsPerUnit: cartItem.item.feedsPerUnit,
-            selectedAddons: cartItem.selectedAddons?.map((addon) => ({
-              name: addon.optionName,
-              price: addon.price,
-              quantity: addon.quantity || 1,
-              groupTitle: addon.addonName,
-            })),
-          };
-        });
-
-        return {
-          restaurantId: group.restaurantId,
-          restaurantName: group.restaurantName,
-          menuItems,
-          specialInstructions: specialInstructions || undefined,
-        };
-      });
+      ).map((group) => ({
+        restaurantId: group.restaurantId,
+        restaurantName: group.restaurantName,
+        menuItems: group.items.map((cartItem) => ({
+          menuItemId: cartItem.item.id,
+          quantity: cartItem.quantity,
+          selectedAddons: cartItem.selectedAddons?.map((addon) => ({
+            name: addon.optionName,
+            quantity: addon.quantity || 1,
+            groupTitle: addon.addonName,
+          })),
+        })),
+        specialInstructions: specialInstructions || undefined,
+      }));
 
       const orderData: CreateEmployeeOrderDto = {
         restaurantOrders,

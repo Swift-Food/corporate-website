@@ -308,7 +308,7 @@ export default function OrderDetailsPage() {
         {/* Restaurant Orders */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-base-content">Order Items</h2>
-          {order.restaurantOrders.map((restOrder, idx) => (
+          {order.subOrders?.flatMap(subOrder => subOrder.restaurants || []).map((restaurant, idx) => (
             <div
               key={idx}
               className="card bg-base-100 rounded-xl border border-base-200"
@@ -317,22 +317,22 @@ export default function OrderDetailsPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="text-xl font-bold text-base-content">
-                      {restOrder.restaurantName}
+                      {restaurant.restaurantName}
                     </h3>
                   </div>
                 </div>
 
                 {/* Menu Items */}
                 <div className="space-y-3">
-                  {restOrder.menuItems.map((item, itemIdx) => (
+                  {restaurant.menuItems.map((item, itemIdx) => (
                     <div key={itemIdx} className="bg-base-200 rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <p className="font-semibold text-lg">
-                            {item.quantity}x {item.name}
+                            {item.quantity}x {item.menuItemName}
                           </p>
                           <p className="text-sm text-base-content/70">
-                            ${Number(item.unitPrice).toFixed(2)} each
+                            £{Number(item.customerUnitPrice).toFixed(2)} each
                           </p>
 
                           {/* Selected Addons */}
@@ -355,7 +355,7 @@ export default function OrderDetailsPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold">
-                            ${item.totalPrice.toFixed(2)}
+                            £{item.customerTotalPrice.toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -364,13 +364,13 @@ export default function OrderDetailsPage() {
                 </div>
 
                 {/* Special Instructions */}
-                {restOrder.specialInstructions && (
+                {restaurant.specialInstructions && (
                   <div className="mt-4 p-3 bg-base-300 rounded-lg">
                     <p className="text-sm font-semibold text-base-content/70 mb-1">
                       Special Instructions:
                     </p>
                     <p className="text-base text-base-content italic">
-                      {restOrder.specialInstructions}
+                      {restaurant.specialInstructions}
                     </p>
                   </div>
                 )}

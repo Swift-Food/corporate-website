@@ -1,11 +1,9 @@
 // app/(platform)/corporate/dashboard/CateringOrdersTab.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface CateringOrdersTabProps {
-  managerId: string;
-  organizationId: string;
   isLoading: boolean;
   orders: any[];
   summary: any;
@@ -13,8 +11,6 @@ interface CateringOrdersTabProps {
 }
 
 export function CateringOrdersTab({
-  managerId,
-  organizationId,
   isLoading,
   orders,
   summary,
@@ -214,7 +210,7 @@ export function CateringOrdersTab({
                   </div>
 
                   <div className="text-right flex-shrink-0">
-                    <p className="text-2xl font-bold text-slate-900">£{Number(order.finalTotal || 0).toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-slate-900">£{Number(order.customerFinalTotal || order.finalTotal || 0).toFixed(2)}</p>
                     {order.isPaidWithWallet && order.walletAmountUsed > 0 && (
                       <p className="text-sm text-green-600 mt-1">Paid: £{Number(order.walletAmountUsed).toFixed(2)}</p>
                     )}
@@ -229,17 +225,17 @@ export function CateringOrdersTab({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-slate-700 mb-2">
-                        {order.orderItems?.length || 0} Restaurant{order.orderItems?.length !== 1 ? 's' : ''}
+                        {(order.restaurants || order.orderItems)?.length || 0} Restaurant{(order.restaurants || order.orderItems)?.length !== 1 ? 's' : ''}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {order.orderItems?.slice(0, 3).map((item: any, idx: number) => (
+                        {(order.restaurants || order.orderItems)?.slice(0, 3).map((item: any, idx: number) => (
                           <span key={idx} className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs">
                             {item.restaurantName}
                           </span>
                         ))}
-                        {order.orderItems?.length > 3 && (
+                        {(order.restaurants || order.orderItems)?.length > 3 && (
                           <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs">
-                            +{order.orderItems.length - 3} more
+                            +{(order.restaurants || order.orderItems).length - 3} more
                           </span>
                         )}
                       </div>
@@ -269,41 +265,40 @@ export function CateringOrdersTab({
                   <h4 className="font-semibold text-slate-900 mb-4">Order Items</h4>
                   
                   <div className="space-y-6">
-                    {order.orderItems?.map((restaurantOrder: any, idx: number) => (
+                    {(order.restaurants || order.orderItems)?.map((restaurantOrder: any, idx: number) => (
                       <div key={idx} className="bg-white rounded-lg p-4 border border-slate-200">
                         <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-200">
                           <h5 className="font-semibold text-slate-900">{restaurantOrder.restaurantName}</h5>
                           <span className="text-sm font-medium text-slate-700">
-                            £{Number(restaurantOrder.totalPrice || 0).toFixed(2)}
+                            £{Number(restaurantOrder.customerTotal || restaurantOrder.totalPrice || 0).toFixed(2)}
                           </span>
                         </div>
-                        
+
                         <div className="space-y-3">
                           {restaurantOrder.menuItems?.map((menuItem: any, menuIdx: number) => (
                             <div key={menuIdx} className="flex items-start justify-between gap-4">
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-slate-800">{menuItem.name}</p>
+                                <p className="font-medium text-slate-800">{menuItem.menuItemName || menuItem.name}</p>
                                 <p className="text-sm text-slate-600 mt-1">
-                                  Quantity: {menuItem.quantity} × £{Number(menuItem.unitPrice || 0).toFixed(2)}
+                                  Quantity: {menuItem.quantity} × £{Number(menuItem.customerUnitPrice || menuItem.unitPrice || 0).toFixed(2)}
                                 </p>
-                                
-                                {/* Addons */}
+
                                 {menuItem.selectedAddons && menuItem.selectedAddons.length > 0 && (
                                   <div className="mt-2 space-y-1">
                                     {menuItem.selectedAddons.map((addon: any, addonIdx: number) => (
                                       <p key={addonIdx} className="text-xs text-slate-500 pl-4">
-                                        + {addon.name} 
+                                        + {addon.name}
                                         {addon.quantity > 1 && ` (×${addon.quantity})`}
-                                        {addon.price > 0 && ` - £${Number(addon.price).toFixed(2)}`}
+                                        {(addon.customerUnitPrice || addon.price) > 0 && ` - £${Number(addon.customerUnitPrice || addon.price).toFixed(2)}`}
                                       </p>
                                     ))}
                                   </div>
                                 )}
                               </div>
-                              
+
                               <div className="text-right flex-shrink-0">
                                 <p className="font-semibold text-slate-900">
-                                  £{Number(menuItem.totalPrice || 0).toFixed(2)}
+                                  £{Number(menuItem.customerTotalPrice || menuItem.totalPrice || 0).toFixed(2)}
                                 </p>
                               </div>
                             </div>
@@ -332,7 +327,7 @@ export function CateringOrdersTab({
                       )}
                       <div className="pt-2 border-t border-slate-200 flex justify-between">
                         <span className="font-semibold text-slate-900">Total</span>
-                        <span className="font-bold text-lg text-slate-900">£{Number(order.finalTotal || 0).toFixed(2)}</span>
+                        <span className="font-bold text-lg text-slate-900">£{Number(order.customerFinalTotal || order.finalTotal || 0).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>

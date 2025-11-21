@@ -12,6 +12,7 @@ interface OrdersTabProps {
   orderCutoffTime: string;
   deliveryTimeWindow: string;
   organizationId: string;
+  managerId: string;
   todaysOrder: any;
   isLoading: boolean;
   onUpdateSettings: () => void;
@@ -30,7 +31,6 @@ interface OrdersTabProps {
   onRefreshApprovedOrders: () => void;
 
   // Catering Orders props
-  managerId: string;
   cateringOrders: any[];
   cateringSummary: any;
   onRefreshCateringOrders: () => void;
@@ -43,6 +43,7 @@ export function OrdersTab({
   orderCutoffTime,
   deliveryTimeWindow,
   organizationId,
+  managerId,
   todaysOrder,
   isLoading,
   onUpdateSettings,
@@ -51,7 +52,6 @@ export function OrdersTab({
   onBulkRejectSubOrders,
   approvedOrders,
   onRefreshApprovedOrders,
-  managerId,
   cateringOrders,
   cateringSummary,
   onRefreshCateringOrders,
@@ -204,8 +204,6 @@ export function OrdersTab({
 
           {activeSubTab === "catering" && (
             <CateringOrdersTab
-              managerId={managerId}
-              organizationId={organizationId}
               isLoading={isLoading}
               orders={cateringOrders}
               summary={cateringSummary}

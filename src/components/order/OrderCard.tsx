@@ -68,31 +68,31 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
               {order.status.replace(/_/g, " ")}
             </div>
             <p className="text-lg font-bold mt-1">
-              £{Number(order.totalAmount).toFixed(2)}
+              £{Number(order.customerTotal).toFixed(2)}
             </p>
           </div>
         </div>
 
         {/* Restaurant Orders */}
         <div className="space-y-3">
-          {order.restaurantOrders.map((restOrder, idx) => (
+          {order.restaurants?.map((restaurant, idx) => (
             <div key={idx} className="bg-base-200 rounded-lg p-3">
-              <p className="font-semibold mb-2">{restOrder.restaurantName}</p>
+              <p className="font-semibold mb-2">{restaurant.restaurantName}</p>
               <div className="space-y-1">
-                {restOrder.menuItems.map((item, itemIdx) => (
+                {restaurant.menuItems.map((item, itemIdx) => (
                   <div key={itemIdx} className="flex justify-between text-sm">
                     <span className="text-base-content/80">
-                      {item.quantity}x {item.name}
+                      {item.quantity}x {item.menuItemName}
                     </span>
                     <span className="font-semibold">
-                      £{item.totalPrice.toFixed(2)}
+                      £{item.customerTotalPrice.toFixed(2)}
                     </span>
                   </div>
                 ))}
               </div>
-              {restOrder.specialInstructions && (
+              {restaurant.specialInstructions && (
                 <p className="text-xs text-base-content/60 mt-2 italic">
-                  Note: {restOrder.specialInstructions}
+                  Note: {restaurant.specialInstructions}
                 </p>
               )}
             </div>
