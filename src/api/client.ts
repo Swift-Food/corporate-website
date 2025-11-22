@@ -49,6 +49,18 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Handle 429 Too Many Requests
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after'];
+      const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 60000; // Default 60s
+
+      // Show user-friendly error message
+      console.warn(`Rate limit exceeded. Retry after ${waitTime / 1000} seconds`);
+
+      // Reject with custom error message
+      return Promise.reject(new Error(`Rate limit exceeded. Please try again in ${Math.ceil(waitTime / 1000)} seconds.`));
+    }
+
     // If error is 401 and we haven't tried refreshing yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Skip refresh for login and refresh endpoints
